@@ -1,8 +1,10 @@
 var http = require('http');
 const express = require('express');
 const getconnectToDatabase = require('./database_connect');
-const User = require('./User');
-const Grade = require('./Grade'); // Importez le modèle Grade
+const Role = require('./Role');
+const Utilisateur = require('./Utilisateur');
+const RoleAutorisation = require('./RoleAutorisation');
+const Autorisation = require('./Autorisation'); // Importez le modèle Grade
 const app = express();
 const port = 3000;
 
@@ -54,16 +56,16 @@ app.use(express.json())
 
 
 // Point de terminaison GET pour récupérer un utilisateur par son e-mail
-app.get('/get_user/:email', async (req, res) => {
+app.get('/get_utilisateur/:email', async (req, res) => {
     try {
       const email = req.params.email; // Récupérez l'e-mail de l'URL
   
       // Recherchez l'utilisateur dans la base de données par son e-mail
-      const user = await User.findOne({
+      const user = await Utilisateur.findOne({
         where: {
           email: email
         },
-        include: Grade // Inclure les grades associés à l'utilisateur
+        //include: Grade // Inclure les grades associés à l'utilisateur
       });
   
       if (user) {
@@ -79,14 +81,14 @@ app.get('/get_user/:email', async (req, res) => {
 
   
 // Point de terminaison GET pour récupérer tous les utilisateurs 
-app.get('/get_users', async (req, res) => {
+app.get('/get_utilisateurs', async (req, res) => {
     try {
       const email = req.params.email; // Récupérez l'e-mail de l'URL
   
       // Recherchez l'utilisateur dans la base de données par son e-mail
-      const users = await User.findAll({
+      const users = await Utilisateur.findAll({
       
-        include: Grade // Inclure les grades associés à l'utilisateur
+        //include: Grade // Inclure les grades associés à l'utilisateur
       });
   
       if (users) {
@@ -101,53 +103,14 @@ app.get('/get_users', async (req, res) => {
   });
 
 
-  app.post('/add_user', async (req, res) => {
-    try {
-        // Vérifiez si req.body est défini et non vide
-        if (!req.body || Object.keys(req.body).length === 0) {
-            return res.status(400).json({ error: 'Le corps de la requête est vide ou malformé' });
-        }
-
-        // Extraire les données de la requête
-        const { firstName, lastName, email, password, grades } = req.body;
-
-        // Hasher le mot de passe
-        const hashedPassword = await bcrypt.hash(password, saltRounds);
-
-        // Créer un nouvel utilisateur
-        const user = await User.create({
-            firstName: firstName,
-            lastName: lastName,
-            password: hashedPassword,
-            email: email
-        });
-
-        // Créer des grades associés à l'utilisateur
-        if (grades && grades.length > 0) {
-            await Promise.all(grades.map(async (gradeData) => {
-                const grade = await Grade.create({
-                    value: gradeData.value,
-                    day: gradeData.day,
-                    checked: gradeData.checked,
-                    UserId: user.id
-                });
-                return grade;
-            }));
-        }
-
-        res.status(201).json(user); // Renvoie l'utilisateur créé avec succès
-    } catch (error) {
-        console.error('Erreur lors de la création de l\'utilisateur :', error);
-        res.status(500).json({ error: 'Erreur serveur' }); // Renvoie une erreur serveur en cas de problème
-    }
-});
+ 
 
 
 // Fonction pour authentifier l'utilisateur
 async function check_and_get_login_user(email, password) {
     try {
         // Trouver l'utilisateur correspondant à l'email
-        const user = await User.findOne({ where: { email: email } });
+        const user = await Utilisateur.findOne({ where: { email: email } });
         
         // Vérifier si l'utilisateur existe
         if (!user) {
@@ -192,6 +155,165 @@ app.post('/login_user', async (req, res) => {
 });
 
 
+app.post('/change_user_password', async (req, res) => {
+  try {
+      // Vérifiez si req.body est défini et non vide
+      if (!req.body || Object.keys(req.body).length === 0) {
+          return res.status(400).json({ error: 'Le corps de la requête est vide ou malformé' });
+      }
+
+      // Extraire les données de la requête
+      const { email, password } = req.body;
+
+      // Vérifier si l'utilisateur existe dans la base de données
+      const user = await Utilisateur.findOne({ where: { email: email } });
+
+      if (!user) {
+          return res.status(404).json({ error: 'Utilisateur non trouvé' });
+      }
+
+      // Hasher le nouveau mot de passe
+      const hashedPassword = await bcrypt.hash(password, saltRounds);
+
+      // Mettre à jour le mot de passe de l'utilisateur
+      await user.update({ password: hashedPassword });
+
+      res.status(200).json({ message: 'Mot de passe mis à jour avec succès' }); // Renvoie un message de succès
+  } catch (error) {
+      console.error('Erreur lors de la mise à jour du mot de passe de l\'utilisateur :', error);
+      res.status(500).json({ error: 'Erreur serveur' }); // Renvoie une erreur serveur en cas de problème
+  }
+});
+
+
+
+// Endpoint POST pour ajouter un utilisateur
+app.post('/add_utilisateur', async (req, res) => {
+  try {
+      // Récupérer les données de la requête
+      const { RaisonSociale, NumeroSIRET, Nom, Prenom, Email,Password, Telephone, AdressePostale, Activite, CA, Effectif, References, QuestionnaireTarif, AssuranceRCDecennale, KBis } = req.body;
+// Hasher le mot de passe
+const hashedPassword = await bcrypt.hash(Password, saltRounds);
+      // Créer un nouvel utilisateur dans la base de données
+      const utilisateur = await Utilisateur.create({
+          RaisonSociale,
+          NumeroSIRET,
+          Nom,
+          Prenom,
+          Email,
+          Password: hashedPassword,
+          Telephone,
+          AdressePostale,
+          Activite,
+          CA,
+          Effectif,
+          References,
+          QuestionnaireTarif,
+          AssuranceRCDecennale,
+          KBis
+      });
+
+      // Répondre avec l'utilisateur ajouté
+      res.status(201).json(utilisateur);
+  } catch (error) {
+      // En cas d'erreur, répondre avec le code d'erreur 500
+      console.error('Erreur lors de l\'ajout de l\'utilisateur :', error);
+      res.status(500).json({ error: 'Erreur serveur' });
+  }
+});
+
+
+
+// Endpoint POST pour ajouter une autorisation
+app.post('/add_autorisation', async (req, res) => {
+  try {
+    // Récupérer les données de la requête
+    const { Explications, DateDeCreation } = req.body;
+
+    // Créer une nouvelle autorisation dans la base de données
+    const nouvelleAutorisation = await Autorisation.create({
+      Explications,
+      DateDeCreation // Assurez-vous que la date est au bon format
+    });
+
+    // Répondre avec l'autorisation ajoutée
+    res.status(201).json(nouvelleAutorisation);
+  } catch (error) {
+    console.error('Erreur lors de l\'ajout de l\'autorisation :', error);
+    res.status(500).json({ error: 'Erreur serveur' });
+  }
+});
+
+// Endpoint POST pour ajouter un nouveau rôle avec des autorisations
+app.post('/add_role', async (req, res) => {
+  try {
+    // Récupérer les données du corps de la requête
+    const { Titre, Commentaire, Autorisations } = req.body;
+
+    // Créer un nouveau rôle dans la base de données
+    const nouveauRole = await Role.create({
+      Titre,
+      Commentaire
+    });
+
+    // Associer les autorisations au nouveau rôle
+    if (Autorisations && Autorisations.length > 0) {
+      await Promise.all(Autorisations.map(async (autorisation) => {
+        // Vérifier si l'autorisation existe déjà
+        let autorisationExistante = await Autorisation.findOne({ where: { Explications: autorisation.Explications } });
+        if (!autorisationExistante) {
+          // Si l'autorisation n'existe pas, la créer
+          autorisationExistante = await Autorisation.create({
+            Explications: autorisation.Explications,
+            DateDeCreation: new Date() // Vous pouvez définir la date de création comme souhaité
+          });
+        }
+
+        // Associer l'autorisation au rôle
+        await RoleAutorisation.create({
+          RoleId: nouveauRole.Id,
+          AutorisationId: autorisationExistante.Id
+        });
+      }));
+    }
+
+    // Répondre avec le rôle ajouté
+    res.status(201).json(nouveauRole);
+  } catch (error) {
+    console.error('Erreur lors de la création du rôle :', error);
+    res.status(500).json({ error: 'Erreur serveur' });
+  }
+});
+
+// Endpoint POST pour attribuer un rôle à un utilisateur
+app.post('/add_role_to_user', async (req, res) => {
+  try {
+    // Récupérer les IDs de l'utilisateur et du rôle à partir du corps de la requête
+    const { UserId, RoleId } = req.body;
+
+    // Vérifier si l'utilisateur et le rôle existent dans la base de données
+    const utilisateur = await Utilisateur.findByPk(UserId);
+    const role = await Role.findByPk(RoleId);
+
+    if (!utilisateur) {
+      return res.status(404).json({ error: 'Utilisateur non trouvé' });
+    }
+
+    if (!role) {
+      return res.status(404).json({ error: 'Rôle non trouvé' });
+    }
+
+    // Associer le rôle à l'utilisateur
+    await utilisateur.setRole(RoleId);
+    // Répondre avec un message de succès
+    res.status(200).json({ message: 'Rôle attribué avec succès à l\'utilisateur' });
+  } catch (error) {
+    console.error('Erreur lors de l\'attribution du rôle à l\'utilisateur :', error);
+    res.status(500).json({ error: 'Erreur serveur' });
+  }
+});
+
+
   // Point de terminaison pour la racine de l'application
 app.get('/', (req, res) => {
     // Définissez le contenu HTML que vous souhaitez afficher
@@ -207,10 +329,32 @@ app.get('/', (req, res) => {
         <h1>Bienvenue sur l'api concept et travaux !</h1>
         <p>points de terminaison.</p>
         <ul>
-            <li>get_users - recuperer tous les utilisateurs</li>
-            <li>get_user:email - recuperer un utilisateur par mail</li>
-            <li>adduser - ajouter un utilisateur</li>
+          <li>
+            <strong>GET /get_utilisateur/:email</strong>: Récupère un utilisateur par son adresse e-mail.
+          </li>
+          <li>
+            <strong>GET /get_utilisateurs</strong>: Récupère tous les utilisateurs.
+          </li>
+          <li>
+            <strong>POST /login_user</strong>: Authentifie un utilisateur avec son adresse e-mail et son mot de passe.
+          </li>
+          <li>
+            <strong>POST /change_user_password</strong>: Change le mot de passe d'un utilisateur.
+          </li>
+          <li>
+            <strong>POST /add_utilisateur</strong>: Ajoute un nouvel utilisateur.
+          </li>
+          <li>
+            <strong>POST /add_autorisation</strong>: Ajoute une nouvelle autorisation.
+          </li>
+          <li>
+            <strong>POST /add_role</strong>: Ajoute un nouveau rôle avec des autorisations.
+          </li>
+          <li>
+            <strong>POST /add_role_to_user</strong>: Donne un rôle à un utilisateur à partir de leurs identifiants respectifs.
+          </li>
         </ul>
+
       </body>
       </html>
     `;
