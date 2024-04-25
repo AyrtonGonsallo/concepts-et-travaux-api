@@ -65,7 +65,7 @@ app.get('/get_utilisateur/:email', async (req, res) => {
         where: {
           email: email
         },
-        //include: Grade // Inclure les grades associés à l'utilisateur
+        include: Role // Inclure les grades associés à l'utilisateur
       });
   
       if (user) {
@@ -88,7 +88,7 @@ app.get('/get_utilisateurs', async (req, res) => {
       // Recherchez l'utilisateur dans la base de données par son e-mail
       const users = await Utilisateur.findAll({
       
-        //include: Grade // Inclure les grades associés à l'utilisateur
+        include: Role // Inclure les grades associés à l'utilisateur
       });
   
       if (users) {
