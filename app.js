@@ -223,15 +223,60 @@ const hashedPassword = await bcrypt.hash(Password, saltRounds);
 });
 
 
+// Endpoint POST pour ajouter un utilisateur avec son rôle
+app.post('/add_utilisateur_with_role', async (req, res) => {
+  try {
+    // Récupérer les données de la requête
+    const { RaisonSociale, NumeroSIRET, Nom, Prenom, Email, Password, Telephone, AdressePostale, Activite, CA, Effectif, References, QuestionnaireTarif, AssuranceRCDecennale, KBis, RoleId } = req.body;
+
+    // Vérifier si l'ID du rôle est fourni dans le corps de la requête
+    if (!RoleId) {
+      return res.status(400).json({ error: 'ID du rôle manquant dans la requête' });
+    }
+
+    // Hasher le mot de passe
+    const hashedPassword = await bcrypt.hash(Password, saltRounds);
+
+    // Créer un nouvel utilisateur dans la base de données avec son rôle
+    const utilisateur = await Utilisateur.create({
+      RaisonSociale,
+      NumeroSIRET,
+      Nom,
+      Prenom,
+      Email,
+      Password: hashedPassword,
+      Telephone,
+      AdressePostale,
+      Activite,
+      CA,
+      Effectif,
+      References,
+      QuestionnaireTarif,
+      AssuranceRCDecennale,
+      KBis,
+      RoleId // Associer l'ID du rôle à l'utilisateur
+    });
+
+    // Répondre avec l'utilisateur ajouté
+    res.status(201).json(utilisateur);
+  } catch (error) {
+    // En cas d'erreur, répondre avec le code d'erreur 500
+    console.error('Erreur lors de l\'ajout de l\'utilisateur :', error);
+    res.status(500).json({ error: 'Erreur serveur' });
+  }
+});
+
+
 
 // Endpoint POST pour ajouter une autorisation
 app.post('/add_autorisation', async (req, res) => {
   try {
     // Récupérer les données de la requête
-    const { Explications, DateDeCreation } = req.body;
+    const { Titre,Explications, DateDeCreation } = req.body;
 
     // Créer une nouvelle autorisation dans la base de données
     const nouvelleAutorisation = await Autorisation.create({
+      Titre,
       Explications,
       DateDeCreation // Assurez-vous que la date est au bon format
     });
@@ -259,21 +304,36 @@ app.post('/add_role', async (req, res) => {
     // Associer les autorisations au nouveau rôle
     if (Autorisations && Autorisations.length > 0) {
       await Promise.all(Autorisations.map(async (autorisation) => {
-        // Vérifier si l'autorisation existe déjà
-        let autorisationExistante = await Autorisation.findOne({ where: { Explications: autorisation.Explications } });
-        if (!autorisationExistante) {
-          // Si l'autorisation n'existe pas, la créer
-          autorisationExistante = await Autorisation.create({
-            Explications: autorisation.Explications,
-            DateDeCreation: new Date() // Vous pouvez définir la date de création comme souhaité
-          });
-        }
+        try {
+          let autorisationExistante;
 
-        // Associer l'autorisation au rôle
-        await RoleAutorisation.create({
-          RoleId: nouveauRole.Id,
-          AutorisationId: autorisationExistante.Id
-        });
+          // Rechercher l'autorisation par son ID
+          if (autorisation.Id) {
+            autorisationExistante = await Autorisation.findByPk(autorisation.Id);
+          }
+
+          // Si l'autorisation n'existe pas, la créer
+          if (!autorisationExistante && autorisation.Explications) {
+            autorisationExistante = await Autorisation.create({
+              Titre: autorisation.Titre,
+              Explications: autorisation.Explications,
+              DateDeCreation: new Date() // Date de création actuelle
+            });
+          }
+
+          // Si l'autorisation n'a pas pu être créée ou trouvée, passer à l'autorisation suivante
+          if (!autorisationExistante) {
+            throw new Error('Impossible de créer ou de trouver l\'autorisation');
+          }
+
+          // Associer l'autorisation au rôle
+          await RoleAutorisation.create({
+            RoleId: nouveauRole.Id,
+            AutorisationId: autorisationExistante.Id
+          });
+        } catch (error) {
+          console.error('Erreur lors de l\'association de l\'autorisation au rôle :', error);
+        }
       }));
     }
 
@@ -284,6 +344,8 @@ app.post('/add_role', async (req, res) => {
     res.status(500).json({ error: 'Erreur serveur' });
   }
 });
+
+
 
 // Endpoint POST pour attribuer un rôle à un utilisateur
 app.post('/add_role_to_user', async (req, res) => {
@@ -314,6 +376,210 @@ app.post('/add_role_to_user', async (req, res) => {
 });
 
 
+
+// Endpoint POST pour modifier un utilisateur et ses rôles
+app.post('/update_utilisateur/:id', async (req, res) => {
+  try {
+    const userId = req.params.id; // Récupérer l'ID de l'utilisateur à mettre à jour
+    const { RaisonSociale, NumeroSIRET, Nom, Prenom, Email, Password, Telephone, AdressePostale, Activite, CA, Effectif, References, QuestionnaireTarif, AssuranceRCDecennale, KBis, RoleId } = req.body;
+
+    // Vérifier si l'utilisateur existe dans la base de données
+    const utilisateur = await Utilisateur.findByPk(userId);
+
+    if (!utilisateur) {
+      return res.status(404).json({ error: 'Utilisateur non trouvé' });
+    }
+
+    // Mettre à jour les informations de l'utilisateur
+    await utilisateur.update({
+      RaisonSociale,
+      NumeroSIRET,
+      Nom,
+      Prenom,
+      Email,
+      Password,
+      Telephone,
+      AdressePostale,
+      Activite,
+      CA,
+      Effectif,
+      References,
+      QuestionnaireTarif,
+      AssuranceRCDecennale,
+      KBis,
+      RoleId // Mettez à jour le rôle de l'utilisateur
+    });
+
+    // Répondre avec l'utilisateur mis à jour
+    res.status(200).json(utilisateur);
+  } catch (error) {
+    console.error('Erreur lors de la mise à jour de l\'utilisateur :', error);
+    res.status(500).json({ error: 'Erreur serveur' });
+  }
+});
+
+
+// Définissez la route pour récupérer les rôles avec leurs autorisations associées
+app.get('/get_roles', async (req, res) => {
+  try {
+    // Récupérez tous les rôles avec leurs autorisations associées
+    const roles = await Role.findAll({
+      include: {
+        model: Autorisation,
+        through: {
+          attributes: [] // Excluez les attributs de la table de liaison RoleAutorisation
+        }
+      }
+    });
+
+    // Répondez avec les rôles récupérés au format JSON
+    res.json(roles);
+  } catch (error) {
+    console.error('Erreur lors de la récupération des rôles :', error);
+    res.status(500).json({ error: 'Erreur serveur' });
+  }
+});
+
+
+
+// Endpoint GET pour récupérer toutes les autorisations
+app.get('/get_autorisations', async (req, res) => {
+  try {
+      // Récupérer toutes les autorisations
+      const autorisations = await Autorisation.findAll();
+
+      res.status(200).json(autorisations);
+  } catch (error) {
+      console.error('Erreur lors de la récupération des autorisations :', error);
+      res.status(500).json({ error: 'Erreur serveur' });
+  }
+});
+
+// Endpoint DELETE pour supprimer une autorisation par son ID
+app.delete('/delete_autorisation/:id', async (req, res) => {
+  const autorisationId = req.params.id;
+
+  try {
+    // Recherchez l'autorisation dans la base de données par son ID
+    const autorisation = await Autorisation.findByPk(autorisationId);
+
+    // Vérifiez si l'autorisation existe
+    if (!autorisation) {
+      return res.status(404).json({ message: 'Autorisation non trouvée' });
+    }
+
+    // Supprimez l'autorisation de la base de données
+    await autorisation.destroy();
+
+    // Répondez avec un message de succès
+    res.json({ message: 'Autorisation supprimée avec succès' });
+  } catch (error) {
+    console.error('Erreur lors de la suppression de l\'autorisation :', error);
+    res.status(500).json({ error: 'Erreur serveur lors de la suppression de l\'autorisation' });
+  }
+});
+
+// Endpoint DELETE pour supprimer un rôle par son ID
+app.delete('/delete_role/:id', async (req, res) => {
+  const roleId = req.params.id;
+
+  try {
+    // Recherchez le rôle dans la base de données par son ID
+    const role = await Role.findByPk(roleId);
+
+    // Vérifiez si le rôle existe
+    if (!role) {
+      return res.status(404).json({ message: 'Rôle non trouvé' });
+    }
+
+    // Supprimez le rôle de la base de données
+    await role.destroy();
+
+    // Répondez avec un message de succès
+    res.json({ message: 'Rôle supprimé avec succès' });
+  } catch (error) {
+    console.error('Erreur lors de la suppression du rôle :', error);
+    res.status(500).json({ error: 'Erreur serveur lors de la suppression du rôle' });
+  }
+});
+
+// Endpoint DELETE pour supprimer un utilisateur par son ID
+app.delete('/delete_utilisateur/:id', async (req, res) => {
+  const userId = req.params.id;
+
+  try {
+    // Recherchez l'utilisateur dans la base de données par son ID
+    const utilisateur = await Utilisateur.findByPk(userId);
+
+    // Vérifiez si l'utilisateur existe
+    if (!utilisateur) {
+      return res.status(404).json({ message: 'Utilisateur non trouvé' });
+    }
+
+    // Supprimez l'utilisateur de la base de données
+    await utilisateur.destroy();
+
+    // Répondez avec un message de succès
+    res.json({ message: 'Utilisateur supprimé avec succès' });
+  } catch (error) {
+    console.error('Erreur lors de la suppression de l\'utilisateur :', error);
+    res.status(500).json({ error: 'Erreur serveur lors de la suppression de l\'utilisateur' });
+  }
+});
+
+// Endpoint PUT pour mettre à jour un rôle par son ID
+app.put('/update_role/:id', async (req, res) => {
+  const roleId = req.params.id;
+  const { Titre, Commentaire } = req.body;
+
+  try {
+    // Recherchez le rôle dans la base de données par son ID
+    const role = await Role.findByPk(roleId);
+
+    // Vérifiez si le rôle existe
+    if (!role) {
+      return res.status(404).json({ message: 'Rôle non trouvé' });
+    }
+
+    // Mettez à jour les données du rôle
+    await role.update({ Titre, Commentaire });
+
+    // Répondez avec le rôle mis à jour
+    res.json({ message: 'Rôle mis à jour avec succès', role });
+  } catch (error) {
+    console.error('Erreur lors de la mise à jour du rôle :', error);
+    res.status(500).json({ error: 'Erreur serveur lors de la mise à jour du rôle' });
+  }
+});
+
+
+// Endpoint PUT pour mettre à jour une autorisation par son ID
+app.put('/update_autorisation/:id', async (req, res) => {
+  const autorisationId = req.params.id;
+  const { Explications, Titre } = req.body;
+
+  try {
+    // Recherchez l'autorisation dans la base de données par son ID
+    const autorisation = await Autorisation.findByPk(autorisationId);
+
+    // Vérifiez si l'autorisation existe
+    if (!autorisation) {
+      return res.status(404).json({ message: 'Autorisation non trouvée' });
+    }
+
+    // Mettez à jour les données de l'autorisation
+    await autorisation.update({ Explications, Titre });
+
+    // Répondez avec l'autorisation mise à jour
+    res.json({ message: 'Autorisation mise à jour avec succès', autorisation });
+  } catch (error) {
+    console.error('Erreur lors de la mise à jour de l\'autorisation :', error);
+    res.status(500).json({ error: 'Erreur serveur lors de la mise à jour de l\'autorisation' });
+  }
+});
+
+
+
   // Point de terminaison pour la racine de l'application
 app.get('/', (req, res) => {
     // Définissez le contenu HTML que vous souhaitez afficher
@@ -327,33 +593,25 @@ app.get('/', (req, res) => {
       </head>
       <body>
         <h1>Bienvenue sur l'api concept et travaux !</h1>
-        <p>points de terminaison.</p>
+        <h3>points de terminaison:</h3>
         <ul>
-          <li>
-            <strong>GET /get_utilisateur/:email</strong>: Récupère un utilisateur par son adresse e-mail.
-          </li>
-          <li>
-            <strong>GET /get_utilisateurs</strong>: Récupère tous les utilisateurs.
-          </li>
-          <li>
-            <strong>POST /login_user</strong>: Authentifie un utilisateur avec son adresse e-mail et son mot de passe.
-          </li>
-          <li>
-            <strong>POST /change_user_password</strong>: Change le mot de passe d'un utilisateur.
-          </li>
-          <li>
-            <strong>POST /add_utilisateur</strong>: Ajoute un nouvel utilisateur.
-          </li>
-          <li>
-            <strong>POST /add_autorisation</strong>: Ajoute une nouvelle autorisation.
-          </li>
-          <li>
-            <strong>POST /add_role</strong>: Ajoute un nouveau rôle avec des autorisations.
-          </li>
-          <li>
-            <strong>POST /add_role_to_user</strong>: Donne un rôle à un utilisateur à partir de leurs identifiants respectifs.
-          </li>
+          <li><strong>GET /get_utilisateur/:email</strong>: Récupère un utilisateur par son adresse e-mail.</li>
+          <li><strong>GET /get_utilisateurs</strong>: Récupère tous les utilisateurs.</li>
+          <li><strong>POST /login_user</strong>: Authentifie un utilisateur avec son adresse e-mail et son mot de passe.</li>
+          <li><strong>POST /change_user_password</strong>: Change le mot de passe d'un utilisateur.</li>
+          <li><strong>POST /add_utilisateur</strong>: Ajoute un nouvel utilisateur.</li>
+          <li><strong>POST /add_autorisation</strong>: Ajoute une nouvelle autorisation.</li>
+          <li><strong>POST /add_role</strong>: Ajoute un nouveau rôle avec des autorisations.</li>
+          <li><strong>POST /add_role_to_user</strong>: Donne un rôle à un utilisateur à partir de leurs identifiants respectifs.</li>
+          <li><strong>GET /get_roles</strong>: Récupère tous les rôles avec leurs autorisations associées.</li>
+          <li><strong>GET /get_autorisations</strong>: Récupère toutes les autorisations.</li>
+          <li><strong>DELETE /delete_autorisation/:id</strong>: Supprime une autorisation par son ID.</li>
+          <li><strong>DELETE /delete_role/:id</strong>: Supprime un rôle par son ID.</li>
+          <li><strong>DELETE /delete_utilisateur/:id</strong>: Supprime un utilisateur par son ID.</li>
+          <li><strong>PUT /update_role/:id</strong>: Met à jour un rôle par son ID.</li>
+          <li><strong>PUT /update_autorisation/:id</strong>: Met à jour une autorisation par son ID.</li>
         </ul>
+
 
       </body>
       </html>

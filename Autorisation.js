@@ -13,6 +13,10 @@ const Autorisation = sequelize.define('Autorisation', {
     type: DataTypes.TEXT,
     allowNull: false
   },
+  Titre: {
+    type: DataTypes.STRING(100),
+    allowNull: false,
+  },
   DateDeCreation: {
     type: DataTypes.DATE,
     allowNull: false,

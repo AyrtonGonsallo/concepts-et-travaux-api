@@ -20,12 +20,12 @@ const Utilisateur = sequelize.define('Utilisateur', {
   },
   RaisonSociale: {
     type: DataTypes.STRING(150),
-    allowNull: false,
+    allowNull: true,
     field: 'Raison Sociale' // Nom de la colonne dans la table
   },
   NumeroSIRET: {
     type: DataTypes.STRING(30),
-    allowNull: false,
+    allowNull: true,
     field: 'Numéro de SIRET' // Nom de la colonne dans la table
   },
   Nom: {
