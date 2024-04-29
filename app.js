@@ -4,6 +4,7 @@ const getconnectToDatabase = require('./database_connect');
 const Role = require('./Role');
 const Utilisateur = require('./Utilisateur');
 const RoleAutorisation = require('./RoleAutorisation');
+const cors = require('cors');
 const Autorisation = require('./Autorisation'); // Importez le modèle Grade
 const app = express();
 const port = 3000;
@@ -53,10 +54,11 @@ server.listen(3000, async () => {
 
 
 app.use(express.json())
-
+// Activer CORS
+app.use(cors());
 
 // Point de terminaison GET pour récupérer un utilisateur par son e-mail
-app.get('/get_utilisateur/:email', async (req, res) => {
+app.get('/get_utilisateur_by_email/:email', async (req, res) => {
     try {
       const email = req.params.email; // Récupérez l'e-mail de l'URL
   
@@ -78,6 +80,27 @@ app.get('/get_utilisateur/:email', async (req, res) => {
       res.status(500).json({ error: 'Erreur serveur' }); // Renvoie une erreur serveur en cas de problème
     }
   });
+
+  
+// Point de terminaison GET pour récupérer un utilisateur par son id
+app.get('/get_utilisateur_by_id/:id', async (req, res) => {
+  try {
+    const id = req.params.id; // Récupérez l'id de l'URL
+
+    // Recherchez l'utilisateur dans la base de données par son e-mail
+    const user = await Utilisateur.findByPk(id);
+
+    if (user) {
+      user.password="000"
+      res.json(user); // Renvoie l'utilisateur au format JSON
+    } else {
+      res.status(404).json({ error: 'Utilisateur non trouvé' }); // Renvoie une erreur si l'utilisateur n'est pas trouvé
+    }
+  } catch (error) {
+    console.error('Erreur lors de la recherche de l\'utilisateur :', error);
+    res.status(500).json({ error: 'Erreur serveur' }); // Renvoie une erreur serveur en cas de problème
+  }
+});
 
   
 // Point de terminaison GET pour récupérer tous les utilisateurs 
@@ -227,7 +250,7 @@ const hashedPassword = await bcrypt.hash(Password, saltRounds);
 app.post('/add_utilisateur_with_role', async (req, res) => {
   try {
     // Récupérer les données de la requête
-    const { RaisonSociale, NumeroSIRET, Nom, Prenom, Email, Password, Telephone, AdressePostale, Activite, CA, Effectif, References, QuestionnaireTarif, AssuranceRCDecennale, KBis, RoleId } = req.body;
+    const { RaisonSociale, NumeroSIRET, Nom, Prenom, Email, Password, Telephone, AdressePostale, Activite, CA, Effectif, References, QuestionnaireTarif, AssuranceRCDecennale, KBis, RoleId,Agree } = req.body;
 
     // Vérifier si l'ID du rôle est fourni dans le corps de la requête
     if (!RoleId) {
@@ -376,7 +399,6 @@ app.post('/add_role_to_user', async (req, res) => {
 });
 
 
-
 // Endpoint POST pour modifier un utilisateur et ses rôles
 app.post('/update_utilisateur/:id', async (req, res) => {
   try {
@@ -390,14 +412,13 @@ app.post('/update_utilisateur/:id', async (req, res) => {
       return res.status(404).json({ error: 'Utilisateur non trouvé' });
     }
 
-    // Mettre à jour les informations de l'utilisateur
-    await utilisateur.update({
+    // Définir un objet pour stocker les données à mettre à jour
+    const updateData = {
       RaisonSociale,
       NumeroSIRET,
       Nom,
       Prenom,
       Email,
-      Password,
       Telephone,
       AdressePostale,
       Activite,
@@ -408,7 +429,16 @@ app.post('/update_utilisateur/:id', async (req, res) => {
       AssuranceRCDecennale,
       KBis,
       RoleId // Mettez à jour le rôle de l'utilisateur
-    });
+    };
+
+    // Hasher le mot de passe si un nouveau mot de passe est fourni
+    if (Password!="000") {
+      const hashedPassword = await bcrypt.hash(Password, saltRounds);
+      updateData.Password = hashedPassword;
+    }
+
+    // Mettre à jour les informations de l'utilisateur
+    await utilisateur.update(updateData);
 
     // Répondre avec l'utilisateur mis à jour
     res.status(200).json(utilisateur);
@@ -417,6 +447,7 @@ app.post('/update_utilisateur/:id', async (req, res) => {
     res.status(500).json({ error: 'Erreur serveur' });
   }
 });
+
 
 
 // Définissez la route pour récupérer les rôles avec leurs autorisations associées
@@ -454,6 +485,50 @@ app.get('/get_autorisations', async (req, res) => {
       res.status(500).json({ error: 'Erreur serveur' });
   }
 });
+
+// Endpoint GET pour récupérer un ensemble d'autorisations par ID
+app.get('/get_autorisations/:ids', async (req, res) => {
+  try {
+    const ids = req.params.ids.split(','); // Séparer les IDs par une virgule s'ils sont fournis sous forme de liste
+    
+    // Récupérer les autorisations par ID
+    const autorisations = await Autorisation.findAll({
+      where: {
+        Id: ids
+      }
+    });
+
+    res.status(200).json(autorisations);
+  } catch (error) {
+    console.error('Erreur lors de la récupération des autorisations :', error);
+    res.status(500).json({ error: 'Erreur serveur' });
+  }
+});
+
+
+// Endpoint GET pour récupérer une autorisation par son ID
+app.get('/get_autorisation/:id', async (req, res) => {
+  try {
+      // Récupérer l'ID de l'autorisation à partir des paramètres de la requête
+      const autorisationId = req.params.id;
+
+      // Recherche de l'autorisation par son ID
+      const autorisation = await Autorisation.findByPk(autorisationId);
+
+      // Vérifier si l'autorisation existe
+      if (!autorisation) {
+          return res.status(404).json({ error: 'Autorisation non trouvée' });
+      }
+
+      // Retourner l'autorisation trouvée
+      res.status(200).json(autorisation);
+  } catch (error) {
+      console.error('Erreur lors de la récupération de l\'autorisation :', error);
+      res.status(500).json({ error: 'Erreur serveur' });
+  }
+});
+
+
 
 // Endpoint DELETE pour supprimer une autorisation par son ID
 app.delete('/delete_autorisation/:id', async (req, res) => {
