@@ -8,7 +8,8 @@ const cors = require('cors');
 const Autorisation = require('./Autorisation'); // Importez le modèle Grade
 const app = express();
 const port = 3000;
-
+const multer = require('multer');
+const path = require('path');
 const bcrypt = require('bcrypt');
 const saltRounds = 10; // Nombre de "sauts" pour générer le sel
 
@@ -178,6 +179,31 @@ app.post('/login_user', async (req, res) => {
 });
 
 
+// Set up multer storage configuration
+const storage = multer.diskStorage({
+  destination: function (req, file, cb) {
+    cb(null, 'files/'); // Directory where uploaded files will be stored
+  },
+  filename: function (req, file, cb) {
+    //console.log(file)
+    cb(null, file.originalname); // Rename the file with a timestamp and original extension
+  }
+});
+
+// Initialize multer with the storage configuration
+const upload = multer({ storage: storage });
+
+// Endpoint to handle file upload
+app.post('/upload', upload.single('file'), (req, res) => {
+  // If the file is uploaded successfully, req.file will contain the file details
+  if (!req.file) {
+    return res.status(400).json({ error: 'No file uploaded' });
+  }
+  
+  // Respond with a success message
+  res.json({ message: 'File uploaded successfully' });
+});
+
 app.post('/change_user_password', async (req, res) => {
   try {
       // Vérifiez si req.body est défini et non vide
@@ -246,6 +272,13 @@ const hashedPassword = await bcrypt.hash(Password, saltRounds);
 });
 
 
+
+function cleanFilePath(filePath) {
+  return filePath.replace(/^.*\\fakepath\\/, '');
+}
+
+
+
 // Endpoint POST pour ajouter un utilisateur avec son rôle
 app.post('/add_utilisateur_with_role', async (req, res) => {
   try {
@@ -259,7 +292,10 @@ app.post('/add_utilisateur_with_role', async (req, res) => {
 
     // Hasher le mot de passe
     const hashedPassword = await bcrypt.hash(Password, saltRounds);
-
+    // Utilisez la fonction cleanFilePath pour nettoyer les chemins d'accès des fichiers
+    const cleanedQuestionnaireTarif = cleanFilePath(QuestionnaireTarif);
+    const cleanedAssuranceRCDecennale = cleanFilePath(AssuranceRCDecennale);
+    const cleanedKBis = cleanFilePath(KBis);
     // Créer un nouvel utilisateur dans la base de données avec son rôle
     const utilisateur = await Utilisateur.create({
       RaisonSociale,
@@ -274,9 +310,9 @@ app.post('/add_utilisateur_with_role', async (req, res) => {
       CA,
       Effectif,
       References,
-      QuestionnaireTarif,
-      AssuranceRCDecennale,
-      KBis,
+      QuestionnaireTarif: cleanedQuestionnaireTarif,
+      AssuranceRCDecennale: cleanedAssuranceRCDecennale,
+      KBis: cleanedKBis,
       RoleId // Associer l'ID du rôle à l'utilisateur
     });
 
@@ -288,7 +324,6 @@ app.post('/add_utilisateur_with_role', async (req, res) => {
     res.status(500).json({ error: 'Erreur serveur' });
   }
 });
-
 
 
 // Endpoint POST pour ajouter une autorisation
@@ -411,7 +446,11 @@ app.post('/update_utilisateur/:id', async (req, res) => {
     if (!utilisateur) {
       return res.status(404).json({ error: 'Utilisateur non trouvé' });
     }
-
+// Utilisez la fonction cleanFilePath pour nettoyer les chemins d'accès des fichiers
+const cleanedQuestionnaireTarif = cleanFilePath(QuestionnaireTarif);
+const cleanedAssuranceRCDecennale = cleanFilePath(AssuranceRCDecennale);
+const cleanedKBis = cleanFilePath(KBis);
+console.log(cleanedQuestionnaireTarif)
     // Définir un objet pour stocker les données à mettre à jour
     const updateData = {
       RaisonSociale,
@@ -425,9 +464,9 @@ app.post('/update_utilisateur/:id', async (req, res) => {
       CA,
       Effectif,
       References,
-      QuestionnaireTarif,
-      AssuranceRCDecennale,
-      KBis,
+      QuestionnaireTarif: cleanedQuestionnaireTarif,
+      AssuranceRCDecennale: cleanedAssuranceRCDecennale,
+      KBis: cleanedKBis,
       RoleId // Mettez à jour le rôle de l'utilisateur
     };
 
