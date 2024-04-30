@@ -133,15 +133,15 @@ app.get('/get_utilisateurs', async (req, res) => {
 async function check_and_get_login_user(email, password) {
     try {
         // Trouver l'utilisateur correspondant à l'email
-        const user = await Utilisateur.findOne({ where: { email: email } });
+        const user = await Utilisateur.findOne({ where: { email: email }  });
         
         // Vérifier si l'utilisateur existe
         if (!user) {
             throw new Error('Utilisateur non trouvé');
         }
-
+        //console.log(password, user.Password)
         // Vérifier si le mot de passe correspond au hachage stocké
-        const passwordMatch = await bcrypt.compare(password, user.password);
+        const passwordMatch = await bcrypt.compare(password, user.Password);
 
         if (!passwordMatch) {
             throw new Error('Mot de passe incorrect');
@@ -728,22 +728,134 @@ app.get('/', (req, res) => {
         <h1>Bienvenue sur l'api concept et travaux !</h1>
         <h3>points de terminaison:</h3>
         <ul>
-          <li><strong>GET /get_utilisateur/:email</strong>: Récupère un utilisateur par son adresse e-mail.</li>
-          <li><strong>GET /get_utilisateurs</strong>: Récupère tous les utilisateurs.</li>
-          <li><strong>POST /login_user</strong>: Authentifie un utilisateur avec son adresse e-mail et son mot de passe.</li>
-          <li><strong>POST /change_user_password</strong>: Change le mot de passe d'un utilisateur.</li>
-          <li><strong>POST /add_utilisateur</strong>: Ajoute un nouvel utilisateur.</li>
-          <li><strong>POST /add_autorisation</strong>: Ajoute une nouvelle autorisation.</li>
-          <li><strong>POST /add_role</strong>: Ajoute un nouveau rôle avec des autorisations.</li>
-          <li><strong>POST /add_role_to_user</strong>: Donne un rôle à un utilisateur à partir de leurs identifiants respectifs.</li>
-          <li><strong>GET /get_roles</strong>: Récupère tous les rôles avec leurs autorisations associées.</li>
-          <li><strong>GET /get_autorisations</strong>: Récupère toutes les autorisations.</li>
-          <li><strong>DELETE /delete_autorisation/:id</strong>: Supprime une autorisation par son ID.</li>
-          <li><strong>DELETE /delete_role/:id</strong>: Supprime un rôle par son ID.</li>
-          <li><strong>DELETE /delete_utilisateur/:id</strong>: Supprime un utilisateur par son ID.</li>
-          <li><strong>PUT /update_role/:id</strong>: Met à jour un rôle par son ID.</li>
-          <li><strong>PUT /update_autorisation/:id</strong>: Met à jour une autorisation par son ID.</li>
-        </ul>
+  <li>
+    <strong>GET</strong> /api-concepts-et-travaux/get_utilisateur_by_email/:email
+    <ul>
+      <li>Type : GET</li>
+      <li>Description : Récupère un utilisateur par son e-mail.</li>
+    </ul>
+  </li>
+  <li>
+    <strong>GET</strong> /api-concepts-et-travaux/get_utilisateur_by_id/:id
+    <ul>
+      <li>Type : GET</li>
+      <li>Description : Récupère un utilisateur par son ID.</li>
+    </ul>
+  </li>
+  <li>
+    <strong>GET</strong> /api-concepts-et-travaux/get_utilisateurs
+    <ul>
+      <li>Type : GET</li>
+      <li>Description : Récupère tous les utilisateurs.</li>
+    </ul>
+  </li>
+  <li>
+    <strong>POST</strong> /api-concepts-et-travaux/login_user
+    <ul>
+      <li>Type : POST</li>
+      <li>Description : Authentifie un utilisateur.</li>
+    </ul>
+  </li>
+  <li>
+    <strong>POST</strong> /api-concepts-et-travaux/change_user_password
+    <ul>
+      <li>Type : POST</li>
+      <li>Description : Change le mot de passe d'un utilisateur.</li>
+    </ul>
+  </li>
+  <li>
+    <strong>POST</strong> /api-concepts-et-travaux/add_utilisateur
+    <ul>
+      <li>Type : POST</li>
+      <li>Description : Ajoute un utilisateur.</li>
+    </ul>
+  </li>
+  <li>
+    <strong>POST</strong> /api-concepts-et-travaux/add_utilisateur_with_role
+    <ul>
+      <li>Type : POST</li>
+      <li>Description : Ajoute un utilisateur avec un rôle.</li>
+    </ul>
+  </li>
+  <li>
+    <strong>POST</strong> /api-concepts-et-travaux/add_autorisation
+    <ul>
+      <li>Type : POST</li>
+      <li>Description : Ajoute une autorisation.</li>
+    </ul>
+  </li>
+  <li>
+    <strong>POST</strong> /api-concepts-et-travaux/add_role
+    <ul>
+      <li>Type : POST</li>
+      <li>Description : Ajoute un rôle avec des autorisations.</li>
+    </ul>
+  </li>
+  <li>
+    <strong>POST</strong> /api-concepts-et-travaux/add_role_to_user
+    <ul>
+      <li>Type : POST</li>
+      <li>Description : Attribue un rôle à un utilisateur.</li>
+    </ul>
+  </li>
+  <li>
+    <strong>POST</strong> /api-concepts-et-travaux/update_utilisateur/:id
+    <ul>
+      <li>Type : POST</li>
+      <li>Description : Met à jour un utilisateur.</li>
+    </ul>
+  </li>
+  <li>
+    <strong>GET</strong> /api-concepts-et-travaux/get_roles
+    <ul>
+      <li>Type : GET</li>
+      <li>Description : Récupère tous les rôles avec leurs autorisations associées.</li>
+    </ul>
+  </li>
+  <li>
+    <strong>GET</strong> /api-concepts-et-travaux/get_role/:id
+    <ul>
+      <li>Type : GET</li>
+      <li>Description : Récupère un rôle par son ID avec ses autorisations associées.</li>
+    </ul>
+  </li>
+  <li>
+    <strong>GET</strong> /api-concepts-et-travaux/get_autorisations
+    <ul>
+      <li>Type : GET</li>
+      <li>Description : Récupère toutes les autorisations.</li>
+    </ul>
+  </li>
+  <li>
+    <strong>GET</strong> /api-concepts-et-travaux/get_autorisations/:ids
+    <ul>
+      <li>Type : GET</li>
+      <li>Description : Récupère un ensemble d'autorisations par ID.</li>
+    </ul>
+  </li>
+  <li>
+    <strong>GET</strong> /api-concepts-et-travaux/get_autorisation/:id
+    <ul>
+      <li>Type : GET</li>
+      <li>Description : Récupère une autorisation par son ID.</li>
+    </ul>
+  </li>
+  <li>
+    <strong>DELETE</strong> /api-concepts-et-travaux/delete_autorisation/:id
+    <ul>
+      <li>Type : DELETE</li>
+      <li>Description : Supprime une autorisation par son ID.</li>
+    </ul>
+  </li>
+  <li>
+    <strong>PUT</strong> /api-concepts-et-travaux/update_utilisateur/:id
+    <ul>
+      <li>Type : PUT</li>
+      <li>Description : Met à jour un utilisateur par son ID.</li>
+    </ul>
+  </li>
+</ul>
+
 
 
       </body>
