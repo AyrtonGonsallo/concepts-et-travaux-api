@@ -471,6 +471,34 @@ app.get('/get_roles', async (req, res) => {
   }
 });
 
+// Endpoint GET pour récupérer un rôle par son ID avec ses autorisations associées
+app.get('/get_role/:id', async (req, res) => {
+  try {
+    // Récupérer l'ID du rôle spécifié dans les paramètres d'URL
+    const roleId = req.params.id;
+
+    // Récupérer le rôle spécifique par son ID avec ses autorisations associées
+    const role = await Role.findByPk(roleId, {
+      include: {
+        model: Autorisation,
+        through: {
+          attributes: [] // Exclure les attributs de la table de liaison RoleAutorisation
+        }
+      }
+    });
+
+    // Vérifier si le rôle existe
+    if (!role) {
+      return res.status(404).json({ error: 'Rôle non trouvé' });
+    }
+
+    // Répondre avec le rôle récupéré au format JSON
+    res.json(role);
+  } catch (error) {
+    console.error('Erreur lors de la récupération du rôle :', error);
+    res.status(500).json({ error: 'Erreur serveur' });
+  }
+});
 
 
 // Endpoint GET pour récupérer toutes les autorisations
@@ -602,14 +630,17 @@ app.delete('/delete_utilisateur/:id', async (req, res) => {
   }
 });
 
+
 // Endpoint PUT pour mettre à jour un rôle par son ID
 app.put('/update_role/:id', async (req, res) => {
   const roleId = req.params.id;
-  const { Titre, Commentaire } = req.body;
+  const { Titre, Commentaire, Autorisations } = req.body;
 
   try {
     // Recherchez le rôle dans la base de données par son ID
-    const role = await Role.findByPk(roleId);
+    const role = await Role.findByPk(roleId, {
+      include: Autorisation // Inclure les autorisations associées au rôle
+    });
 
     // Vérifiez si le rôle existe
     if (!role) {
@@ -619,13 +650,40 @@ app.put('/update_role/:id', async (req, res) => {
     // Mettez à jour les données du rôle
     await role.update({ Titre, Commentaire });
 
-    // Répondez avec le rôle mis à jour
-    res.json({ message: 'Rôle mis à jour avec succès', role });
+    // Mettez à jour les autorisations associées au rôle
+    // Supprimer toutes les autorisations existantes associées à ce rôle
+    await RoleAutorisation.destroy({
+      where: {
+        RoleId: roleId
+      }
+    });
+
+    // Ajouter les nouvelles autorisations au rôle
+    if (Autorisations && Autorisations.length > 0) {
+      await Promise.all(Autorisations.map(async (autorisation) => {
+        try {
+          // Associer l'autorisation au rôle
+          await RoleAutorisation.create({
+            RoleId: roleId,
+            AutorisationId: autorisation.Id
+          });
+        } catch (error) {
+          console.error('Erreur lors de l\'association de l\'autorisation au rôle :', error);
+        }
+      }));
+    }
+
+    // Répondre avec le rôle mis à jour, y compris les nouvelles autorisations
+    const updatedRole = await Role.findByPk(roleId, {
+      include: Autorisation // Inclure les autorisations associées au rôle
+    });
+    res.json({ message: 'Rôle mis à jour avec succès', role: updatedRole });
   } catch (error) {
     console.error('Erreur lors de la mise à jour du rôle :', error);
     res.status(500).json({ error: 'Erreur serveur lors de la mise à jour du rôle' });
   }
 });
+
 
 
 // Endpoint PUT pour mettre à jour une autorisation par son ID

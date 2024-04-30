@@ -21,7 +21,8 @@ const Role = sequelize.define('Role', {
   tableName: 'Role',
   timestamps: false
 });
-Role.belongsToMany(Autorisation, { through: 'RoleAutorisation', foreignKey: 'RoleId' });
+Role.belongsToMany(Autorisation, { through: 'RoleAutorisation', foreignKey: 'RoleId' ,  timestamps: false // Ajoutez cette option pour désactiver la gestion automatique des horodatages dans la table de liaison
+});
 
 
 module.exports = Role;
