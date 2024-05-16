@@ -104,6 +104,41 @@ app.get('/get_utilisateur_by_id/:id', async (req, res) => {
 });
 
   
+// Point de terminaison GET pour récupérer un utilisateur avec son role et ses autorisations par son id
+app.get('/get_all_user_data_by_id/:id', async (req, res) => {
+  try {
+    const id = req.params.id; // Récupérez l'id de l'URL
+
+    // Recherchez l'utilisateur dans la base de données par son e-mail
+    const user = await Utilisateur.findByPk(id, {
+      include: [
+        {
+          model: Role,
+          include: [
+            {
+              model: Autorisation,
+              through: {
+                attributes: [] // Si vous ne voulez pas inclure les attributs de liaison
+              }
+            }
+          ]
+        }
+      ]
+    });
+
+    if (user) {
+      user.password = "000";
+      res.json(user); // Renvoie l'utilisateur au format JSON
+    } else {
+      res.status(404).json({ error: 'Utilisateur non trouvé' }); // Renvoie une erreur si l'utilisateur n'est pas trouvé
+    }
+  } catch (error) {
+    console.error('Erreur lors de la recherche de l\'utilisateur :', error);
+    res.status(500).json({ error: 'Erreur serveur' }); // Renvoie une erreur serveur en cas de problème
+  }
+});
+
+
 // Point de terminaison GET pour récupérer tous les utilisateurs 
 app.get('/get_utilisateurs', async (req, res) => {
     try {
