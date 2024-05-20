@@ -2,6 +2,7 @@ var http = require('http');
 const express = require('express');
 const getconnectToDatabase = require('./database_connect');
 const Role = require('./Role');
+const crypto = require('crypto');
 const Utilisateur = require('./Utilisateur');
 const RoleAutorisation = require('./RoleAutorisation');
 const cors = require('cors');
@@ -12,10 +13,23 @@ const multer = require('multer');
 const path = require('path');
 const bcrypt = require('bcrypt');
 const saltRounds = 10; // Nombre de "sauts" pour générer le sel
-
+const fs = require('fs');
 const plaintextPassword = 'MotDePasse123'; // Le mot de passe en clair que vous souhaitez hasher
+const mime = require('mime-types');
+const nodemailer = require('nodemailer');
+const { Op } = require('sequelize');
 
 
+// Créer un transporteur SMTP réutilisable pour envoyer des e-mails via https://homeren.fr/
+const transporter = nodemailer.createTransport({
+  host: 'homeren.fr', // Serveur SMTP de gestion@homeren.fr
+  port: 465, // Port SMTP
+  secure: true, // Utiliser SSL
+  auth: {
+    user: 'gestion@homeren.fr', // Votre adresse e-mail
+    pass: 'jom@qPh,{Z5B' // Votre mot de passe
+  }
+});
 /*
 
 var server = http.createServer(function(req, res) {
@@ -57,6 +71,39 @@ server.listen(3000, async () => {
 app.use(express.json())
 // Activer CORS
 app.use(cors());
+
+
+// Définir le chemin du répertoire contenant les fichiers
+const filesDirectory = path.join(__dirname, 'files');
+
+// Route pour ouvrir un fichier dans un nouvel onglet
+app.get('/api-concepts-et-travaux/open-file/:fileName', (req, res) => {
+  const fileName = req.params.fileName;
+  const filePath = path.join(filesDirectory, fileName);
+
+  // Lire le contenu du fichier
+  fs.readFile(filePath, (err, data) => {
+    if (err) {
+      console.error(err);
+      res.status(500).send('Erreur lors de la lecture du fichier');
+      return;
+    }
+
+   // Obtenir l'extension du fichier
+   const fileExtension = path.extname(fileName).toLowerCase();
+
+    // Obtenir le type MIME à partir de l'extension de fichier
+  const contentType = mime.lookup(filePath) || 'application/octet-stream';
+
+  // Envoyer le fichier en réponse avec le bon type MIME
+  res.set({
+    'Content-Type': contentType,
+    'Content-Disposition': 'attachment' // Forcer le téléchargement
+  }).sendFile(filePath);
+});
+});
+
+
 
 // Point de terminaison GET pour récupérer un utilisateur par son e-mail
 app.get('/get_utilisateur_by_email/:email', async (req, res) => {
@@ -169,7 +216,13 @@ app.get('/get_utilisateurs', async (req, res) => {
 async function check_and_get_login_user(email, password) {
     try {
         // Trouver l'utilisateur correspondant à l'email
-        const user = await Utilisateur.findOne({ where: { email: email }  });
+        const user = await Utilisateur.findOne({
+          where: {
+            email: {
+              [Op.like]: `%${email}%`
+            }
+          }
+        });
         
         // Vérifier si l'utilisateur existe
         if (!user) {
@@ -239,6 +292,58 @@ app.post('/upload', upload.single('file'), (req, res) => {
   res.json({ message: 'File uploaded successfully' });
 });
 
+// Endpoint pour envoyer un e-mail
+app.post('/send-email', (req, res) => {
+  // Récupérer les informations de l'e-mail à partir de la requête
+  const { to, subject, text } = req.body;
+
+  // Définir les options de l'e-mail
+  const mailOptions = {
+    from: 'gestion@homeren.fr',
+    to: to,
+    subject: subject,
+    text: text
+  };
+
+  // Envoyer l'e-mail
+  transporter.sendMail(mailOptions, function(error, info){
+    if (error) {
+      console.log(error);
+      return res.status(500).json({ error: 'Erreur lors de l\'envoi de l\'e-mail' });
+    } else {
+      console.log('E-mail envoyé: ' + info.response);
+      res.status(200).json({ message: 'E-mail envoyé' });
+    }
+  });
+});
+
+
+
+// Endpoint pour envoyer un e-mail
+app.get('/test-email', (req, res) => {
+  // Récupérer les informations de l'e-mail à partir de la requête
+  
+
+  // Définir les options de l'e-mail
+  const mailOptions = {
+    from: 'gestion@homeren.fr',
+    to: "ayrtongonsallo444@gmail.com",
+    subject: "subject",
+    text: "text"
+  };
+
+  // Envoyer l'e-mail
+  transporter.sendMail(mailOptions, function(error, info){
+    if (error) {
+      console.log(error);
+      res.status(500).send('Erreur lors de l\'envoi de l\'e-mail');
+    } else {
+      console.log('E-mail envoyé: ' + info.response);
+      res.status(200).send('E-mail envoyé avec succès');
+    }
+  });
+});
+
 app.post('/change_user_password', async (req, res) => {
   try {
       // Vérifiez si req.body est défini et non vide
@@ -260,7 +365,7 @@ app.post('/change_user_password', async (req, res) => {
       const hashedPassword = await bcrypt.hash(password, saltRounds);
 
       // Mettre à jour le mot de passe de l'utilisateur
-      await user.update({ password: hashedPassword });
+      await user.update({ Password: hashedPassword });
 
       res.status(200).json({ message: 'Mot de passe mis à jour avec succès' }); // Renvoie un message de succès
   } catch (error) {
@@ -269,6 +374,57 @@ app.post('/change_user_password', async (req, res) => {
   }
 });
 
+function generateRandomPassword(length) {
+  return crypto.randomBytes(length).toString('base64').slice(0, length);
+}
+
+app.get('/restore_user_password/:email', async (req, res) => {
+  try {
+      const email = req.params.email; // Récupérez l'email de l'URL
+      const newpass = generateRandomPassword(12); // Génère un mot de passe de 12 caractères
+
+      const user = await Utilisateur.findOne({
+        where: {
+          email: {
+            [Op.like]: `%${email}%`
+          }
+        }
+      });
+        // Hasher le nouveau mot de passe
+      const hashedPassword = await bcrypt.hash(newpass, saltRounds);
+      if (!user) {
+        return res.status(404).json({ error: 'Utilisateur non trouvé' });
+    }
+      // Mettre à jour le mot de passe de l'utilisateur
+      await user.update({ Password: hashedPassword });
+      // Préparer les données pour l'e-mail
+      const mailData = {
+        from: 'gestion@homeren.fr',
+        to: email,
+        subject: 'Confirmation de la réinitialisation du mot de passe',
+        text: `Bonjour,
+
+        Vous avez demandé une réinitialisation de votre mot de passe. Votre mot de passe a été mis à jour avec succès(${newpass}).
+        Si vous n'avez pas demandé de réinitialisation de mot de passe, veuillez contacter notre support immédiatement.
+
+        Cordialement,
+        Votre équipe support`
+      };
+
+      // Envoyer l'e-mail de notification
+      transporter.sendMail(mailData, (error, info) => {
+        if (error) {
+          console.error('Erreur lors de l\'envoi de l\'e-mail :', error);
+          return res.status(500).json({ error: 'Erreur lors de l\'envoi de l\'e-mail' });
+        }
+        console.log('E-mail envoyé :', info.response);
+        res.status(200).json({ message: 'Mot de passe mis à jour avec succès et e-mail envoyé' });
+      });
+      } catch (error) {
+      console.error('Erreur lors de la mise à jour du mot de passe de l\'utilisateur :', error);
+      res.status(500).json({ error: 'Erreur serveur' }); // Renvoie une erreur serveur en cas de problème
+  }
+});
 
 
 // Endpoint POST pour ajouter un utilisateur
@@ -801,135 +957,114 @@ app.get('/', (req, res) => {
       <body>
         <h1>Bienvenue sur l'api concept et travaux !</h1>
         <h3>points de terminaison:</h3>
-        <ul>
+        Voici la liste des méthodes avec leur nom, type et description au format HTML :
+<ul>
   <li>
-    <strong>GET</strong> /api-concepts-et-travaux/get_utilisateur_by_email/:email
-    <ul>
-      <li>Type : GET</li>
-      <li>Description : Récupère un utilisateur par son e-mail.</li>
-    </ul>
+    <strong>Nom :</strong> <code>/api-concepts-et-travaux/open-file/:fileName</code> <br>
+    <strong>Type :</strong> GET <br>
+    <strong>Description :</strong> Ouvre un fichier dans un nouvel onglet en utilisant son nom de fichier fourni en paramètre.
   </li>
   <li>
-    <strong>GET</strong> /api-concepts-et-travaux/get_utilisateur_by_id/:id
-    <ul>
-      <li>Type : GET</li>
-      <li>Description : Récupère un utilisateur par son ID.</li>
-    </ul>
+    <strong>Nom :</strong> <code>/get_utilisateur_by_email/:email</code> <br>
+    <strong>Type :</strong> GET <br>
+    <strong>Description :</strong> Récupère un utilisateur par son e-mail.
   </li>
   <li>
-    <strong>GET</strong> /api-concepts-et-travaux/get_utilisateurs
-    <ul>
-      <li>Type : GET</li>
-      <li>Description : Récupère tous les utilisateurs.</li>
-    </ul>
+    <strong>Nom :</strong> <code>/get_utilisateur_by_id/:id</code> <br>
+    <strong>Type :</strong> GET <br>
+    <strong>Description :</strong> Récupère un utilisateur par son ID.
   </li>
   <li>
-    <strong>POST</strong> /api-concepts-et-travaux/login_user
-    <ul>
-      <li>Type : POST</li>
-      <li>Description : Authentifie un utilisateur.</li>
-    </ul>
+    <strong>Nom :</strong> <code>/get_all_user_data_by_id/:id</code> <br>
+    <strong>Type :</strong> GET <br>
+    <strong>Description :</strong> Récupère un utilisateur avec son rôle et ses autorisations par son ID.
   </li>
   <li>
-    <strong>POST</strong> /api-concepts-et-travaux/change_user_password
-    <ul>
-      <li>Type : POST</li>
-      <li>Description : Change le mot de passe d'un utilisateur.</li>
-    </ul>
+    <strong>Nom :</strong> <code>/get_utilisateurs</code> <br>
+    <strong>Type :</strong> GET <br>
+    <strong>Description :</strong> Récupère tous les utilisateurs.
   </li>
   <li>
-    <strong>POST</strong> /api-concepts-et-travaux/add_utilisateur
-    <ul>
-      <li>Type : POST</li>
-      <li>Description : Ajoute un utilisateur.</li>
-    </ul>
+    <strong>Nom :</strong> <code>/login_user</code> <br>
+    <strong>Type :</strong> POST <br>
+    <strong>Description :</strong> Authentifie un utilisateur avec son e-mail et mot de passe.
   </li>
   <li>
-    <strong>POST</strong> /api-concepts-et-travaux/add_utilisateur_with_role
-    <ul>
-      <li>Type : POST</li>
-      <li>Description : Ajoute un utilisateur avec un rôle.</li>
-    </ul>
+    <strong>Nom :</strong> <code>/upload</code> <br>
+    <strong>Type :</strong> POST <br>
+    <strong>Description :</strong> Gère le téléchargement de fichiers.
   </li>
   <li>
-    <strong>POST</strong> /api-concepts-et-travaux/add_autorisation
-    <ul>
-      <li>Type : POST</li>
-      <li>Description : Ajoute une autorisation.</li>
-    </ul>
+    <strong>Nom :</strong> <code>/send-email</code> <br>
+    <strong>Type :</strong> POST <br>
+    <strong>Description :</strong> Envoie un e-mail avec les informations fournies.
   </li>
   <li>
-    <strong>POST</strong> /api-concepts-et-travaux/add_role
-    <ul>
-      <li>Type : POST</li>
-      <li>Description : Ajoute un rôle avec des autorisations.</li>
-    </ul>
+    <strong>Nom :</strong> <code>/test-email</code> <br>
+    <strong>Type :</strong> GET <br>
+    <strong>Description :</strong> Envoie un e-mail de test.
   </li>
   <li>
-    <strong>POST</strong> /api-concepts-et-travaux/add_role_to_user
-    <ul>
-      <li>Type : POST</li>
-      <li>Description : Attribue un rôle à un utilisateur.</li>
-    </ul>
+    <strong>Nom :</strong> <code>/change_user_password</code> <br>
+    <strong>Type :</strong> POST <br>
+    <strong>Description :</strong> Change le mot de passe d'un utilisateur.
   </li>
   <li>
-    <strong>POST</strong> /api-concepts-et-travaux/update_utilisateur/:id
-    <ul>
-      <li>Type : POST</li>
-      <li>Description : Met à jour un utilisateur.</li>
-    </ul>
+    <strong>Nom :</strong> <code>/restore_user_password/:email</code> <br>
+    <strong>Type :</strong> GET <br>
+    <strong>Description :</strong> Réinitialise le mot de passe d'un utilisateur et envoie un e-mail de confirmation.
   </li>
   <li>
-    <strong>GET</strong> /api-concepts-et-travaux/get_roles
-    <ul>
-      <li>Type : GET</li>
-      <li>Description : Récupère tous les rôles avec leurs autorisations associées.</li>
-    </ul>
+    <strong>Nom :</strong> <code>/add_utilisateur</code> <br>
+    <strong>Type :</strong> POST <br>
+    <strong>Description :</strong> Ajoute un nouvel utilisateur.
   </li>
   <li>
-    <strong>GET</strong> /api-concepts-et-travaux/get_role/:id
-    <ul>
-      <li>Type : GET</li>
-      <li>Description : Récupère un rôle par son ID avec ses autorisations associées.</li>
-    </ul>
+    <strong>Nom :</strong> <code>/add_utilisateur_with_role</code> <br>
+    <strong>Type :</strong> POST <br>
+    <strong>Description :</strong> Ajoute un nouvel utilisateur avec son rôle.
   </li>
   <li>
-    <strong>GET</strong> /api-concepts-et-travaux/get_autorisations
-    <ul>
-      <li>Type : GET</li>
-      <li>Description : Récupère toutes les autorisations.</li>
-    </ul>
+    <strong>Nom :</strong> <code>/add_autorisation</code> <br>
+    <strong>Type :</strong> POST <br>
+    <strong>Description :</strong> Ajoute une nouvelle autorisation.
   </li>
   <li>
-    <strong>GET</strong> /api-concepts-et-travaux/get_autorisations/:ids
-    <ul>
-      <li>Type : GET</li>
-      <li>Description : Récupère un ensemble d'autorisations par ID.</li>
-    </ul>
+    <strong>Nom :</strong> <code>/add_role</code> <br>
+    <strong>Type :</strong> POST <br>
+    <strong>Description :</strong> Ajoute un nouveau rôle avec des autorisations.
   </li>
   <li>
-    <strong>GET</strong> /api-concepts-et-travaux/get_autorisation/:id
-    <ul>
-      <li>Type : GET</li>
-      <li>Description : Récupère une autorisation par son ID.</li>
-    </ul>
+    <strong>Nom :</strong> <code>/add_role_to_user</code> <br>
+    <strong>Type :</strong> POST <br>
+    <strong>Description :</strong> Attribue un rôle à un utilisateur.
   </li>
   <li>
-    <strong>DELETE</strong> /api-concepts-et-travaux/delete_autorisation/:id
-    <ul>
-      <li>Type : DELETE</li>
-      <li>Description : Supprime une autorisation par son ID.</li>
-    </ul>
+    <strong>Nom :</strong> <code>/update_utilisateur/:id</code> <br>
+    <strong>Type :</strong> POST <br>
+    <strong>Description :</strong> Modifie un utilisateur et ses rôles.
   </li>
   <li>
-    <strong>PUT</strong> /api-concepts-et-travaux/update_utilisateur/:id
-    <ul>
-      <li>Type : PUT</li>
-      <li>Description : Met à jour un utilisateur par son ID.</li>
-    </ul>
+    <strong>Nom :</strong> <code>/get_roles</code> <br>
+    <strong>Type :</strong> GET <br>
+    <strong>Description :</strong> Récupère les rôles avec leurs autorisations associées.
+  </li>
+  <li>
+    <strong>Nom :</strong> <code>/get_role/:id</code> <br>
+    <strong>Type :</strong> GET <br>
+    <strong>Description :</strong> Récupère un rôle par son ID avec ses autorisations associées.
+  </li>
+  <li>
+    <strong>Nom :</strong> <code>/get_autorisations</code> <br>
+    <strong>Type :</strong> GET <br>
+    <strong>Description :</strong> Récupère toutes les autorisations.
+  </li>
+  <li>
+    <strong>Nom :</strong> <code>/get_autorisations/:ids</code> <br>
+    <strong>Type :</strong> GET <br>
+    <strong>Description :</strong> Récupère un ensemble d'autorisations par ID.
   </li>
 </ul>
-
 
 
       </body>
