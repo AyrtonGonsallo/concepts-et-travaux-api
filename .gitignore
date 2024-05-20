@@ -9,6 +9,7 @@
 *img
 .png
 .jpg
+/files*
 .PNG
 .JPG
 # Node
