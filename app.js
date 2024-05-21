@@ -1,6 +1,4 @@
-var http = require('http');
 const express = require('express');
-const getconnectToDatabase = require('./database_connect');
 const Role = require('./Role');
 const crypto = require('crypto');
 const Utilisateur = require('./Utilisateur');
@@ -14,12 +12,12 @@ const path = require('path');
 const bcrypt = require('bcrypt');
 const saltRounds = 10; // Nombre de "sauts" pour générer le sel
 const fs = require('fs');
-const plaintextPassword = 'MotDePasse123'; // Le mot de passe en clair que vous souhaitez hasher
 const mime = require('mime-types');
 const nodemailer = require('nodemailer');
 const { Op } = require('sequelize');
 
-
+// Définir le chemin du répertoire contenant les fichiers
+const filesDirectory = path.join(__dirname, 'files');
 // Créer un transporteur SMTP réutilisable pour envoyer des e-mails via https://homeren.fr/
 const transporter = nodemailer.createTransport({
   host: 'homeren.fr', // Serveur SMTP de gestion@homeren.fr
@@ -30,56 +28,19 @@ const transporter = nodemailer.createTransport({
     pass: 'jom@qPh,{Z5B' // Votre mot de passe
   }
 });
-/*
-
-var server = http.createServer(function(req, res) {
-    res.writeHead(200, {'Content-Type': 'text/plain'});
-    var message = 'It works!\n',
-        version = 'NodeJS ' + process.versions.node + '\n',
-        connect = 'connection a la base de données: ' + getconnectToDatabase() + '\n',
-        response = [message, version,connect].join('\n');
-    res.end(response);
-});
-server.listen(3000, async () => {
-    console.log('Serveur démarré sur le port 3000');
-  // Exemple de création d'un utilisateur
-  try {
-    const user = await User.create({
-      firstName: 'John',
-      lastName: 'Doe',
-      email: 'john.doe@example.com',
-      Grades: [
-        { value: 'A', day: new Date(), checked: true },
-        { value: 'B', day: new Date(), checked: false},
-        { value: 'C', day: new Date(), checked: true }
-      ]
-    }, {
-      include: Grade
-    });
-
-    console.log('Utilisateur créé avec succès:', user.toJSON());
-  } catch (error) {
-    console.error('Erreur lors de la création de l\'utilisateur :', error);
-  }
-    
-  
-    // Vous pouvez utiliser dbConnection pour exécuter des requêtes SQL ou effectuer d'autres opérations sur la base de données.
-  });
-*/
 
 
-app.use(express.json())
 // Activer CORS
+
 app.use(cors());
+app.use(express.json());
 
 
-// Définir le chemin du répertoire contenant les fichiers
-const filesDirectory = path.join(__dirname, 'files');
 
 // Route pour ouvrir un fichier dans un nouvel onglet
-app.get('/api-concepts-et-travaux/open-file/:fileName', (req, res) => {
+app.get('/open-file/:fileName', (req, res) => {
   const fileName = req.params.fileName;
-  const filePath = path.join(filesDirectory, fileName);
+  const filePath = path.join(__dirname, 'files', fileName);
 
   // Lire le contenu du fichier
   fs.readFile(filePath, (err, data) => {
@@ -89,8 +50,7 @@ app.get('/api-concepts-et-travaux/open-file/:fileName', (req, res) => {
       return;
     }
 
-   // Obtenir l'extension du fichier
-   const fileExtension = path.extname(fileName).toLowerCase();
+ 
 
     // Obtenir le type MIME à partir de l'extension de fichier
   const contentType = mime.lookup(filePath) || 'application/octet-stream';
@@ -244,8 +204,9 @@ async function check_and_get_login_user(email, password) {
 }
 
 
-app.post('/login_user', async (req, res) => {
+app.post('/login_user',  cors(), async (req, res) => {
     try {
+      
         // Extraire l'email et le mot de passe de la requête
         const { email, password } = req.body;
 
@@ -256,9 +217,10 @@ app.post('/login_user', async (req, res) => {
 
         // Authentifier l'utilisateur en utilisant la fonction login_user
         const user = await check_and_get_login_user(email, password);
-
+        
         // Si l'authentification est réussie, renvoyer l'utilisateur
         res.status(200).json(user);
+        
     } catch (error) {
         // Si une erreur se produit pendant l'authentification, renvoyer un message d'erreur
         console.error('Erreur lors de la connexion de l\'utilisateur :', error.message);
