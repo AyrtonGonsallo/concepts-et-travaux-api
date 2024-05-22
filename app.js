@@ -227,7 +227,13 @@ app.post('/login_user',  cors(), async (req, res) => {
         res.status(401).json({ error: 'Email ou mot de passe incorrect' });
     }
 });
-
+function slugify(text) {
+  return text
+  .toLowerCase() // Convertir le texte en minuscules
+  .replace(/[^\w\s.-]/g, '') // Supprimer les caractères non alphanumériques sauf les espaces, les tirets et les points
+  .replace(/[\s_-]+/g, '-') // Remplacer les espaces et les tirets par un seul tiret
+  .replace(/^-+|-+$/g, ''); // Supprimer les tirets en début et fin de chaîne
+}
 
 // Set up multer storage configuration
 const storage = multer.diskStorage({
@@ -236,7 +242,10 @@ const storage = multer.diskStorage({
   },
   filename: function (req, file, cb) {
     //console.log(file)
-    cb(null, file.originalname); // Rename the file with a timestamp and original extension
+    const originalName = file.originalname;
+    const encodedName = slugify(originalName); // Encoder le nom du fichier
+
+    cb(null, encodedName); // Renommer le fichier avec le nom encodé 
   }
 });
 
@@ -605,6 +614,7 @@ const cleanedAssuranceRCDecennale = cleanFilePath(AssuranceRCDecennale);
 const cleanedKBis = cleanFilePath(KBis);
 console.log(cleanedQuestionnaireTarif)
     // Définir un objet pour stocker les données à mettre à jour
+    // Définir un objet pour stocker les données à mettre à jour
     const updateData = {
       RaisonSociale,
       NumeroSIRET,
@@ -617,11 +627,24 @@ console.log(cleanedQuestionnaireTarif)
       CA,
       Effectif,
       References,
-      QuestionnaireTarif: cleanedQuestionnaireTarif,
-      AssuranceRCDecennale: cleanedAssuranceRCDecennale,
-      KBis: cleanedKBis,
       RoleId // Mettez à jour le rôle de l'utilisateur
     };
+
+    // Utilisez la fonction cleanFilePath pour nettoyer les chemins d'accès des fichiers
+    if (QuestionnaireTarif) {
+      const cleanedQuestionnaireTarif = cleanFilePath(QuestionnaireTarif);
+      updateData.QuestionnaireTarif = cleanedQuestionnaireTarif;
+    }
+
+    if (AssuranceRCDecennale) {
+      const cleanedAssuranceRCDecennale = cleanFilePath(AssuranceRCDecennale);
+      updateData.AssuranceRCDecennale = cleanedAssuranceRCDecennale;
+    }
+
+    if (KBis) {
+      const cleanedKBis = cleanFilePath(KBis);
+      updateData.KBis = cleanedKBis;
+    }
 
     // Hasher le mot de passe si un nouveau mot de passe est fourni
     if (Password!="000") {
@@ -639,6 +662,81 @@ console.log(cleanedQuestionnaireTarif)
     res.status(500).json({ error: 'Erreur serveur' });
   }
 });
+
+
+app.get('/clear_questionnaire_tarif/:id', async (req, res) => {
+  try {
+    const userId = req.params.id;
+
+    // Vérifier si l'utilisateur existe dans la base de données
+    const utilisateur = await Utilisateur.findByPk(userId);
+
+    if (!utilisateur) {
+      return res.status(404).json({ error: 'Utilisateur non trouvé' });
+    }
+
+    // Mettre à jour le champ QuestionnaireTarif à vide
+    utilisateur.QuestionnaireTarif = '';
+
+    // Sauvegarder les modifications
+    await utilisateur.save();
+
+    res.status(200).json({ message: 'QuestionnaireTarif mis à vide avec succès' });
+  } catch (error) {
+    console.error('Erreur lors de la mise à jour de l\'utilisateur :', error);
+    res.status(500).json({ error: 'Erreur serveur' });
+  }
+});
+
+app.get('/clear_assurance_rc_decennale/:id', async (req, res) => {
+  try {
+    const userId = req.params.id;
+
+    // Vérifier si l'utilisateur existe dans la base de données
+    const utilisateur = await Utilisateur.findByPk(userId);
+
+    if (!utilisateur) {
+      return res.status(404).json({ error: 'Utilisateur non trouvé' });
+    }
+
+    // Mettre à jour le champ AssuranceRCDecennale à vide
+    utilisateur.AssuranceRCDecennale = '';
+
+    // Sauvegarder les modifications
+    await utilisateur.save();
+
+    res.status(200).json({ message: 'AssuranceRCDecennale mis à vide avec succès' });
+  } catch (error) {
+    console.error('Erreur lors de la mise à jour de l\'utilisateur :', error);
+    res.status(500).json({ error: 'Erreur serveur' });
+  }
+});
+
+app.get('/clear_kbis/:id', async (req, res) => {
+  try {
+    const userId = req.params.id;
+
+    // Vérifier si l'utilisateur existe dans la base de données
+    const utilisateur = await Utilisateur.findByPk(userId);
+
+    if (!utilisateur) {
+      return res.status(404).json({ error: 'Utilisateur non trouvé' });
+    }
+
+    // Mettre à jour le champ KBis à vide
+    utilisateur.KBis = '';
+
+    // Sauvegarder les modifications
+    await utilisateur.save();
+
+    res.status(200).json({ message: 'KBis mis à vide avec succès' });
+  } catch (error) {
+    console.error('Erreur lors de la mise à jour de l\'utilisateur :', error);
+    res.status(500).json({ error: 'Erreur serveur' });
+  }
+});
+
+
 
 
 
