@@ -4,6 +4,7 @@ const crypto = require('crypto');
 const Utilisateur = require('./Utilisateur');
 const RoleAutorisation = require('./RoleAutorisation');
 const cors = require('cors');
+const Projet = require('./Projet'); 
 const Autorisation = require('./Autorisation'); // Importez le modèle Grade
 const app = express();
 const port = 3000;
@@ -488,6 +489,56 @@ app.post('/add_utilisateur_with_role', async (req, res) => {
 });
 
 
+
+// Endpoint POST pour ajouter un particulier
+app.post('/add_particulier', async (req, res) => {
+  try {
+    // Récupérer les données de la requête
+    const { RaisonSociale, NumeroSIRET, Nom, Prenom, Email, Password, Telephone, AdressePostale,CodePostal,CommunePostale, Activite, CA, Effectif, References, QuestionnaireTarif, AssuranceRCDecennale, KBis, RoleId,Agree } = req.body;
+
+    // Vérifier si l'ID du rôle est fourni dans le corps de la requête
+    if (!RoleId) {
+      return res.status(400).json({ error: 'ID du rôle manquant dans la requête' });
+    }
+
+    // Hasher le mot de passe
+    const hashedPassword = await bcrypt.hash(Password, saltRounds);
+    // Utilisez la fonction cleanFilePath pour nettoyer les chemins d'accès des fichiers
+    const cleanedQuestionnaireTarif = cleanFilePath(QuestionnaireTarif);
+    const cleanedAssuranceRCDecennale = cleanFilePath(AssuranceRCDecennale);
+    const cleanedKBis = cleanFilePath(KBis);
+    // Créer un nouvel utilisateur dans la base de données avec son rôle
+    const utilisateur = await Utilisateur.create({
+      RaisonSociale,
+      NumeroSIRET,
+      Nom,
+      Prenom,
+      Email,
+      Password: hashedPassword,
+      Telephone,
+      AdressePostale,
+      CodePostal,
+      CommunePostale,
+      Activite,
+      CA,
+      Effectif,
+      References,
+      QuestionnaireTarif: cleanedQuestionnaireTarif,
+      AssuranceRCDecennale: cleanedAssuranceRCDecennale,
+      KBis: cleanedKBis,
+      RoleId // Associer l'ID du rôle à l'utilisateur
+    });
+
+    // Répondre avec l'utilisateur ajouté
+    res.status(201).json(utilisateur);
+  } catch (error) {
+    // En cas d'erreur, répondre avec le code d'erreur 500
+    console.error('Erreur lors de l\'ajout de l\'utilisateur :', error);
+    res.status(500).json({ error: 'Erreur serveur' });
+  }
+});
+
+
 // Endpoint POST pour ajouter une autorisation
 app.post('/add_autorisation', async (req, res) => {
   try {
@@ -591,6 +642,204 @@ app.post('/add_role_to_user', async (req, res) => {
     res.status(200).json({ message: 'Rôle attribué avec succès à l\'utilisateur' });
   } catch (error) {
     console.error('Erreur lors de l\'attribution du rôle à l\'utilisateur :', error);
+    res.status(500).json({ error: 'Erreur serveur' });
+  }
+});
+
+
+// Définir le point de terminaison pour ajouter un projet
+app.post('/add_project', async (req, res) => {
+  try {
+    const { Nom,  Description, User_id } = req.body;
+    // Définir la date de création actuelle et le statut par défaut
+    const Date_de_creation = new Date();
+    const Status = 'devis en cours';
+    const newProject = await Projet.create({
+      Nom,
+      Date_de_creation,
+      Status,
+      Description,
+      User_id
+    });
+
+    res.status(201).json(newProject);
+  } catch (error) {
+    console.error('Error creating project:', error);
+    res.status(500).json({ error: 'An error occurred while creating the project.' });
+  }
+});
+
+
+// Définir le point de terminaison pour modifier un projet
+app.put('/update_project/:id', async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { Nom, Date_de_creation, Status, Description, User_id } = req.body;
+
+    const project = await Projet.findByPk(id);
+
+    if (project) {
+      project.Nom = Nom;
+      project.Status = Status;
+      project.Description = Description;
+
+      await project.save();
+
+      res.status(200).json(project);
+    } else {
+      res.status(404).json({ error: 'Project not found.' });
+    }
+  } catch (error) {
+    console.error('Error updating project:', error);
+    res.status(500).json({ error: 'An error occurred while updating the project.' });
+  }
+});
+// Définir le point de terminaison pour supprimer un projet
+app.delete('/delete_project/:id', async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    const result = await Projet.destroy({ where: { Id: id } });
+
+    if (result) {
+      res.status(200).json({ message: 'Project deleted successfully.' });
+    } else {
+      res.status(404).json({ error: 'Project not found.' });
+    }
+  } catch (error) {
+    console.error('Error deleting project:', error);
+    res.status(500).json({ error: 'An error occurred while deleting the project.' });
+  }
+});
+
+
+app.get('/get_project/:id', async (req, res) => {
+  try {
+    const { id } = req.params;
+    
+    const project = await Projet.findOne({
+      where: { Id: id },
+      include: [
+        {
+          model: Utilisateur,
+          as: 'Utilisateur'
+        }
+      ]
+    });
+
+    if (project) {
+      res.status(200).json(project);
+    } else {
+      res.status(404).json({ error: 'Project not found.' });
+    }
+  } catch (error) {
+    console.error('Error fetching project:', error);
+    res.status(500).json({ error: 'An error occurred while fetching the project.' });
+  }
+});
+
+
+// Définir le point de terminaison pour récupérer la liste des projets
+app.get('/get_all_projects', async (req, res) => {
+  try {
+    const projects = await Projet.findAll({
+      include: [
+        {
+          model: Utilisateur,
+          as: 'Utilisateur'
+        }
+      ]
+    });    res.status(200).json(projects);
+  } catch (error) {
+    console.error('Error fetching projects:', error);
+    res.status(500).json({ error: 'An error occurred while fetching the projects.' });
+  }
+});
+
+// Définir le point de terminaison pour récupérer la liste des projets d'un utilisateur
+app.get('/get_user_projects/:userId', async (req, res) => {
+  try {
+    const { userId } = req.params;
+
+    const projects = await Projet.findAll({ where: { User_id: userId } });
+
+    if (projects.length > 0) {
+      res.status(200).json(projects);
+    } else {
+      res.status(404).json({ error: 'No projects found for the user.' });
+    }
+  } catch (error) {
+    console.error('Error fetching user projects:', error);
+    res.status(500).json({ error: 'An error occurred while fetching user projects.' });
+  }
+});
+
+
+// Endpoint POST pour modifier un particulier
+app.post('/update_particulier/:id', async (req, res) => {
+  try {
+    const userId = req.params.id; // Récupérer l'ID de l'utilisateur à mettre à jour
+    const { RaisonSociale, NumeroSIRET, Nom, Prenom, Email, Password, Telephone, AdressePostale,CodePostal,CommunePostale, Activite, CA, Effectif, References, QuestionnaireTarif, AssuranceRCDecennale, KBis, RoleId } = req.body;
+
+    // Vérifier si l'utilisateur existe dans la base de données
+    const utilisateur = await Utilisateur.findByPk(userId);
+
+    if (!utilisateur) {
+      return res.status(404).json({ error: 'Utilisateur non trouvé' });
+    }
+// Utilisez la fonction cleanFilePath pour nettoyer les chemins d'accès des fichiers
+const cleanedQuestionnaireTarif = cleanFilePath(QuestionnaireTarif);
+const cleanedAssuranceRCDecennale = cleanFilePath(AssuranceRCDecennale);
+const cleanedKBis = cleanFilePath(KBis);
+console.log(cleanedQuestionnaireTarif)
+    // Définir un objet pour stocker les données à mettre à jour
+    // Définir un objet pour stocker les données à mettre à jour
+    const updateData = {
+      RaisonSociale,
+      NumeroSIRET,
+      Nom,
+      Prenom,
+      Email,
+      Telephone,
+      AdressePostale,
+      CodePostal,
+      CommunePostale,
+      Activite,
+      CA,
+      Effectif,
+      References,
+      RoleId // Mettez à jour le rôle de l'utilisateur
+    };
+
+    // Utilisez la fonction cleanFilePath pour nettoyer les chemins d'accès des fichiers
+    if (QuestionnaireTarif) {
+      const cleanedQuestionnaireTarif = cleanFilePath(QuestionnaireTarif);
+      updateData.QuestionnaireTarif = cleanedQuestionnaireTarif;
+    }
+
+    if (AssuranceRCDecennale) {
+      const cleanedAssuranceRCDecennale = cleanFilePath(AssuranceRCDecennale);
+      updateData.AssuranceRCDecennale = cleanedAssuranceRCDecennale;
+    }
+
+    if (KBis) {
+      const cleanedKBis = cleanFilePath(KBis);
+      updateData.KBis = cleanedKBis;
+    }
+
+    // Hasher le mot de passe si un nouveau mot de passe est fourni
+    if (Password!="000") {
+      const hashedPassword = await bcrypt.hash(Password, saltRounds);
+      updateData.Password = hashedPassword;
+    }
+
+    // Mettre à jour les informations de l'utilisateur
+    await utilisateur.update(updateData);
+
+    // Répondre avec l'utilisateur mis à jour
+    res.status(200).json(utilisateur);
+  } catch (error) {
+    console.error('Erreur lors de la mise à jour de l\'utilisateur :', error);
     res.status(500).json({ error: 'Erreur serveur' });
   }
 });
