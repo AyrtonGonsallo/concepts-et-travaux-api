@@ -3,6 +3,7 @@ const Role = require('./Role');
 const crypto = require('crypto');
 const Utilisateur = require('./Utilisateur');
 const RoleAutorisation = require('./RoleAutorisation');
+const ProjetArtisan = require('./ProjetArtisan');
 const cors = require('cors');
 const Projet = require('./Projet'); 
 const Autorisation = require('./Autorisation'); // Importez le modèle Grade
@@ -89,6 +90,32 @@ app.get('/get_utilisateur_by_email/:email', async (req, res) => {
       res.status(500).json({ error: 'Erreur serveur' }); // Renvoie une erreur serveur en cas de problème
     }
   });
+
+
+  
+// Point de terminaison GET pour récupérer un utilisateur par son e-mail
+app.get('/get_utilisateurs_by_role/:role_id', async (req, res) => {
+  try {
+    const r_id = req.params.role_id; // Récupérez l'e-mail de l'URL
+
+    // Recherchez l'utilisateur dans la base de données par son e-mail
+    const users = await Utilisateur.findAll({
+      where: {
+        RoleId: r_id
+      },
+      include: Role // Inclure les grades associés à l'utilisateur
+    });
+
+    if (users) {
+      res.json(users); // Renvoie l'utilisateur au format JSON
+    } else {
+      res.status(404).json({ error: 'Utilisateur non trouvé' }); // Renvoie une erreur si l'utilisateur n'est pas trouvé
+    }
+  } catch (error) {
+    console.error('Erreur lors de la recherche de l\'utilisateur :', error);
+    res.status(500).json({ error: 'Erreur serveur' }); // Renvoie une erreur serveur en cas de problème
+  }
+});
 
   
 // Point de terminaison GET pour récupérer un utilisateur par son id
@@ -650,19 +677,44 @@ app.post('/add_role_to_user', async (req, res) => {
 // Définir le point de terminaison pour ajouter un projet
 app.post('/add_project', async (req, res) => {
   try {
-    const { Nom,  Description, User_id } = req.body;
+    const { Nom, Description, User_id, Client_id, Artisans } = req.body;
+    
     // Définir la date de création actuelle et le statut par défaut
     const Date_de_creation = new Date();
     const Status = 'devis en cours';
+    
+    // Créer un nouveau projet
     const newProject = await Projet.create({
       Nom,
       Date_de_creation,
       Status,
       Description,
-      User_id
+      User_id,
+      Client_id
     });
 
-    res.status(201).json(newProject);
+    // Ajouter les artisans au projet
+    if (Artisans && Artisans.length > 0) {
+      const artisanPromises = Artisans.map(artisanId => 
+        ProjetArtisan.create({
+          projet_id: newProject.Id,
+          artisan_id: artisanId
+        })
+      );
+      await Promise.all(artisanPromises);
+    }
+
+    // Récupérer le projet avec les associations pour la réponse
+    const projectWithAssociations = await Projet.findOne({
+      where: { Id: newProject.Id },
+      include: [
+        { model: Utilisateur, as: 'Utilisateur' },
+        { model: Utilisateur, as: 'Client' },
+        { model: Utilisateur, through: { model: ProjetArtisan }, as: 'Artisans' }
+      ]
+    });
+
+    res.status(201).json(projectWithAssociations);
   } catch (error) {
     console.error('Error creating project:', error);
     res.status(500).json({ error: 'An error occurred while creating the project.' });
@@ -674,18 +726,41 @@ app.post('/add_project', async (req, res) => {
 app.put('/update_project/:id', async (req, res) => {
   try {
     const { id } = req.params;
-    const { Nom, Date_de_creation, Status, Description, User_id } = req.body;
+    const { Status, Description, Artisans } = req.body;
 
     const project = await Projet.findByPk(id);
 
     if (project) {
-      project.Nom = Nom;
       project.Status = Status;
       project.Description = Description;
 
       await project.save();
 
-      res.status(200).json(project);
+      // Mettre à jour les artisans associés au projet
+      if (Artisans && Artisans.length > 0) {
+        // Supprimer les artisans actuels
+        await ProjetArtisan.destroy({ where: { projet_id: project.Id } });
+        // Ajouter les nouveaux artisans
+        const artisanPromises = Artisans.map(artisanId => 
+          ProjetArtisan.create({
+            projet_id: project.Id,
+          artisan_id: artisanId
+          })
+        );
+        await Promise.all(artisanPromises);
+      }
+
+      // Récupérer le projet avec les associations pour la réponse
+      const updatedProject = await Projet.findOne({
+        where: { Id: project.Id },
+        include: [
+          { model: Utilisateur, as: 'Utilisateur' },
+          { model: Utilisateur, as: 'Client' },
+          { model: Utilisateur, through: { model: ProjetArtisan }, as: 'Artisans' }
+        ]
+      });
+
+      res.status(200).json(updatedProject);
     } else {
       res.status(404).json({ error: 'Project not found.' });
     }
@@ -720,10 +795,9 @@ app.get('/get_project/:id', async (req, res) => {
     const project = await Projet.findOne({
       where: { Id: id },
       include: [
-        {
-          model: Utilisateur,
-          as: 'Utilisateur'
-        }
+        { model: Utilisateur, as: 'Utilisateur' },
+        { model: Utilisateur, as: 'Client' },
+        { model: Utilisateur, as: 'Artisans' }
       ]
     });
 
@@ -739,15 +813,34 @@ app.get('/get_project/:id', async (req, res) => {
 });
 
 
+// Définissez la route pour récupérer les rôles avec leurs autorisations associées
+app.get('/get_projects', async (req, res) => {
+  try {
+    // Récupérez tous les Projets avec leurs autorisations associées
+    const projets = await Projet.findAll({
+      include: [
+        { model: Utilisateur, as: 'Utilisateur' },
+        { model: Utilisateur, as: 'Client' },
+        { model: Utilisateur, as: 'Artisans' }
+      ]
+    });
+
+    // Répondez avec les rôles récupérés au format JSON
+    res.json(projets);
+  } catch (error) {
+    console.error('Erreur lors de la récupération des rôles :', error);
+    res.status(500).json({ error: 'Erreur serveur' });
+  }
+});
+
 // Définir le point de terminaison pour récupérer la liste des projets
 app.get('/get_all_projects', async (req, res) => {
   try {
     const projects = await Projet.findAll({
       include: [
-        {
-          model: Utilisateur,
-          as: 'Utilisateur'
-        }
+        { model: Utilisateur, as: 'Utilisateur' },
+        { model: Utilisateur, as: 'Client' },
+        { model: Utilisateur, as: 'Artisans' }
       ]
     });    res.status(200).json(projects);
   } catch (error) {
@@ -761,7 +854,13 @@ app.get('/get_user_projects/:userId', async (req, res) => {
   try {
     const { userId } = req.params;
 
-    const projects = await Projet.findAll({ where: { User_id: userId } });
+    const projects = await Projet.findAll({ 
+      include: [
+        { model: Utilisateur, as: 'Utilisateur' },
+        { model: Utilisateur, as: 'Client' },
+        { model: Utilisateur, as: 'Artisans' }
+      ],
+      where: { User_id: userId } });
 
     if (projects.length > 0) {
       res.status(200).json(projects);
@@ -1073,6 +1172,26 @@ app.get('/get_autorisations/:ids', async (req, res) => {
 });
 
 
+// Endpoint GET pour récupérer un ensemble d'autorisations par ID
+app.get('/get_utilisateurs/:ids', async (req, res) => {
+  try {
+    const ids = req.params.ids.split(','); // Séparer les IDs par une virgule s'ils sont fournis sous forme de liste
+    
+    // Récupérer les autorisations par ID
+    const utilisateurs = await Utilisateurs.findAll({
+      where: {
+        Id: ids
+      }
+    });
+
+    res.status(200).json(utilisateurs);
+  } catch (error) {
+    console.error('Erreur lors de la récupération des utilisateurs :', error);
+    res.status(500).json({ error: 'Erreur serveur' });
+  }
+});
+
+
 // Endpoint GET pour récupérer une autorisation par son ID
 app.get('/get_autorisation/:id', async (req, res) => {
   try {
@@ -1094,6 +1213,9 @@ app.get('/get_autorisation/:id', async (req, res) => {
       res.status(500).json({ error: 'Erreur serveur' });
   }
 });
+
+
+
 
 
 

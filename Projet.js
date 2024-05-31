@@ -46,7 +46,15 @@ const Projet = sequelize.define('Projet', {
         model: 'Utilisateur', // Assumes you have a Users table
         key: 'Id'
       }
-    }
+    },
+    Client_id: {
+        type: DataTypes.INTEGER,
+        allowNull: false,
+        references: {
+          model: 'Utilisateur', // Assumes you have a Users table
+          key: 'Id'
+        }
+      }
   }, {
     tableName: 'Projet',
     timestamps: false,
@@ -54,4 +62,8 @@ const Projet = sequelize.define('Projet', {
   });
   
   Projet.belongsTo(Utilisateur, { foreignKey: 'User_id', as: 'Utilisateur' });
+  Projet.belongsTo(Utilisateur, { foreignKey: 'Client_id', as: 'Client' });
+  Projet.belongsToMany(Utilisateur, { through: 'ProjetArtisan', foreignKey: 'projet_id' ,otherKey: 'artisan_id', as: 'Artisans',  timestamps: false // Ajoutez cette option pour désactiver la gestion automatique des horodatages dans la table de liaison
+});
+
   module.exports = Projet;
