@@ -16,7 +16,7 @@ const saltRounds = 10; // Nombre de "sauts" pour générer le sel
 const fs = require('fs');
 const mime = require('mime-types');
 const nodemailer = require('nodemailer');
-const { Op } = require('sequelize');
+const { Op,Sequelize } = require('sequelize');
 
 // Définir le chemin du répertoire contenant les fichiers
 const filesDirectory = path.join(__dirname, 'files');
@@ -860,7 +860,11 @@ app.get('/get_user_projects/:userId', async (req, res) => {
         { model: Utilisateur, as: 'Client' },
         { model: Utilisateur, as: 'Artisans' }
       ],
-      where: { User_id: userId } });
+      where: {  [Sequelize.Op.or]: [
+        { User_id: userId },
+        { Client_id: userId },
+        Sequelize.literal(`EXISTS (SELECT 1 FROM ProjetArtisan WHERE ProjetArtisan.projet_id = Projet.Id AND ProjetArtisan.artisan_id = ${userId})`)
+      ] } });
 
     if (projects.length > 0) {
       res.status(200).json(projects);
