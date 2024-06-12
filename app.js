@@ -3,6 +3,16 @@ const Role = require('./Role');
 const crypto = require('crypto');
 const Utilisateur = require('./Utilisateur');
 const RoleAutorisation = require('./RoleAutorisation');
+const PieceCategorie=require('./PieceCategorie')
+const BesoinProjet=require('./Besoin_projet')
+const CategoriePiece=require('./Categorie_piece')
+const EtapeProjet=require('./Etape_projet')
+const Galerie=require('./Galerie')
+const BesoinProjetRealisation=require('./BesoinProjetRealisation')
+const EtapeProjetRealisation=require('./EtapeProjetRealisation')
+const Image=require('./Image')
+const Realisation=require('./Realisation')
+const Piece=require('./Piece')
 const ProjetArtisan = require('./ProjetArtisan');
 const cors = require('cors');
 const Projet = require('./Projet'); 
@@ -1375,6 +1385,501 @@ app.put('/update_autorisation/:id', async (req, res) => {
     res.status(500).json({ error: 'Erreur serveur lors de la mise à jour de l\'autorisation' });
   }
 });
+
+// Endpoint POST pour ajouter un besoin de projet
+app.post('/ajouter_besoin_projet', async (req, res) => {
+  try {
+    const { Titre, Description } = req.body;
+    // Création du besoin de projet dans la base de données
+    const besoin_projet = await BesoinProjet.create({ Titre, Description });
+    res.status(201).json(besoin_projet);
+  } catch (error) {
+    console.error('Erreur lors de l\'ajout du besoin de projet :', error);
+    res.status(500).json({ error: 'Erreur serveur' });
+  }
+});
+
+// Endpoint POST pour ajouter une catégorie de piece
+app.post('/ajouter_categorie_piece', async (req, res) => {
+  try {
+    const { Titre, Description } = req.body;
+    // Création de la catégorie de projet dans la base de données
+    const categorie_projet = await CategoriePiece.create({ Titre, Description });
+    res.status(201).json(categorie_projet);
+  } catch (error) {
+    console.error('Erreur lors de l\'ajout de la catégorie de projet :', error);
+    res.status(500).json({ error: 'Erreur serveur' });
+  }
+});
+
+// Endpoint POST pour ajouter une étape de projet
+app.post('/ajouter_etape_projet', async (req, res) => {
+  try {
+    const { Titre, Description } = req.body;
+    // Création de l'étape de projet dans la base de données
+    const etape_projet = await EtapeProjet.create({ Titre, Description });
+    res.status(201).json(etape_projet);
+  } catch (error) {
+    console.error('Erreur lors de l\'ajout de l\'étape de projet :', error);
+    res.status(500).json({ error: 'Erreur serveur' });
+  }
+});
+
+
+// Endpoint POST pour ajouter une réalisation avec ses besoins et étapes
+app.post('/add_realisation', async (req, res) => {
+  try {
+    // Récupérer les données de la requête
+    const { Titre, Superficie, Prix, Image_principale, Description, Duree, Top, Besoins, Etapes } = req.body;
+
+    // Créer une nouvelle réalisation dans la base de données
+    const nouvelleRealisation = await Realisation.create({
+      Titre,
+      Superficie,
+      Prix,
+      Image_principale,
+      Description,
+      Duree,
+      Top
+    });
+
+    // Vérifier si des besoins sont fournis dans la requête
+    if (Besoins && Besoins.length > 0) {
+      // Ajouter les besoins associés à la réalisation
+      await Promise.all(Besoins.map(async (besoin) => {
+        await BesoinProjetRealisation.create({
+          BesoinProjetID: besoin.ID,
+          RealisationID: nouvelleRealisation.ID
+        });
+      }));
+    }
+
+    // Vérifier si des étapes sont fournies dans la requête
+    if (Etapes && Etapes.length > 0) {
+      // Ajouter les étapes associées à la réalisation
+      await Promise.all(Etapes.map(async (etape) => {
+        await EtapeProjetRealisation.create({
+          EtapeProjetID: etape.ID,
+          RealisationID: nouvelleRealisation.ID
+        });
+      }));
+    }
+
+    // Répondre avec la réalisation ajoutée
+    res.status(201).json(nouvelleRealisation);
+  } catch (error) {
+    // En cas d'erreur, répondre avec le code d'erreur 500
+    console.error('Erreur lors de l\'ajout de la réalisation :', error);
+    res.status(500).json({ error: 'Erreur serveur' });
+  }
+});
+
+
+// Endpoint POST pour ajouter une réalisation avec ses besoins, étapes et galerie avec images
+app.post('/add_realisation_with_gallery', async (req, res) => {
+  try {
+    // Récupérer les données de la requête
+    const { Titre, Superficie, Prix, Image_principale, Description, Duree, Top, Besoins, Etapes, Galery } = req.body;
+
+    // Créer une nouvelle galerie dans la base de données
+    const nouvelleGalerie = await Galerie.create({
+      Titre: Galery.Titre // Ajouter d'autres propriétés de la galerie si nécessaire
+    });
+
+    // Vérifier si des images sont fournies dans la requête
+    if (Galery && Galery.Images && Galery.Images.length > 0) {
+      // Créer les images associées à la galerie
+      const nouvellesImages = await Promise.all(Galery.Images.map(async (image) => {
+        return await Image.create({
+          Titre: image.Titre,
+          Url: image.Url, // Ajouter d'autres propriétés de l'image si nécessaire
+          GalerieID:nouvelleGalerie.ID
+        });
+      }));
+
+      
+    }
+
+    // Créer une nouvelle réalisation dans la base de données
+    const nouvelleRealisation = await Realisation.create({
+      Titre,
+      Superficie,
+      Prix,
+      Image_principale,
+      Description,
+      Duree,
+      Top
+    });
+
+    // Associer la galerie à la réalisation
+    await nouvelleRealisation.setGalerie(nouvelleGalerie);
+
+    // Vérifier si des besoins sont fournis dans la requête
+    if (Besoins && Besoins.length > 0) {
+      // Ajouter les besoins associés à la réalisation
+      await Promise.all(Besoins.map(async (besoin) => {
+        await BesoinProjetRealisation.create({
+          BesoinProjetID: besoin.ID,
+          RealisationID: nouvelleRealisation.ID
+        });
+      }));
+    }
+
+    // Vérifier si des étapes sont fournies dans la requête
+    if (Etapes && Etapes.length > 0) {
+      // Ajouter les étapes associées à la réalisation
+      await Promise.all(Etapes.map(async (etape) => {
+        await EtapeProjetRealisation.create({
+          EtapeProjetID: etape.ID,
+          RealisationID: nouvelleRealisation.ID
+        });
+      }));
+    }
+
+    // Répondre avec la réalisation ajoutée
+    res.status(201).json(nouvelleRealisation);
+  } catch (error) {
+    // En cas d'erreur, répondre avec le code d'erreur 500
+    console.error('Erreur lors de l\'ajout de la réalisation :', error);
+    res.status(500).json({ error: 'Erreur serveur' });
+  }
+});
+
+app.post('/ajouter_realisation', async (req, res) => {
+  try {
+    // Récupérer les données de la requête
+    const { Titre, Superficie, Prix, Image_principale, Description, Duree, Top, Besoins, Etapes, Galery, PieceID } = req.body;
+
+    // Créer une nouvelle galerie dans la base de données
+    const nouvelleGalerie = await Galerie.create({
+      Titre: Galery.Titre
+    });
+
+    // Vérifier si des images sont fournies dans la requête
+    if (Galery && Galery.Images && Galery.Images.length > 0) {
+      await Promise.all(Galery.Images.map(async (image) => {
+        await Image.create({
+          Titre: image.Titre,
+          Url: image.Url,
+          GalerieID: nouvelleGalerie.ID
+        });
+      }));
+    }
+
+    // Créer une nouvelle réalisation dans la base de données
+    const nouvelleRealisation = await Realisation.create({
+      Titre,
+      Superficie,
+      Prix,
+      Image_principale,
+      Description,
+      Duree,
+      Top,
+      GalerieID: nouvelleGalerie.ID,
+      PieceID: PieceID // Associer la réalisation à la pièce
+    });
+
+    // Vérifier si des besoins sont fournis dans la requête
+    if (Besoins && Besoins.length > 0) {
+      await Promise.all(Besoins.map(async (besoin) => {
+        await BesoinProjetRealisation.create({
+          BesoinProjetID: besoin.ID,
+          RealisationID: nouvelleRealisation.ID
+        });
+      }));
+    }
+
+    // Vérifier si des étapes sont fournies dans la requête
+    if (Etapes && Etapes.length > 0) {
+      await Promise.all(Etapes.map(async (etape) => {
+        await EtapeProjetRealisation.create({
+          EtapeProjetID: etape.ID,
+          RealisationID: nouvelleRealisation.ID
+        });
+      }));
+    }
+
+    // Répondre avec la réalisation ajoutée
+    res.status(201).json(nouvelleRealisation);
+  } catch (error) {
+    console.error('Erreur lors de l\'ajout de la réalisation :', error);
+    res.status(500).json({ error: 'Erreur serveur' });
+  }
+});
+
+
+// Endpoint POST pour ajouter une galerie
+app.post('/add_galerie', async (req, res) => {
+  try {
+    // Récupérer les données de la requête
+    const { Titre } = req.body;
+
+    // Créer une nouvelle galerie dans la base de données
+    const nouvelleGalerie = await Galerie.create({
+      Titre
+    });
+
+    // Répondre avec la galerie ajoutée
+    res.status(201).json(nouvelleGalerie);
+  } catch (error) {
+    // En cas d'erreur, répondre avec le code d'erreur 500
+    console.error('Erreur lors de l\'ajout de la galerie :', error);
+    res.status(500).json({ error: 'Erreur serveur' });
+  }
+});
+
+// Endpoint POST pour ajouter une image et la lier à une galerie
+app.post('/add_image', async (req, res) => {
+  try {
+    // Récupérer les données de la requête
+    const { Titre, Url, GalerieID } = req.body;
+
+    // Créer une nouvelle image dans la base de données
+    const nouvelleImage = await Image.create({
+      Titre,
+      Url,
+      GalerieID // Spécifier l'ID de la galerie à laquelle l'image appartient
+    });
+
+    // Répondre avec l'image ajoutée
+    res.status(201).json(nouvelleImage);
+  } catch (error) {
+    // En cas d'erreur, répondre avec le code d'erreur 500
+    console.error('Erreur lors de l\'ajout de l\'image :', error);
+    res.status(500).json({ error: 'Erreur serveur' });
+  }
+});
+
+app.post('/add_piece', async (req, res) => {
+  const sequelize = new Sequelize('mysql://mala3315_concepts_et_travaux_user:h-c4J%25-%7DP%2C12@109.234.166.164:3306/mala3315_concepts_et_travaux');
+
+  const transaction = await sequelize.transaction();
+  try {
+    const { Image_principale, Titre, Presentation, Description, Categories, Gallery } = req.body;
+
+    // Créer une nouvelle pièce dans la base de données
+    const nouvellePiece = await Piece.create({
+      Image_principale,
+      Titre,
+      Présentation:Presentation,
+      Description
+    }, { transaction });
+
+    // Ajouter les catégories associées à la pièce
+    if (Categories && Categories.length > 0) {
+      await Promise.all(Categories.map(async (categorieID) => {
+        await PieceCategorie.create({
+          PieceID: nouvellePiece.ID,
+          CategoriePieceID: categorieID
+        }, { transaction });
+      }));
+    }
+
+    // Vérifier si une galerie est fournie dans la requête
+    if (Gallery) {
+      const { Titre: GalerieTitre, Images } = Gallery;
+
+      // Créer une nouvelle galerie dans la base de données
+      const nouvelleGalerie = await Galerie.create({
+        Titre: GalerieTitre
+      }, { transaction });
+
+      // Associer la galerie à la pièce
+      nouvellePiece.GalerieID = nouvelleGalerie.ID;
+      await nouvellePiece.save({ transaction });
+
+      // Ajouter les images associées à la galerie
+      if (Images && Images.length > 0) {
+        await Promise.all(Images.map(async (image) => {
+          await Image.create({
+           
+            Titre: image.Titre,
+            Url: image.Url,
+            GalerieID: nouvelleGalerie.ID
+          }, { transaction });
+        }));
+      }
+    }
+
+    await transaction.commit();
+
+    res.status(201).json(nouvellePiece);
+  } catch (error) {
+    await transaction.rollback();
+    console.error('Erreur lors de l\'ajout de la pièce :', error);
+    res.status(500).json({ error: 'Erreur serveur' });
+  }
+});
+
+app.get('/get_realisations', async (req, res) => {
+  try {
+    const realisations = await Realisation.findAll({
+      include: [
+        { model: Galerie },
+        { model: Piece },
+        { model: EtapeProjet, 
+          through: { 
+            
+            attributes: [],
+          }  
+        },
+        { model: BesoinProjet,
+           through: { 
+            attributes: [],
+          }  
+        }
+      ]
+    });
+
+    res.status(200).json(realisations);
+  } catch (error) {
+    console.error('Erreur lors de la récupération des réalisations :', error);
+    res.status(500).json({ error: 'Erreur serveur' });
+  }
+});
+
+// Endpoint pour récupérer une réalisation par son ID avec ses relations
+app.get('/get_realisation/:id', async (req, res) => {
+  try {
+    const realisationId = req.params.id;
+
+    // Récupérer la réalisation avec ses relations
+    const realisation = await Realisation.findByPk(realisationId, {
+      include: [
+        { model: Galerie },
+        { model: Piece },
+        { model: EtapeProjet, 
+          through: { 
+            
+            attributes: [],
+          }  
+        },
+        { model: BesoinProjet,
+           through: { 
+            attributes: [],
+          }  
+        }
+      ]
+    });
+
+    if (!realisation) {
+      return res.status(404).json({ message: 'Réalisation non trouvée' });
+    }
+
+    res.status(200).json(realisation);
+  } catch (error) {
+    console.error('Erreur lors de la récupération de la réalisation :', error);
+    res.status(500).json({ error: 'Erreur serveur' });
+  }
+});
+
+// Endpoint pour récupérer toutes les pièces avec leurs catégories et leur galerie
+app.get('/get_pieces', async (req, res) => {
+  try {
+    const pieces = await Piece.findAll({
+      include: [
+        { model: CategoriePiece 
+          , 
+          through: { 
+            
+            attributes: [],
+          }  
+        },
+        { model: Galerie }
+      ]
+    });
+    res.status(200).json(pieces);
+  } catch (error) {
+    console.error('Erreur lors de la récupération des pièces :', error);
+    res.status(500).json({ error: 'Erreur serveur' });
+  }
+});
+
+// Endpoint pour récupérer une pièce spécifique avec ses catégories et sa galerie
+app.get('/get_piece/:id', async (req, res) => {
+  const pieceId = req.params.id;
+  try {
+    const piece = await Piece.findByPk(pieceId, {
+      include: [
+        { model: CategoriePiece },
+        { model: Galerie }
+      ]
+    });
+    if (piece) {
+      res.status(200).json(piece);
+    } else {
+      res.status(404).json({ message: `Pièce avec l'ID ${pieceId} non trouvée` });
+    }
+  } catch (error) {
+    console.error(`Erreur lors de la récupération de la pièce avec l'ID ${pieceId} :`, error);
+    res.status(500).json({ error: 'Erreur serveur' });
+  }
+});
+
+// Endpoint pour récupérer une galerie avec ses images
+app.get('/get_galerie/:id', async (req, res) => {
+  const galerieId = req.params.id;
+  try {
+    // Récupérer la galerie avec son ID
+    const galerie = await Galerie.findByPk(galerieId);
+    if (!galerie) {
+      return res.status(404).json({ message: `Galerie avec l'ID ${galerieId} non trouvée` });
+    }
+
+    // Récupérer toutes les images associées à la galerie
+    const images = await Image.findAll({ where: { GalerieID: galerieId } });
+
+    // Ajouter les images à la réponse de la galerie
+    galerie.dataValues.images = images;
+
+    // Répondre avec la galerie et ses images
+    res.status(200).json(galerie);
+  } catch (error) {
+    console.error(`Erreur lors de la récupération de la galerie avec l'ID ${galerieId} :`, error);
+    res.status(500).json({ error: 'Erreur serveur' });
+  }
+});
+
+// Endpoint pour récupérer toutes les galeries avec leurs images
+app.get('/get_galeries', async (req, res) => {
+  try {
+    // Récupérer toutes les galeries
+    const galeries = await Galerie.findAll();
+
+    // Parcourir chaque galerie pour récupérer ses images
+    const galeriesWithImages = await Promise.all(galeries.map(async (galerie) => {
+      // Récupérer les images associées à chaque galerie
+      const images = await Image.findAll({ where: { GalerieID: galerie.ID } });
+      // Ajouter les images à la galerie
+      galerie.dataValues.images = images;
+      return galerie;
+    }));
+
+    // Répondre avec toutes les galeries et leurs images
+    res.status(200).json(galeriesWithImages);
+  } catch (error) {
+    console.error('Erreur lors de la récupération des galeries :', error);
+    res.status(500).json({ error: 'Erreur serveur' });
+  }
+});
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
