@@ -301,6 +301,10 @@ app.post('/upload', upload.single('file'), (req, res) => {
   res.json({ message: 'File uploaded successfully' });
 });
 
+
+
+
+
 // Endpoint pour envoyer un e-mail
 app.post('/send-email', (req, res) => {
   // Récupérer les informations de l'e-mail à partir de la requête
@@ -1475,6 +1479,63 @@ app.post('/add_realisation', async (req, res) => {
 });
 
 
+// Endpoint POST pour ajouter une réalisation avec ses besoins et étapes
+app.post('/ajouter_realisation', async (req, res) => {
+  const sequelize = new Sequelize('mysql://mala3315_concepts_et_travaux_user:h-c4J%25-%7DP%2C12@109.234.166.164:3306/mala3315_concepts_et_travaux');
+  const transaction = await sequelize.transaction();
+
+  try {
+    // Récupérer les données de la requête
+    const { Titre, Superficie, Prix, Image_principale, Description, Duree, Top, GalerieID, PieceID, Besoins, Etapes } = req.body;
+
+    // Créer une nouvelle réalisation dans la base de données
+    const nouvelleRealisation = await Realisation.create({
+      Titre,
+      Superficie,
+      Prix,
+      Image_principale,
+      Description,
+      Duree,
+      Top,
+      GalerieID,
+      PieceID
+    }, { transaction });
+
+    // Vérifier si des besoins sont fournis dans la requête
+    if (Besoins && Besoins.length > 0) {
+      // Ajouter les besoins associés à la réalisation
+      await Promise.all(Besoins.map(async (besoinID) => {
+        await BesoinProjetRealisation.create({
+          BesoinProjetID: besoinID,
+          RealisationID: nouvelleRealisation.ID
+        }, { transaction });
+      }));
+    }
+
+    // Vérifier si des étapes sont fournies dans la requête
+    if (Etapes && Etapes.length > 0) {
+      // Ajouter les étapes associées à la réalisation
+      await Promise.all(Etapes.map(async (etapeID) => {
+        await EtapeProjetRealisation.create({
+          EtapeProjetID: etapeID,
+          RealisationID: nouvelleRealisation.ID
+        }, { transaction });
+      }));
+    }
+
+    await transaction.commit();
+
+    // Répondre avec la réalisation ajoutée
+    res.status(201).json(nouvelleRealisation);
+  } catch (error) {
+    await transaction.rollback();
+    // En cas d'erreur, répondre avec le code d'erreur 500
+    console.error('Erreur lors de l\'ajout de la réalisation :', error);
+    res.status(500).json({ error: 'Erreur serveur' });
+  }
+});
+
+
 // Endpoint POST pour ajouter une réalisation avec ses besoins, étapes et galerie avec images
 app.post('/add_realisation_with_gallery', async (req, res) => {
   try {
@@ -1650,6 +1711,43 @@ app.post('/add_image', async (req, res) => {
   }
 });
 
+// Endpoint POST pour ajouter une galerie avec des images
+app.post('/add_galerie_with_images', async (req, res) => {
+  try {
+    // Récupérer les données de la requête
+    const { Titre, Images } = req.body;
+
+    // Créer une nouvelle galerie dans la base de données
+    const nouvelleGalerie = await Galerie.create({
+      Titre
+    });
+
+    // Vérifier si des images sont fournies dans la requête
+    if (Images && Images.length > 0) {
+      // Créer les images associées à la galerie
+      const nouvellesImages = await Promise.all(Images.map(async (image) => {
+        return await Image.create({
+          Titre: image.Titre,
+          Url: image.Url,
+          GalerieID: nouvelleGalerie.ID // Associer l'image à la galerie créée
+        });
+      }));
+
+      // Associer les nouvelles images à la galerie
+      nouvelleGalerie.Images = nouvellesImages;
+    }
+
+    // Répondre avec la galerie ajoutée et ses images
+    res.status(201).json(nouvelleGalerie);
+  } catch (error) {
+    // En cas d'erreur, répondre avec le code d'erreur 500
+    console.error('Erreur lors de l\'ajout de la galerie avec images :', error);
+    res.status(500).json({ error: 'Erreur serveur' });
+  }
+});
+
+
+
 app.post('/add_piece', async (req, res) => {
   const sequelize = new Sequelize('mysql://mala3315_concepts_et_travaux_user:h-c4J%25-%7DP%2C12@109.234.166.164:3306/mala3315_concepts_et_travaux');
 
@@ -1710,6 +1808,46 @@ app.post('/add_piece', async (req, res) => {
     res.status(500).json({ error: 'Erreur serveur' });
   }
 });
+
+app.post('/ajouter_piece', async (req, res) => {
+  const sequelize = new Sequelize('mysql://mala3315_concepts_et_travaux_user:h-c4J%25-%7DP%2C12@109.234.166.164:3306/mala3315_concepts_et_travaux');
+
+  const transaction = await sequelize.transaction();
+  try {
+    const { Image_principale, Titre, Presentation, Description, Categories, GalerieID } = req.body;
+
+    // Créer une nouvelle pièce dans la base de données
+    const nouvellePiece = await Piece.create({
+      Image_principale,
+      Titre,
+      Présentation: Presentation,
+      Description,
+      GalerieID // Associer directement l'ID de la galerie fourni
+    }, { transaction });
+
+    // Ajouter les catégories associées à la pièce
+    if (Categories && Categories.length > 0) {
+      await Promise.all(Categories.map(async (categorieID) => {
+        await PieceCategorie.create({
+          PieceID: nouvellePiece.ID,
+          CategoriePieceID: categorieID
+        }, { transaction });
+      }));
+    }
+
+    await transaction.commit();
+
+    res.status(201).json({
+      ID: nouvellePiece.ID,
+      GalerieID: nouvellePiece.GalerieID // Retourne l'ID de la galerie associée
+    });
+  } catch (error) {
+    await transaction.rollback();
+    console.error('Erreur lors de l\'ajout de la pièce :', error);
+    res.status(500).json({ error: 'Erreur serveur' });
+  }
+});
+
 
 app.get('/get_realisations', async (req, res) => {
   try {
@@ -1862,7 +2000,34 @@ app.get('/get_galeries', async (req, res) => {
     res.status(500).json({ error: 'Erreur serveur' });
   }
 });
+app.get('/get_etapes_projet', async (req, res) => {
+  try {
+    const etapesProjet = await EtapeProjet.findAll();
+    res.status(200).json(etapesProjet);
+  } catch (error) {
+    console.error('Erreur lors de la récupération des étapes de projet :', error);
+    res.status(500).json({ error: 'Erreur serveur' });
+  }
+});
 
+app.get('/get_besoins_projet', async (req, res) => {
+  try {
+    const besoinsProjet = await BesoinProjet.findAll();
+    res.status(200).json(besoinsProjet);
+  } catch (error) {
+    console.error('Erreur lors de la récupération des besoins du projet :', error);
+    res.status(500).json({ error: 'Erreur serveur' });
+  }
+});
+app.get('/get_categories_piece', async (req, res) => {
+  try {
+    const categories_piece = await CategoriePiece.findAll();
+    res.status(200).json(categories_piece);
+  } catch (error) {
+    console.error('Erreur lors de la récupération des categories de pieces :', error);
+    res.status(500).json({ error: 'Erreur serveur' });
+  }
+});
 
 
 
