@@ -17,6 +17,11 @@ const Piece = sequelize.define('Piece', {
     allowNull: false,
     field: 'Image_principale' // Spécifie explicitement le nom de la colonne dans la base de données
   },
+  Image_presentation: {
+    type: DataTypes.STRING,
+    allowNull: false,
+    field: 'Image_presentation' // Spécifie explicitement le nom de la colonne dans la base de données
+  },
   Titre: {
     type: DataTypes.STRING,
     allowNull: false,

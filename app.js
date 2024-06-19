@@ -1428,7 +1428,29 @@ app.post('/ajouter_etape_projet', async (req, res) => {
     res.status(500).json({ error: 'Erreur serveur' });
   }
 });
+// Endpoint DELETE pour supprimer une réalisation sans les relations (besoins et étapes)
+app.delete('/delete_realisation/:realisationId', async (req, res) => {
+  try {
+    const realisationId = req.params.realisationId; // Récupérer l'ID de la réalisation à partir des paramètres de la route
 
+    // Vérifier si la réalisation existe
+    const realisation = await Realisation.findByPk(realisationId);
+
+    if (!realisation) {
+      return res.status(404).json({ error: 'Réalisation non trouvée' });
+    }
+
+    // Supprimer la réalisation
+    await realisation.destroy();
+
+    // Répondre avec un message de succès
+    res.status(200).json({ message: 'Réalisation supprimée avec succès' });
+  } catch (error) {
+    // En cas d'erreur, répondre avec le code d'erreur 500
+    console.error('Erreur lors de la suppression de la réalisation :', error);
+    res.status(500).json({ error: 'Erreur serveur' });
+  }
+});
 
 // Endpoint POST pour ajouter une réalisation avec ses besoins et étapes
 app.post('/add_realisation', async (req, res) => {
@@ -1474,6 +1496,106 @@ app.post('/add_realisation', async (req, res) => {
   } catch (error) {
     // En cas d'erreur, répondre avec le code d'erreur 500
     console.error('Erreur lors de l\'ajout de la réalisation :', error);
+    res.status(500).json({ error: 'Erreur serveur' });
+  }
+});
+
+// Endpoint PUT pour mettre à jour une réalisation avec ses besoins et étapes
+app.put('/update_realisation/:realisationId', async (req, res) => {
+  const sequelize = new Sequelize('mysql://mala3315_concepts_et_travaux_user:h-c4J%25-%7DP%2C12@109.234.166.164:3306/mala3315_concepts_et_travaux');
+
+
+  const transaction = await sequelize.transaction();
+
+  try {
+    const realisationId = req.params.realisationId; // Récupérer l'ID de la réalisation à partir des paramètres de la route
+    const {
+      Titre,
+      Superficie,
+      Prix,
+      Image_principale,
+      Description,
+      Duree,
+      Top,
+      GalerieID,
+      PieceID,
+      Besoins,
+      Etapes
+    } = req.body; // Récupérer les données de la requête
+
+    // Trouver la réalisation par ID
+    let realisation = await Realisation.findByPk(realisationId, { transaction });
+
+    // Vérifier si la réalisation existe
+    if (!realisation) {
+      await transaction.rollback();
+      return res.status(404).json({ error: 'Réalisation non trouvée' });
+    }
+
+    // Mettre à jour les champs de la réalisation
+    realisation.Titre = Titre;
+    realisation.Superficie = Superficie;
+    realisation.Prix = Prix;
+    realisation.Description = Description;
+    realisation.Duree = Duree;
+    realisation.Top = Top;
+    realisation.GalerieID = GalerieID;
+    realisation.PieceID = PieceID;
+
+    // Mettre à jour l'image principale seulement si elle est fournie
+    if (Image_principale) {
+      realisation.Image_principale = Image_principale;
+    }
+
+    // Sauvegarder les changements apportés à la réalisation
+    await realisation.save({ transaction });
+
+    // Supprimer les besoins existants liés à la réalisation
+    await BesoinProjetRealisation.destroy({
+      where: {
+        RealisationID: realisationId
+      },
+      transaction
+    });
+
+    // Supprimer les étapes existantes liées à la réalisation
+    await EtapeProjetRealisation.destroy({
+      where: {
+        RealisationID: realisationId
+      },
+      transaction
+    });
+
+    // Vérifier si des besoins sont fournis dans la requête
+    if (Besoins && Besoins.length > 0) {
+      // Ajouter les nouveaux besoins associés à la réalisation
+      await Promise.all(Besoins.map(async (besoinID) => {
+        await BesoinProjetRealisation.create({
+          BesoinProjetID: besoinID,
+          RealisationID: realisationId
+        }, { transaction });
+      }));
+    }
+
+    // Vérifier si des étapes sont fournies dans la requête
+    if (Etapes && Etapes.length > 0) {
+      // Ajouter les nouvelles étapes associées à la réalisation
+      await Promise.all(Etapes.map(async (etapeID) => {
+        await EtapeProjetRealisation.create({
+          EtapeProjetID: etapeID,
+          RealisationID: realisationId
+        }, { transaction });
+      }));
+    }
+
+    await transaction.commit();
+
+    // Répondre avec la réalisation mise à jour
+    res.status(200).json(realisation);
+  } catch (error) {
+    await transaction.rollback();
+    // En cas d'erreur, répondre avec le code d'erreur 500
+    console.error('Erreur lors de la mise à jour de la réalisation :', error);
     res.status(500).json({ error: 'Erreur serveur' });
   }
 });
@@ -1747,17 +1869,96 @@ app.post('/add_galerie_with_images', async (req, res) => {
 });
 
 
+// Endpoint POST pour ajouter des images à une galerie existante
+app.post('/add_images_to_galerie/:galerieId', async (req, res) => {
+  try {
+    const galerieId = req.params.galerieId; // Récupérer l'ID de la galerie à partir des paramètres de la route
+    const images = req.body.Images; // Récupérer le tableau d'images à partir du corps de la requête
+
+    // Vérifier si la galerie existe
+    const galerie = await Galerie.findByPk(galerieId);
+    if (!galerie) {
+      return res.status(404).json({ error: 'Galerie non trouvée' });
+    }
+
+    // Ajouter chaque image à la galerie
+    const nouvellesImages = await Promise.all(images.map(async (image) => {
+      return await Image.create({
+        Titre: image.Titre,
+        Url: image.Url,
+        GalerieID: galerie.ID // Associer l'image à la galerie existante
+      });
+    }));
+
+    // Répondre avec les nouvelles images ajoutées
+    res.status(201).json(nouvellesImages);
+  } catch (error) {
+    // En cas d'erreur, répondre avec le code d'erreur 500
+    console.error('Erreur lors de l\'ajout des images à la galerie :', error);
+    res.status(500).json({ error: 'Erreur serveur' });
+  }
+});
+
+// Endpoint DELETE pour supprimer une image d'une galerie
+app.delete('/delete_image_from_gallery/:image_id', async (req, res) => {
+  try {
+    const imageId = req.params.image_id; // Récupérer l'ID de l'image à partir des paramètres de la route
+
+    // Trouver l'image par ID
+    const image = await Image.findByPk(imageId);
+
+    // Vérifier si l'image existe
+    if (!image) {
+      return res.status(404).json({ error: 'Image non trouvée' });
+    }
+
+    // Supprimer l'image de la base de données
+    await image.destroy();
+
+    // Répondre avec un message de succès
+    res.status(200).json({ message: 'Image supprimée avec succès' });
+  } catch (error) {
+    // En cas d'erreur, répondre avec le code d'erreur 500
+    console.error('Erreur lors de la suppression de l\'image :', error);
+    res.status(500).json({ error: 'Erreur serveur' });
+  }
+});
+
+// Endpoint DELETE pour supprimer une pièce
+app.delete('/delete_piece/:pieceId', async (req, res) => {
+  try {
+    const pieceId = req.params.pieceId; // Récupérer l'ID de la pièce à partir des paramètres de la route
+
+    // Vérifier si la pièce existe
+    const piece = await Piece.findByPk(pieceId);
+
+    if (!piece) {
+      return res.status(404).json({ error: 'Pièce non trouvée' });
+    }
+
+    // Supprimer la pièce
+    await piece.destroy();
+
+    // Répondre avec un message de succès
+    res.status(200).json({ message: 'Pièce supprimée avec succès' });
+  } catch (error) {
+    // En cas d'erreur, répondre avec le code d'erreur 500
+    console.error('Erreur lors de la suppression de la pièce :', error);
+    res.status(500).json({ error: 'Erreur serveur' });
+  }
+}); 
 
 app.post('/add_piece', async (req, res) => {
   const sequelize = new Sequelize('mysql://mala3315_concepts_et_travaux_user:h-c4J%25-%7DP%2C12@109.234.166.164:3306/mala3315_concepts_et_travaux');
 
   const transaction = await sequelize.transaction();
   try {
-    const { Image_principale, Titre, Presentation, Description, Categories, Gallery } = req.body;
+    const { Image_principale,Image_presentation, Titre, Presentation, Description, Categories, Gallery } = req.body;
 
     // Créer une nouvelle pièce dans la base de données
     const nouvellePiece = await Piece.create({
       Image_principale,
+      Image_presentation,
       Titre,
       Présentation:Presentation,
       Description
@@ -1814,11 +2015,12 @@ app.post('/ajouter_piece', async (req, res) => {
 
   const transaction = await sequelize.transaction();
   try {
-    const { Image_principale, Titre, Presentation, Description, Categories, GalerieID } = req.body;
+    const { Image_principale,Image_presentation, Titre, Presentation, Description, Categories, GalerieID } = req.body;
 
     // Créer une nouvelle pièce dans la base de données
     const nouvellePiece = await Piece.create({
       Image_principale,
+      Image_presentation,
       Titre,
       Présentation: Presentation,
       Description,
@@ -1849,6 +2051,70 @@ app.post('/ajouter_piece', async (req, res) => {
 });
 
 
+// Endpoint PUT pour mettre à jour une pièce
+app.put('/update_piece/:pieceId', async (req, res) => {
+  const sequelize = new Sequelize('mysql://mala3315_concepts_et_travaux_user:h-c4J%25-%7DP%2C12@109.234.166.164:3306/mala3315_concepts_et_travaux');
+
+  const transaction = await sequelize.transaction();
+  
+  try {
+    const pieceId = req.params.pieceId; // Récupérer l'ID de la pièce à mettre à jour
+    const { Image_principale, Image_presentation, Titre, Présentation, Description, Categories, GalerieID } = req.body;
+
+    // Vérifier si la pièce existe
+    let piece = await Piece.findByPk(pieceId, { transaction });
+
+    if (!piece) {
+      await transaction.rollback();
+      return res.status(404).json({ error: 'Pièce non trouvée' });
+    }
+
+    // Mettre à jour les propriétés de la pièce
+    piece.Titre = Titre;
+    piece.Présentation = Présentation;
+    piece.Description = Description;
+    piece.GalerieID = GalerieID;
+
+    // Mettre à jour les images si elles sont fournies et non nulles
+    if (Image_principale) {
+      piece.Image_principale = Image_principale;
+    }
+
+    if (Image_presentation) {
+      piece.Image_presentation = Image_presentation;
+    }
+
+    // Enregistrer les modifications de la pièce
+    await piece.save({ transaction });
+
+    // Supprimer les catégories actuelles associées à la pièce
+    await PieceCategorie.destroy({
+      where: {
+        PieceID: pieceId
+      },
+      transaction
+    });
+
+    // Ajouter les nouvelles catégories associées à la pièce
+    if (Categories && Categories.length > 0) {
+      await Promise.all(Categories.map(async (categorieID) => {
+        await PieceCategorie.create({
+          PieceID: pieceId,
+          CategoriePieceID: categorieID
+        }, { transaction });
+      }));
+    }
+
+    await transaction.commit();
+
+    res.status(200).json({ message: 'Pièce mise à jour avec succès' });
+  } catch (error) {
+    await transaction.rollback();
+    console.error('Erreur lors de la mise à jour de la pièce :', error);
+    res.status(500).json({ error: 'Erreur serveur' });
+  }
+});
+
 app.get('/get_realisations', async (req, res) => {
   try {
     const realisations = await Realisation.findAll({
@@ -1867,6 +2133,36 @@ app.get('/get_realisations', async (req, res) => {
           }  
         }
       ]
+    });
+
+    res.status(200).json(realisations);
+  } catch (error) {
+    console.error('Erreur lors de la récupération des réalisations :', error);
+    res.status(500).json({ error: 'Erreur serveur' });
+  }
+});
+
+
+app.get('/get_nbr_realisations/:count', async (req, res) => {
+  try {
+    const count = parseInt(req.params.count, 10); // Récupérer le nombre de réalisations à renvoyer
+
+    const realisations = await Realisation.findAll({
+      include: [
+        { model: Galerie },
+        { model: Piece },
+        { model: EtapeProjet, 
+          through: { 
+            attributes: [],
+          }  
+        },
+        { model: BesoinProjet,
+           through: { 
+            attributes: [],
+          }  
+        }
+      ],
+      limit: count // Limiter le nombre de résultats
     });
 
     res.status(200).json(realisations);
@@ -1933,6 +2229,30 @@ app.get('/get_pieces', async (req, res) => {
   }
 });
 
+app.get('/get_nbr_pieces/:count', async (req, res) => {
+  try {
+    const count = parseInt(req.params.count, 10); // Récupérer le nombre de pièces à renvoyer
+
+    const pieces = await Piece.findAll({
+      include: [
+        { model: CategoriePiece, 
+          through: { 
+            attributes: [],
+          }  
+        },
+        { model: Galerie }
+      ],
+      limit: count // Limiter le nombre de résultats
+    });
+
+    res.status(200).json(pieces);
+  } catch (error) {
+    console.error('Erreur lors de la récupération des pièces :', error);
+    res.status(500).json({ error: 'Erreur serveur' });
+  }
+});
+
+
 // Endpoint pour récupérer une pièce spécifique avec ses catégories et sa galerie
 app.get('/get_piece/:id', async (req, res) => {
   const pieceId = req.params.id;
@@ -1977,7 +2297,23 @@ app.get('/get_galerie/:id', async (req, res) => {
     res.status(500).json({ error: 'Erreur serveur' });
   }
 });
+// Définir le point de terminaison pour supprimer un projet
+app.delete('/delete_galerie/:id', async (req, res) => {
+  try {
+    const { id } = req.params;
 
+    const result = await Galerie.destroy({ where: { Id: id } });
+
+    if (result) {
+      res.status(200).json({ message: 'galerie deleted successfully.' });
+    } else {
+      res.status(404).json({ error: 'galerie not found.' });
+    }
+  } catch (error) {
+    console.error('Error deleting gallery:', error);
+    res.status(500).json({ error: 'An error occurred while deleting the gallery.' });
+  }
+});
 // Endpoint pour récupérer toutes les galeries avec leurs images
 app.get('/get_galeries', async (req, res) => {
   try {
