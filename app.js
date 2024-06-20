@@ -2588,6 +2588,88 @@ app.get('/get_questions', async (req, res) => {
   }
 });
 
+app.get('/get_questions_par_categorie/:id', async (req, res) => {
+  const sequelize = new Sequelize('mysql://mala3315_concepts_et_travaux_user:h-c4J%25-%7DP%2C12@109.234.166.164:3306/mala3315_concepts_et_travaux');
+
+  const categorieId = req.params.id;
+
+  try {
+    // Récupérer les questions associées à la catégorie spécifiée
+    const questions = await sequelize.query(
+      `SELECT q.* FROM QuestionFaq q,Question_Categorie qc,CategorieQuestionFaq c
+       WHERE q.ID=qc.QuestionID and c.ID=qc.CategorieID and
+       c.ID = :categorieId`,
+      {
+        replacements: { categorieId },
+        type: Sequelize.QueryTypes.SELECT,
+        model: QuestionFaq,
+        mapToModel: true,
+        
+      }
+    );
+
+    res.status(200).json(questions);
+  } catch (error) {
+    console.error('Erreur lors de la récupération des questions par catégorie :', error);
+    res.status(500).json({ error: 'Erreur serveur' });
+  }
+});
+
+app.get('/get_questions_par_categories', async (req, res) => {
+  const sequelize = new Sequelize('mysql://mala3315_concepts_et_travaux_user:h-c4J%25-%7DP%2C12@109.234.166.164:3306/mala3315_concepts_et_travaux');
+
+
+
+  try {
+    const query = `
+      SELECT q.ID, q.Titre, q.Question, q.Reponse, c.ID as cat_id, c.Titre as categorie
+      FROM QuestionFaq q
+      INNER JOIN Question_Categorie qc ON q.ID = qc.QuestionID
+      INNER JOIN CategorieQuestionFaq c ON c.ID = qc.CategorieID
+      ORDER BY c.ID, q.ID`;
+
+    const questions = await sequelize.query(query, {
+      type: Sequelize.QueryTypes.SELECT
+    });
+
+    let result = [];
+    let currentCategorie = 0;
+    let categorieObject = null;
+
+    questions.forEach(row => {
+      if (row.cat_id != currentCategorie) {
+        // Nouvelle catégorie
+        if (categorieObject !== null) {
+          result.push(categorieObject);
+        }
+        currentCategorie = row.cat_id;
+        categorieObject = {
+          CategorieID: row.cat_id,
+          Titre: row.categorie,
+          Questions: []
+        };
+      }
+      // Ajouter la question à la catégorie actuelle
+      categorieObject.Questions.push({
+        QuestionID: row.ID,
+        Titre: row.Titre,
+        Question: row.Question,
+        Reponse: row.Reponse
+      });
+    });
+
+    // Ajouter la dernière catégorie à la liste résultante
+    if (categorieObject !== null) {
+      result.push(categorieObject);
+    }
+
+    res.status(200).json(result);
+  } catch (error) {
+console.error('Erreur lors de la récupération des questions par catégorie :', error);
+res.status(500).json({ error: 'Erreur serveur' });
+}
+});
+
 app.get('/get_categories_question', async (req, res) => {
   try {
     const categories = await CategorieQuestionFaq.findAll();
