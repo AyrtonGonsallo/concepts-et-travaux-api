@@ -10,6 +10,9 @@ const EtapeProjet=require('./Etape_projet')
 const Galerie=require('./Galerie')
 const BesoinProjetRealisation=require('./BesoinProjetRealisation')
 const EtapeProjetRealisation=require('./EtapeProjetRealisation')
+const QuestionCategorie=require('./QuestionCategorie')
+const QuestionFaq=require('./QuestionFaq')
+const CategorieQuestionFaq=require('./CategorieQuestionFaq')
 const Image=require('./Image')
 const Realisation=require('./Realisation')
 const Piece=require('./Piece')
@@ -1873,25 +1876,32 @@ app.post('/add_galerie_with_images', async (req, res) => {
 app.post('/add_images_to_galerie/:galerieId', async (req, res) => {
   try {
     const galerieId = req.params.galerieId; // Récupérer l'ID de la galerie à partir des paramètres de la route
-    const images = req.body.Images; // Récupérer le tableau d'images à partir du corps de la requête
-
+    const { Titre, images } = req.body;
     // Vérifier si la galerie existe
     const galerie = await Galerie.findByPk(galerieId);
     if (!galerie) {
       return res.status(404).json({ error: 'Galerie non trouvée' });
     }
+ // Mettre à jour le titre de la galerie si un nouveau titre est fourni
+ if (Titre) {
+  galerie.Titre = Titre;
+  await galerie.save();
+}
+  if (images) {
+      // Ajouter chaque image à la galerie
+      const nouvellesImages = await Promise.all(images.map(async (image) => {
+        return await Image.create({
+          Titre: image.Titre,
+          Url: image.Url,
+          GalerieID: galerie.ID // Associer l'image à la galerie existante
+        });
+      }));
 
-    // Ajouter chaque image à la galerie
-    const nouvellesImages = await Promise.all(images.map(async (image) => {
-      return await Image.create({
-        Titre: image.Titre,
-        Url: image.Url,
-        GalerieID: galerie.ID // Associer l'image à la galerie existante
-      });
-    }));
-
-    // Répondre avec les nouvelles images ajoutées
-    res.status(201).json(nouvellesImages);
+      // Répondre avec les nouvelles images ajoutées
+      res.status(201).json(nouvellesImages);
+  }
+    
+    res.status(201).json(galerie);
   } catch (error) {
     // En cas d'erreur, répondre avec le code d'erreur 500
     console.error('Erreur lors de l\'ajout des images à la galerie :', error);
@@ -2346,6 +2356,54 @@ app.get('/get_etapes_projet', async (req, res) => {
   }
 });
 
+// Endpoint pour récupérer une étape de projet par son ID
+app.get('/get_etape_projet/:id', async (req, res) => {
+  try {
+    const etapeProjet = await EtapeProjet.findByPk(req.params.id);
+    if (!etapeProjet) {
+      return res.status(404).json({ error: 'Étape de projet non trouvée' });
+    }
+    res.status(200).json(etapeProjet);
+  } catch (error) {
+    console.error('Erreur lors de la récupération de l\'étape de projet :', error);
+    res.status(500).json({ error: 'Erreur serveur' });
+  }
+});
+
+// Endpoint pour mettre à jour une étape de projet
+app.put('/update_etape_projet/:id', async (req, res) => {
+  try {
+    const { Titre, Description } = req.body;
+    const etapeProjet = await EtapeProjet.findByPk(req.params.id);
+    if (!etapeProjet) {
+      return res.status(404).json({ error: 'Étape de projet non trouvée' });
+    }
+
+    etapeProjet.Titre = Titre || etapeProjet.Titre;
+    etapeProjet.Description = Description || etapeProjet.Description;
+    await etapeProjet.save();
+
+    res.status(200).json(etapeProjet);
+  } catch (error) {
+    console.error('Erreur lors de la mise à jour de l\'étape de projet :', error);
+    res.status(500).json({ error: 'Erreur serveur' });
+  }
+});
+
+// Endpoint pour supprimer une étape de projet par son ID
+app.delete('/delete_etape_projet/:id', async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    const result = await EtapeProjet.destroy({ where: { Id: id } });
+    res.status(200).json({ message: 'Étape de projet supprimée avec succès' });
+  } catch (error) {
+    console.error('Erreur lors de la suppression de l\'étape de projet :', error);
+    res.status(500).json({ error: 'Erreur serveur' });
+  }
+});
+
+
 app.get('/get_besoins_projet', async (req, res) => {
   try {
     const besoinsProjet = await BesoinProjet.findAll();
@@ -2355,6 +2413,57 @@ app.get('/get_besoins_projet', async (req, res) => {
     res.status(500).json({ error: 'Erreur serveur' });
   }
 });
+
+// Endpoint pour récupérer un besoin de projet par son ID
+app.get('/get_besoin_projet/:id', async (req, res) => {
+  try {
+    const besoinProjet = await BesoinProjet.findByPk(req.params.id);
+    if (!besoinProjet) {
+      return res.status(404).json({ error: 'Besoin de projet non trouvé' });
+    }
+    res.status(200).json(besoinProjet);
+  } catch (error) {
+    console.error('Erreur lors de la récupération du besoin de projet :', error);
+    res.status(500).json({ error: 'Erreur serveur' });
+  }
+});
+
+// Endpoint pour mettre à jour un besoin de projet
+app.put('/update_besoin_projet/:id', async (req, res) => {
+  try {
+    const { Titre, Description } = req.body;
+    const besoinProjet = await BesoinProjet.findByPk(req.params.id);
+    if (!besoinProjet) {
+      return res.status(404).json({ error: 'Besoin de projet non trouvé' });
+    }
+
+    besoinProjet.Titre = Titre || besoinProjet.Titre;
+    besoinProjet.Description = Description || besoinProjet.Description;
+    await besoinProjet.save();
+
+    res.status(200).json(besoinProjet);
+  } catch (error) {
+    console.error('Erreur lors de la mise à jour du besoin de projet :', error);
+    res.status(500).json({ error: 'Erreur serveur' });
+  }
+});
+
+// Endpoint pour supprimer un besoin de projet par son ID
+app.delete('/delete_besoin_projet/:id', async (req, res) => {
+  try {
+    const rowsDeleted = await BesoinProjet.destroy({
+      where: { ID: req.params.id }
+    });
+    if (rowsDeleted === 0) {
+      return res.status(404).json({ error: 'Besoin de projet non trouvé' });
+    }
+    res.status(200).json({ message: 'Besoin de projet supprimé avec succès' });
+  } catch (error) {
+    console.error('Erreur lors de la suppression du besoin de projet :', error);
+    res.status(500).json({ error: 'Erreur serveur' });
+  }
+});
+
 app.get('/get_categories_piece', async (req, res) => {
   try {
     const categories_piece = await CategoriePiece.findAll();
@@ -2365,10 +2474,279 @@ app.get('/get_categories_piece', async (req, res) => {
   }
 });
 
+// Endpoint pour récupérer une catégorie de pièce par son ID
+app.get('/get_categorie_piece/:id', async (req, res) => {
+  try {
+    const categoriePiece = await CategoriePiece.findByPk(req.params.id);
+    if (!categoriePiece) {
+      return res.status(404).json({ error: 'Catégorie de pièce non trouvée' });
+    }
+    res.status(200).json(categoriePiece);
+  } catch (error) {
+    console.error('Erreur lors de la récupération de la catégorie de pièce :', error);
+    res.status(500).json({ error: 'Erreur serveur' });
+  }
+});
+
+// Endpoint pour mettre à jour une catégorie de pièce
+app.put('/update_categorie_piece/:id', async (req, res) => {
+  try {
+    const { Titre, Description } = req.body;
+    const categoriePiece = await CategoriePiece.findByPk(req.params.id);
+    if (!categoriePiece) {
+      return res.status(404).json({ error: 'Catégorie de pièce non trouvée' });
+    }
+
+    categoriePiece.Titre = Titre || categoriePiece.Titre;
+    categoriePiece.Description = Description || categoriePiece.Description;
+    await categoriePiece.save();
+
+    res.status(200).json(categoriePiece);
+  } catch (error) {
+    console.error('Erreur lors de la mise à jour de la catégorie de pièce :', error);
+    res.status(500).json({ error: 'Erreur serveur' });
+  }
+});
+
+// Endpoint pour supprimer une catégorie de pièce par son ID
+app.delete('/delete_categorie_piece/:id', async (req, res) => {
+  try {
+    const rowsDeleted = await CategoriePiece.destroy({
+      where: { ID: req.params.id }
+    });
+    if (rowsDeleted === 0) {
+      return res.status(404).json({ error: 'Catégorie de pièce non trouvée' });
+    }
+    res.status(200).json({ message: 'Catégorie de pièce supprimée avec succès' });
+  } catch (error) {
+    console.error('Erreur lors de la suppression de la catégorie de pièce :', error);
+    res.status(500).json({ error: 'Erreur serveur' });
+  }
+});
 
 
+app.post('/create_categorie_question', async (req, res) => {
+  try {
+    const { Titre, Description } = req.body;
+    const nouvelleCategorie = await CategorieQuestionFaq.create({ Titre, Description });
+    res.status(201).json(nouvelleCategorie);
+  } catch (error) {
+    console.error('Erreur lors de la création de la catégorie de question :', error);
+    res.status(500).json({ error: 'Erreur serveur' });
+  }
+});
 
 
+app.post('/add_question', async (req, res) => {
+  const sequelize = new Sequelize('mysql://mala3315_concepts_et_travaux_user:h-c4J%25-%7DP%2C12@109.234.166.164:3306/mala3315_concepts_et_travaux');
+  const { Titre, Question, Reponse, CategorieQuestionFaqs } = req.body;
+
+  const transaction = await sequelize.transaction();
+
+  try {
+    // Créer la nouvelle question dans la base de données
+    const nouvelleQuestion = await QuestionFaq.create({
+      Titre,
+      Question,
+      Reponse
+    }, { transaction });
+
+    // Ajouter les catégories associées à la question
+    if (CategorieQuestionFaqs && CategorieQuestionFaqs.length > 0) {
+      await Promise.all(CategorieQuestionFaqs.map(async (categorieID) => {
+        await QuestionCategorie.create({
+          QuestionID: nouvelleQuestion.ID,
+          CategorieID: categorieID
+        }, { transaction });
+      }));
+    }
+
+    await transaction.commit();
+    res.status(201).json(nouvelleQuestion);
+  } catch (error) {
+    await transaction.rollback();
+    console.error('Erreur lors de la création de la question :', error);
+    res.status(500).json({ error: 'Erreur serveur' });
+  }
+});
+
+app.get('/get_questions', async (req, res) => {
+  try {
+    const questions = await QuestionFaq.findAll({
+      include: [{
+        model: CategorieQuestionFaq,
+        through: {
+          attributes: []
+        }
+      }]
+    });
+
+    res.status(200).json(questions);
+  } catch (error) {
+    console.error('Erreur lors de la récupération des questions :', error);
+    res.status(500).json({ error: 'Erreur serveur' });
+  }
+});
+
+app.get('/get_categories_question', async (req, res) => {
+  try {
+    const categories = await CategorieQuestionFaq.findAll();
+
+    res.status(200).json(categories);
+  } catch (error) {
+    console.error('Erreur lors de la récupération des catégories de questions :', error);
+    res.status(500).json({ error: 'Erreur serveur' });
+  }
+});
+
+// Endpoint pour récupérer une question par son ID
+app.get('/get_question/:id', async (req, res) => {
+  try {
+    const question = await QuestionFaq.findByPk(req.params.id, {
+      include: [{
+        model: CategorieQuestionFaq,
+        through: {
+          attributes: []
+        }
+      }]
+    });
+
+    if (!question) {
+      return res.status(404).json({ error: 'Question non trouvée' });
+    }
+
+    res.status(200).json(question);
+  } catch (error) {
+    console.error('Erreur lors de la récupération de la question :', error);
+    res.status(500).json({ error: 'Erreur serveur' });
+  }
+});
+
+// Endpoint pour récupérer une catégorie de question par son ID
+app.get('/get_categorie_question/:id', async (req, res) => {
+  try {
+    const categorie = await CategorieQuestionFaq.findByPk(req.params.id);
+
+    if (!categorie) {
+      return res.status(404).json({ error: 'Catégorie de question non trouvée' });
+    }
+
+    res.status(200).json(categorie);
+  } catch (error) {
+    console.error('Erreur lors de la récupération de la catégorie de question :', error);
+    res.status(500).json({ error: 'Erreur serveur' });
+  }
+});
+
+// Endpoint pour supprimer une question par son ID
+app.delete('/delete_question/:id', async (req, res) => {
+  try {
+    const rowsDeleted = await QuestionFaq.destroy({
+      where: {
+        ID: req.params.id
+      }
+    });
+
+    if (rowsDeleted === 0) {
+      return res.status(404).json({ error: 'Question non trouvée' });
+    }
+
+    res.status(200).json({ message: 'Question supprimée avec succès' });
+  } catch (error) {
+    console.error('Erreur lors de la suppression de la question :', error);
+    res.status(500).json({ error: 'Erreur serveur' });
+  }
+});
+
+// Endpoint pour supprimer une catégorie de question par son ID
+app.delete('/delete_categorie_question/:id', async (req, res) => {
+  try {
+    const rowsDeleted = await CategorieQuestionFaq.destroy({
+      where: {
+        ID: req.params.id
+      }
+    });
+
+    if (rowsDeleted === 0) {
+      return res.status(404).json({ error: 'Catégorie de question non trouvée' });
+    }
+
+    res.status(200).json({ message: 'Catégorie de question supprimée avec succès' });
+  } catch (error) {
+    console.error('Erreur lors de la suppression de la catégorie de question :', error);
+    res.status(500).json({ error: 'Erreur serveur' });
+  }
+});
+
+// Endpoint pour mettre à jour une question
+app.put('/update_question/:id', async (req, res) => {
+  const sequelize = new Sequelize('mysql://mala3315_concepts_et_travaux_user:h-c4J%25-%7DP%2C12@109.234.166.164:3306/mala3315_concepts_et_travaux');
+  const { Titre, Question, Reponse, CategorieQuestionFaqs } = req.body;
+  const transaction = await sequelize.transaction();
+
+  try {
+    // Trouver la question à mettre à jour
+    const question = await QuestionFaq.findByPk(req.params.id, { transaction });
+    if (!question) {
+      return res.status(404).json({ error: 'Question non trouvée' });
+    }
+
+    // Mettre à jour les champs de la question
+    question.Titre = Titre;
+    question.Question = Question;
+    question.Reponse = Reponse;
+
+    await question.save({ transaction });
+
+    // Mettre à jour les catégories associées à la question
+    if (CategorieQuestionFaqs && CategorieQuestionFaqs.length > 0) {
+      // Supprimer les anciennes associations
+      await QuestionCategorie.destroy({
+        where: { QuestionID: question.ID },
+        transaction
+      });
+
+      // Ajouter les nouvelles associations
+      await Promise.all(CategorieQuestionFaqs.map(async (categorieID) => {
+        await QuestionCategorie.create({
+          QuestionID: question.ID,
+          CategorieID: categorieID
+        }, { transaction });
+      }));
+    }
+
+    await transaction.commit();
+    res.status(200).json(question);
+  } catch (error) {
+    await transaction.rollback();
+    console.error('Erreur lors de la mise à jour de la question :', error);
+    res.status(500).json({ error: 'Erreur serveur' });
+  }
+  
+});
+
+// Endpoint pour mettre à jour une catégorie de question
+app.put('/update_categorie_question/:id', async (req, res) => {
+  try {
+    const { Titre, Description } = req.body;
+
+    // Trouver la catégorie à mettre à jour
+    const categorie = await CategorieQuestionFaq.findByPk(req.params.id);
+    if (!categorie) {
+      return res.status(404).json({ error: 'Catégorie de question non trouvée' });
+    }
+
+    // Mettre à jour les champs de la catégorie
+    categorie.Titre = Titre;
+    categorie.Description = Description;
+
+    await categorie.save();
+    res.status(200).json(categorie);
+  } catch (error) {
+    console.error('Erreur lors de la mise à jour de la catégorie de question :', error);
+    res.status(500).json({ error: 'Erreur serveur' });
+  }
+});
 
 
 
