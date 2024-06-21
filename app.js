@@ -4,6 +4,8 @@ const crypto = require('crypto');
 const Utilisateur = require('./Utilisateur');
 const RoleAutorisation = require('./RoleAutorisation');
 const PieceCategorie=require('./PieceCategorie')
+const Pointcle=require('./Pointcle')
+const PointcleRealisation=require('./PointcleRealisation')
 const BesoinProjet=require('./Besoin_projet')
 const CategoriePiece=require('./Categorie_piece')
 const EtapeProjet=require('./Etape_projet')
@@ -1459,11 +1461,12 @@ app.delete('/delete_realisation/:realisationId', async (req, res) => {
 app.post('/add_realisation', async (req, res) => {
   try {
     // Récupérer les données de la requête
-    const { Titre, Superficie, Prix, Image_principale, Description, Duree, Top, Besoins, Etapes } = req.body;
+    const { Titre,SousTitre, Superficie, Prix, Image_principale, Description, Duree, Top, Besoins, Etapes,Pointcles } = req.body;
 
     // Créer une nouvelle réalisation dans la base de données
     const nouvelleRealisation = await Realisation.create({
       Titre,
+      SousTitre,
       Superficie,
       Prix,
       Image_principale,
@@ -1494,6 +1497,17 @@ app.post('/add_realisation', async (req, res) => {
       }));
     }
 
+    // Vérifier si des étapes sont fournies dans la requête
+    if (Pointcles && Pointcles.length > 0) {
+      // Ajouter les étapes associées à la réalisation
+      await Promise.all(Pointcles.map(async (point) => {
+        await PointcleRealisation.create({
+          PointcleID: point.ID,
+          RealisationID: nouvelleRealisation.ID
+        });
+      }));
+    }
+
     // Répondre avec la réalisation ajoutée
     res.status(201).json(nouvelleRealisation);
   } catch (error) {
@@ -1514,6 +1528,7 @@ app.put('/update_realisation/:realisationId', async (req, res) => {
     const realisationId = req.params.realisationId; // Récupérer l'ID de la réalisation à partir des paramètres de la route
     const {
       Titre,
+      SousTitre,
       Superficie,
       Prix,
       Image_principale,
@@ -1523,7 +1538,8 @@ app.put('/update_realisation/:realisationId', async (req, res) => {
       GalerieID,
       PieceID,
       Besoins,
-      Etapes
+      Etapes,
+      Pointcles
     } = req.body; // Récupérer les données de la requête
 
     // Trouver la réalisation par ID
@@ -1537,6 +1553,7 @@ app.put('/update_realisation/:realisationId', async (req, res) => {
 
     // Mettre à jour les champs de la réalisation
     realisation.Titre = Titre;
+    realisation.SousTitre = SousTitre;
     realisation.Superficie = Superficie;
     realisation.Prix = Prix;
     realisation.Description = Description;
@@ -1569,12 +1586,31 @@ app.put('/update_realisation/:realisationId', async (req, res) => {
       transaction
     });
 
+    // Supprimer les étapes existantes liées à la réalisation
+    await PointcleRealisation.destroy({
+      where: {
+        RealisationID: realisationId
+      },
+      transaction
+    });
+
     // Vérifier si des besoins sont fournis dans la requête
     if (Besoins && Besoins.length > 0) {
       // Ajouter les nouveaux besoins associés à la réalisation
       await Promise.all(Besoins.map(async (besoinID) => {
         await BesoinProjetRealisation.create({
           BesoinProjetID: besoinID,
+          RealisationID: realisationId
+        }, { transaction });
+      }));
+    }
+
+     // Vérifier si des besoins sont fournis dans la requête
+     if (Pointcles && Pointcles.length > 0) {
+      // Ajouter les nouveaux besoins associés à la réalisation
+      await Promise.all(Pointcles.map(async (besoinID) => {
+        await PointcleRealisation.create({
+          PointcleID: besoinID,
           RealisationID: realisationId
         }, { transaction });
       }));
@@ -1611,11 +1647,12 @@ app.post('/ajouter_realisation', async (req, res) => {
 
   try {
     // Récupérer les données de la requête
-    const { Titre, Superficie, Prix, Image_principale, Description, Duree, Top, GalerieID, PieceID, Besoins, Etapes } = req.body;
+    const { Titre,SousTitre, Superficie, Prix, Image_principale, Description, Duree, Top, GalerieID, PieceID, Besoins, Etapes,Pointcles } = req.body;
 
     // Créer une nouvelle réalisation dans la base de données
     const nouvelleRealisation = await Realisation.create({
       Titre,
+      SousTitre,
       Superficie,
       Prix,
       Image_principale,
@@ -1643,6 +1680,17 @@ app.post('/ajouter_realisation', async (req, res) => {
       await Promise.all(Etapes.map(async (etapeID) => {
         await EtapeProjetRealisation.create({
           EtapeProjetID: etapeID,
+          RealisationID: nouvelleRealisation.ID
+        }, { transaction });
+      }));
+    }
+
+    // Vérifier si des étapes sont fournies dans la requête
+    if (Pointcles && Pointcles.length > 0) {
+      // Ajouter les étapes associées à la réalisation
+      await Promise.all(Pointcles.map(async (pointcleID) => {
+        await PointcleRealisation.create({
+          PointcleID: pointcleID,
           RealisationID: nouvelleRealisation.ID
         }, { transaction });
       }));
@@ -1876,38 +1924,41 @@ app.post('/add_galerie_with_images', async (req, res) => {
 app.post('/add_images_to_galerie/:galerieId', async (req, res) => {
   try {
     const galerieId = req.params.galerieId; // Récupérer l'ID de la galerie à partir des paramètres de la route
-    const { Titre, images } = req.body;
+    const { Titre, Images } = req.body;
+
     // Vérifier si la galerie existe
     const galerie = await Galerie.findByPk(galerieId);
     if (!galerie) {
       return res.status(404).json({ error: 'Galerie non trouvée' });
     }
- // Mettre à jour le titre de la galerie si un nouveau titre est fourni
- if (Titre) {
-  galerie.Titre = Titre;
-  await galerie.save();
-}
-  if (images) {
+
+    // Mettre à jour le titre de la galerie si un nouveau titre est fourni
+    if (Titre) {
+      galerie.Titre = Titre;
+      await galerie.save();
+    }
+
+    let nouvellesImages = [];
+    if (Images) {
       // Ajouter chaque image à la galerie
-      const nouvellesImages = await Promise.all(images.map(async (image) => {
+      nouvellesImages = await Promise.all(Images.map(async (image) => {
         return await Image.create({
           Titre: image.Titre,
           Url: image.Url,
           GalerieID: galerie.ID // Associer l'image à la galerie existante
         });
       }));
+    }
 
-      // Répondre avec les nouvelles images ajoutées
-      res.status(201).json(nouvellesImages);
-  }
-    
-    res.status(201).json(galerie);
+    // Répondre avec les nouvelles images ajoutées
+    res.status(201).json({ galerie, nouvellesImages });
   } catch (error) {
     // En cas d'erreur, répondre avec le code d'erreur 500
     console.error('Erreur lors de l\'ajout des images à la galerie :', error);
     res.status(500).json({ error: 'Erreur serveur' });
   }
 });
+
 
 // Endpoint DELETE pour supprimer une image d'une galerie
 app.delete('/delete_image_from_gallery/:image_id', async (req, res) => {
@@ -2141,7 +2192,12 @@ app.get('/get_realisations', async (req, res) => {
            through: { 
             attributes: [],
           }  
-        }
+        },
+        { model: Pointcle,
+          through: { 
+           attributes: [],
+         }  
+       }
       ]
     });
 
@@ -2170,7 +2226,12 @@ app.get('/get_nbr_realisations/:count', async (req, res) => {
            through: { 
             attributes: [],
           }  
-        }
+        },
+        { model: Pointcle,
+          through: { 
+           attributes: [],
+         }  
+       }
       ],
       limit: count // Limiter le nombre de résultats
     });
@@ -2202,7 +2263,12 @@ app.get('/get_realisation/:id', async (req, res) => {
            through: { 
             attributes: [],
           }  
-        }
+        },
+        { model: Pointcle,
+          through: { 
+           attributes: [],
+         }  
+       }
       ]
     });
 
@@ -2830,7 +2896,75 @@ app.put('/update_categorie_question/:id', async (req, res) => {
   }
 });
 
+// Endpoint pour créer un Pointcle
+app.post('/add_pointcle', async (req, res) => {
+  try {
+    const { Titre, Description } = req.body;
+    const nouveauPointcle = await Pointcle.create({ Titre, Description });
+    res.status(201).json(nouveauPointcle);
+  } catch (error) {
+    console.error('Erreur lors de la création du Pointcle :', error);
+    res.status(500).json({ error: 'Erreur serveur' });
+  }
+});
 
+// Endpoint pour obtenir tous les Pointcles
+app.get('/get_pointscle', async (req, res) => {
+  try {
+    const pointscles = await Pointcle.findAll();
+    res.status(200).json(pointscles);
+  } catch (error) {
+    console.error('Erreur lors de la récupération des Pointcles :', error);
+    res.status(500).json({ error: 'Erreur serveur' });
+  }
+});
+
+// Endpoint pour obtenir un Pointcle par ID
+app.get('/get_pointcle/:id', async (req, res) => {
+  try {
+    const pointcle = await Pointcle.findByPk(req.params.id);
+    if (!pointcle) {
+      return res.status(404).json({ error: 'Pointcle non trouvé' });
+    }
+    res.status(200).json(pointcle);
+  } catch (error) {
+    console.error('Erreur lors de la récupération du Pointcle :', error);
+    res.status(500).json({ error: 'Erreur serveur' });
+  }
+});
+
+// Endpoint pour mettre à jour un Pointcle par ID
+app.put('/update_pointcle/:id', async (req, res) => {
+  try {
+    const { Titre, Description } = req.body;
+    const pointcle = await Pointcle.findByPk(req.params.id);
+    if (!pointcle) {
+      return res.status(404).json({ error: 'Pointcle non trouvé' });
+    }
+    pointcle.Titre = Titre;
+    pointcle.Description = Description;
+    await pointcle.save();
+    res.status(200).json(pointcle);
+  } catch (error) {
+    console.error('Erreur lors de la mise à jour du Pointcle :', error);
+    res.status(500).json({ error: 'Erreur serveur' });
+  }
+});
+
+// Endpoint pour supprimer un Pointcle par ID
+app.delete('/delete_pointcle/:id', async (req, res) => {
+  try {
+    const pointcle = await Pointcle.findByPk(req.params.id);
+    if (!pointcle) {
+      return res.status(404).json({ error: 'Pointcle non trouvé' });
+    }
+    await pointcle.destroy();
+    res.status(204).send();
+  } catch (error) {
+    console.error('Erreur lors de la suppression du Pointcle :', error);
+    res.status(500).json({ error: 'Erreur serveur' });
+  }
+});
 
 
 

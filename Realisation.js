@@ -3,6 +3,7 @@ const BesoinProjet=require('./Besoin_projet');
 const EtapeProjet=require('./Etape_projet');
 const Galerie=require('./Galerie');
 const Piece=require('./Piece');
+const Pointcle=require('./Pointcle');
 const sequelize = new Sequelize('mysql://mala3315_concepts_et_travaux_user:h-c4J%25-%7DP%2C12@109.234.166.164:3306/mala3315_concepts_et_travaux');
 
 const Realisation = sequelize.define('Realisation', {
@@ -17,6 +18,11 @@ const Realisation = sequelize.define('Realisation', {
     type: DataTypes.STRING,
     allowNull: false,
     field: 'Titre' // Spécifie explicitement le nom de la colonne dans la base de données
+  },
+  SousTitre: {
+    type: DataTypes.STRING,
+    allowNull: true,
+    field: 'SousTitre' // Spécifie explicitement le nom de la colonne dans la base de données
   },
   Superficie: {
     type: DataTypes.INTEGER,
@@ -96,6 +102,17 @@ Realisation.belongsToMany(BesoinProjet, { through: 'BesoinProjetRealisation',
   otherKey: {
     name: 'BesoinProjetID',
     field: 'BesoinProjetID'
+}, 
+});
+
+Realisation.belongsToMany(Pointcle, { through: 'PointcleRealisation', 
+  foreignKey:  {
+    name: 'RealisationID',
+    field: 'RealisationID'
+}, 
+  otherKey: {
+    name: 'PointcleID',
+    field: 'PointcleID'
 }, 
 });
 
