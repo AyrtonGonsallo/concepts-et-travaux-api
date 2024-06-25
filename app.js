@@ -2209,6 +2209,43 @@ app.get('/get_realisations', async (req, res) => {
 });
 
 
+app.get('/get_realisations_by_piece/:p_id', async (req, res) => { // Ajout de ":" avant "p_id"
+  try {
+    const p_id = parseInt(req.params.p_id, 10); // Récupérer l'ID de la pièce depuis les paramètres de l'URL
+
+    const realisations = await Realisation.findAll({
+      include: [
+        { model: Galerie },
+        { model: Piece,
+          where: { ID: p_id } // Utilisation correcte de p_id dans la clause where
+        },
+        { model: EtapeProjet, 
+          through: { 
+            attributes: [],
+          }  
+        },
+        { model: BesoinProjet,
+           through: { 
+            attributes: [],
+          }  
+        },
+        { model: Pointcle,
+          through: { 
+           attributes: [],
+         }  
+       }
+      ]
+    });
+
+    res.status(200).json(realisations);
+  } catch (error) {
+    console.error('Erreur lors de la récupération des réalisations :', error);
+    res.status(500).json({ error: 'Erreur serveur' });
+  }
+});
+
+
+
 app.get('/get_nbr_realisations/:count', async (req, res) => {
   try {
     const count = parseInt(req.params.count, 10); // Récupérer le nombre de réalisations à renvoyer
@@ -2304,6 +2341,61 @@ app.get('/get_pieces', async (req, res) => {
     res.status(500).json({ error: 'Erreur serveur' });
   }
 });
+
+app.get('/get_pieces_par_categories', async (req, res) => {
+  const sequelize = new Sequelize('mysql://mala3315_concepts_et_travaux_user:h-c4J%25-%7DP%2C12@109.234.166.164:3306/mala3315_concepts_et_travaux');
+
+
+
+  try {
+    const query = `
+      SELECT p.ID, p.Titre, p.Image_principale,  c.ID as cat_id, c.Titre as categorie
+      FROM Piece p
+      INNER JOIN PieceCategorie pc ON p.ID = pc.PieceID
+       INNER JOIN Categorie_piece c ON c.ID = pc.CategoriePieceID
+      ORDER BY c.ID, p.ID`;
+
+    const pieces = await sequelize.query(query, {
+      type: Sequelize.QueryTypes.SELECT
+    });
+
+    let result = [];
+    let currentCategorie = 0;
+    let categorieObject = null;
+
+    pieces.forEach(row => {
+      if (row.cat_id != currentCategorie) {
+        // Nouvelle catégorie
+        if (categorieObject !== null) {
+          result.push(categorieObject);
+        }
+        currentCategorie = row.cat_id;
+        categorieObject = {
+          CategorieID: row.cat_id,
+          Titre: row.categorie,
+          Pieces: []
+        };
+      }
+      // Ajouter la question à la catégorie actuelle
+      categorieObject.Pieces.push({
+        ID: row.ID,
+        Titre: row.Titre,
+        Image_principale: row.Image_principale,
+      });
+    });
+
+    // Ajouter la dernière catégorie à la liste résultante
+    if (categorieObject !== null) {
+      result.push(categorieObject);
+    }
+
+    res.status(200).json(result);
+  } catch (error) {
+console.error('Erreur lors de la récupération des questions par catégorie :', error);
+res.status(500).json({ error: 'Erreur serveur' });
+}
+});
+
 
 app.get('/get_nbr_pieces/:count', async (req, res) => {
   try {
