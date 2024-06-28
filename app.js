@@ -5,6 +5,7 @@ const Utilisateur = require('./Utilisateur');
 const RoleAutorisation = require('./RoleAutorisation');
 const PieceCategorie=require('./PieceCategorie')
 const Pointcle=require('./Pointcle')
+const Avis=require('./Avis')
 const PointcleRealisation=require('./PointcleRealisation')
 const BesoinProjet=require('./Besoin_projet')
 const CategoriePiece=require('./Categorie_piece')
@@ -3058,7 +3059,72 @@ app.delete('/delete_pointcle/:id', async (req, res) => {
   }
 });
 
+// Create
+app.post('/add_avis', async (req, res) => {
+  try {
+      const avis = await Avis.create(req.body);
+      res.status(201).json(avis);
+  } catch (error) {
+      res.status(500).json({ error: error.message });
+  }
+});
 
+// Read all
+app.get('/get_all_avis', async (req, res) => {
+  try {
+      const avis = await Avis.findAll();
+      res.status(200).json(avis);
+  } catch (error) {
+      res.status(500).json({ error: error.message });
+  }
+});
+
+// Read one
+app.get('/get_avis/:id', async (req, res) => {
+  try {
+      const avis = await Avis.findByPk(req.params.id);
+      if (avis) {
+          res.status(200).json(avis);
+      } else {
+          res.status(404).json({ error: 'Avis not found' });
+      }
+  } catch (error) {
+      res.status(500).json({ error: error.message });
+  }
+});
+
+// Update
+app.put('/update_avis/:id', async (req, res) => {
+  try {
+      const [updated] = await Avis.update(req.body, {
+          where: { ID: req.params.id }
+      });
+      if (updated) {
+          const updatedAvis = await Avis.findByPk(req.params.id);
+          res.status(200).json(updatedAvis);
+      } else {
+          res.status(404).json({ error: 'Avis not found' });
+      }
+  } catch (error) {
+      res.status(500).json({ error: error.message });
+  }
+});
+
+// Delete
+app.delete('/delete_avis/:id', async (req, res) => {
+  try {
+      const deleted = await Avis.destroy({
+          where: { ID: req.params.id }
+      });
+      if (deleted) {
+          res.status(204).json({ message: 'Avis deleted' });
+      } else {
+          res.status(404).json({ error: 'Avis not found' });
+      }
+  } catch (error) {
+      res.status(500).json({ error: error.message });
+  }
+});
 
 
 
