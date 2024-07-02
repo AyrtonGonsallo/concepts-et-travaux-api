@@ -6,6 +6,7 @@ const RoleAutorisation = require('./RoleAutorisation');
 const PieceCategorie=require('./PieceCategorie')
 const Pointcle=require('./Pointcle')
 const Avis=require('./Avis')
+const Page=require('./Page')
 const PointcleRealisation=require('./PointcleRealisation')
 const BesoinProjet=require('./Besoin_projet')
 const CategoriePiece=require('./Categorie_piece')
@@ -2350,7 +2351,7 @@ app.get('/get_pieces_par_categories', async (req, res) => {
 
   try {
     const query = `
-      SELECT p.ID, p.Titre, p.Image_principale,  c.ID as cat_id, c.Titre as categorie
+      SELECT p.ID, p.Titre, p.Image_principale,p.Image_presentation,  c.ID as cat_id, c.Titre as categorie
       FROM Piece p
       INNER JOIN PieceCategorie pc ON p.ID = pc.PieceID
        INNER JOIN Categorie_piece c ON c.ID = pc.CategoriePieceID
@@ -2382,6 +2383,7 @@ app.get('/get_pieces_par_categories', async (req, res) => {
         ID: row.ID,
         Titre: row.Titre,
         Image_principale: row.Image_principale,
+        Image_presentation: row.Image_presentation,
       });
     });
 
@@ -3126,7 +3128,79 @@ app.delete('/delete_avis/:id', async (req, res) => {
   }
 });
 
+// Créer une nouvelle page
+app.post('/add_page', async (req, res) => {
+  try {
+    const newPage = await Page.create(req.body);
+    res.status(201).json(newPage);
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
 
+// Lire toutes les pages
+app.get('/get_pages', async (req, res) => {
+  try {
+    const pages = await Page.findAll();
+    res.status(200).json(pages);
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// Lire une seule page par ID
+app.get('/get_page/:id', async (req, res) => {
+  try {
+    const page = await Page.findByPk(req.params.id);
+    if (page) {
+      res.status(200).json(page);
+    } else {
+      res.status(404).json({ error: 'Page not found' });
+    }
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// Mettre à jour une page par ID
+app.put('/update_page/:id', async (req, res) => {
+  try {
+    const { id } = req.params;
+    const pageUpdates = req.body;
+    if (!pageUpdates.Content_balise_og_image) {
+      delete pageUpdates.Content_balise_og_image; // Supprimer le champ si vide pour ne pas le modifier
+    }
+    // Effectuer la mise à jour dans la base de données
+    const [updatedRowCount] = await Page.update(pageUpdates, {
+      where: { ID: id }
+    });
+    if (updatedRowCount > 0) {
+      // Si la mise à jour est réussie, récupérer la page mise à jour
+      const updatedPage = await Page.findByPk(id);
+      res.status(200).json(updatedPage);
+    } else {
+      res.status(404).json({ error: 'Page not found' });
+    }
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// Supprimer une page par ID
+app.delete('/delete_page/:id', async (req, res) => {
+  try {
+    const deleted = await Page.destroy({
+      where: { ID: req.params.id }
+    });
+    if (deleted) {
+      res.status(204).json({ message: 'Page deleted' });
+    } else {
+      res.status(404).json({ error: 'Page not found' });
+    }
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
 
 
 
