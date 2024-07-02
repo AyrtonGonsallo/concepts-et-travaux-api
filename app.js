@@ -3162,6 +3162,22 @@ app.get('/get_page/:id', async (req, res) => {
   }
 });
 
+// Lire une seule page par Titre
+app.get('/get_page_by_title/:titre', async (req, res) => {
+  const { titre } = req.params;
+  try {
+    const page = await Page.findOne({ where: { Titre: titre } });
+    if (page) {
+      res.status(200).json(page);
+    } else {
+      res.status(404).json({ error: 'Page not found' });
+    }
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+
 // Mettre à jour une page par ID
 app.put('/update_page/:id', async (req, res) => {
   try {
