@@ -4,6 +4,8 @@ const crypto = require('crypto');
 const Utilisateur = require('./Utilisateur');
 const RoleAutorisation = require('./RoleAutorisation');
 const PieceCategorie=require('./PieceCategorie')
+const Travail=require('./Travail')
+const PieceTravail=require('./PieceTravail')
 const Pointcle=require('./Pointcle')
 const Avis=require('./Avis')
 const Page=require('./Page')
@@ -12,6 +14,7 @@ const BesoinProjet=require('./Besoin_projet')
 const CategoriePiece=require('./Categorie_piece')
 const EtapeProjet=require('./Etape_projet')
 const Galerie=require('./Galerie')
+const Equipement=require('./Equipement')
 const BesoinProjetRealisation=require('./BesoinProjetRealisation')
 const EtapeProjetRealisation=require('./EtapeProjetRealisation')
 const QuestionCategorie=require('./QuestionCategorie')
@@ -3217,6 +3220,289 @@ app.delete('/delete_page/:id', async (req, res) => {
     res.status(500).json({ error: error.message });
   }
 });
+// Create
+app.post('/add_equipement/', async (req, res) => {
+  try {
+    const newEquipement = await Equipement.create(req.body);
+    res.status(201).json(newEquipement);
+  } catch (error) {
+    res.status(400).json({ error: error.message });
+  }
+});
+
+// Read all
+app.get('/get_equipements/', async (req, res) => {
+  try {
+    const equipements = await Equipement.findAll({
+      include: [
+        { model: Piece }
+      ]
+    });
+    res.status(200).json(equipements);
+  } catch (error) {
+    res.status(400).json({ error: error.message });
+  }
+});
+
+// Read one
+app.get('/get_equipement/:id', async (req, res) => {
+  try {
+    const equipement = await Equipement.findByPk(req.params.id,
+       {
+        include: Piece
+      }
+      
+    );
+    if (equipement) {
+      res.status(200).json(equipement);
+    } else {
+      res.status(404).json({ error: 'Equipement not found' });
+    }
+  } catch (error) {
+    res.status(400).json({ error: error.message });
+  }
+});
+
+// Endpoint pour récupérer les Equipements par PieceID
+app.get('/get_equipements_by_piece/:pid', async (req, res) => {
+  try {
+    const pieceID = req.params.pid;
+    const equipements = await Equipement.findAll({
+      where: { PieceID: pieceID },
+      include: Piece
+    });
+    res.status(200).json(equipements);
+  } catch (error) {
+    res.status(400).json({ error: error.message });
+  }
+});
+// Update
+app.put('/update_equipement/:id', async (req, res) => {
+  try {
+    const equipement = await Equipement.findByPk(req.params.id);
+    if (equipement) {
+      // Créez une copie de req.body
+      const updateData = { ...req.body };
+
+      // Si le champ Image est vide, supprimez-le de updateData
+      if (!req.body.Image) {
+        delete updateData.Image;
+      }
+
+      await equipement.update(updateData);
+      res.status(200).json(equipement);
+    } else {
+      res.status(404).json({ error: 'Equipement not found' });
+    }
+  } catch (error) {
+    res.status(400).json({ error: error.message });
+  }
+});
+
+// Delete
+app.delete('/delete_equipement/:id', async (req, res) => {
+  try {
+    const equipement = await Equipement.findByPk(req.params.id);
+    if (equipement) {
+      await equipement.destroy();
+      res.status(204).send();
+    } else {
+      res.status(404).json({ error: 'Equipement not found' });
+    }
+  } catch (error) {
+    res.status(400).json({ error: error.message });
+  }
+});
+
+app.post('/add_travail', async (req, res) => {
+  const sequelize = new Sequelize('mysql://mala3315_concepts_et_travaux_user:h-c4J%25-%7DP%2C12@109.234.166.164:3306/mala3315_concepts_et_travaux');
+
+  const transaction = await sequelize.transaction();
+  try {
+    const {  Titre, Description, Pieces } = req.body;
+
+    // Créer une nouvelle pièce dans la base de données
+    const nouveauTravail = await Travail.create({
+      Titre,
+      Description
+    }, { transaction });
+
+    // Ajouter les catégories associées à la pièce
+    if (Pieces && Pieces.length > 0) {
+      await Promise.all(Pieces.map(async (pieceID) => {
+        await PieceTravail.create({
+          PieceID: pieceID,
+          TravailID: nouveauTravail.ID
+        }, { transaction });
+      }));
+    }
+
+
+    await transaction.commit();
+
+    res.status(201).json(nouveauTravail);
+  } catch (error) {
+    await transaction.rollback();
+    console.error('Erreur lors de l\'ajout du travail :', error);
+    res.status(500).json({ error: 'Erreur serveur' });
+  }
+});
+
+// GET travaux par PieceID
+app.get('/get_travaux_by_piece/:pid', async (req, res) => {
+  const sequelize = new Sequelize('mysql://mala3315_concepts_et_travaux_user:h-c4J%25-%7DP%2C12@109.234.166.164:3306/mala3315_concepts_et_travaux');
+
+  const pieceId = req.params.pid;
+
+  try {
+    // Récupérer les questions associées à la catégorie spécifiée
+    const questions = await sequelize.query(
+      `SELECT t.* FROM Travail t,PieceTravail pt,Piece p
+       WHERE t.ID=pt.TravailID and p.ID=pt.PieceID and
+       p.ID = :pieceId`,
+      {
+        replacements: { pieceId },
+        type: Sequelize.QueryTypes.SELECT,
+        model: Travail,
+        mapToModel: true,
+        
+      }
+    );
+
+    res.status(200).json(questions);
+  } catch (error) {
+    console.error('Erreur lors de la récupération des travaux par piece :', error);
+    res.status(500).json({ error: 'Erreur serveur' });
+  }
+});
+// GET tous les travaux
+app.get('/get_travaux', async (req, res) => {
+  try {
+    const travaux = await Travail.findAll({
+      include: {
+        model: Piece,
+        through: {
+          model: PieceTravail,
+          attributes: [] // Si vous ne voulez pas inclure les attributs de la table de jointure PieceTravail
+        }
+      }
+    });
+
+    res.status(200).json(travaux);
+  } catch (error) {
+    console.error('Erreur lors de la récupération des travaux avec les détails de la pièce :', error);
+    res.status(500).json({ error: 'Erreur serveur' });
+  }
+});
+// GET travail par ID avec les détails de la pièce associée
+app.get('/get_travail/:id', async (req, res) => {
+  try {
+    const travailID = req.params.id;
+
+    // Recherche le travail par son ID avec les détails de la pièce associée
+    const travail = await Travail.findByPk(travailID, {
+      include: {
+        model: Piece,
+        through: {
+          model: PieceTravail,
+          attributes: [] // Si vous ne voulez pas inclure les attributs de la table de jointure PieceTravail
+        }
+      }
+    });
+
+    if (!travail) {
+      res.status(404).json({ error: 'Travail non trouvé' });
+      return;
+    }
+
+    res.status(200).json(travail);
+  } catch (error) {
+    console.error('Erreur lors de la récupération du travail par ID avec les détails de la pièce :', error);
+    res.status(500).json({ error: 'Erreur serveur' });
+  }
+});
+
+
+// Update travail par ID
+app.put('/update_travail/:id', async (req, res) => {
+  try {
+    const travailID = req.params.id;
+    const { Titre, Description, Pieces } = req.body;
+
+    // Recherche le travail par son ID
+    const travail = await Travail.findByPk(travailID);
+    if (!travail) {
+      res.status(404).json({ error: 'Travail non trouvé' });
+      return;
+    }
+
+    // Mettre à jour les données du travail
+    await travail.update({ Titre, Description });
+
+    // Mettre à jour les pièces associées (via la table de jointure PieceTravail)
+    if (Pieces && Pieces.length > 0) {
+      // Supprimer les associations existantes
+      await PieceTravail.destroy({ where: { TravailID: travailID } });
+
+      // Créer les nouvelles associations
+      await Promise.all(Pieces.map(async (pieceID) => {
+        await PieceTravail.create({
+          PieceID: pieceID,
+          TravailID: travailID
+        });
+      }));
+    }
+
+    // Renvoyer le travail mis à jour avec les détails de la pièce
+    const travailUpdated = await Travail.findByPk(travailID, {
+      include: {
+        model: Piece,
+        through: {
+          model: PieceTravail,
+          attributes: [] // Si vous ne voulez pas inclure les attributs de la table de jointure PieceTravail
+        }
+      }
+    });
+
+    res.status(200).json(travailUpdated);
+  } catch (error) {
+    console.error('Erreur lors de la mise à jour du travail :', error);
+    res.status(500).json({ error: 'Erreur serveur' });
+  }
+});
+// Delete travail par ID
+app.delete('/delete_travail/:id', async (req, res) => {
+  try {
+    const travailID = req.params.id;
+
+    // Recherche le travail par son ID
+    const travail = await Travail.findByPk(travailID);
+    if (!travail) {
+      res.status(404).json({ error: 'Travail non trouvé' });
+      return;
+    }
+
+    // Supprimer le travail
+    await travail.destroy();
+
+    // Supprimer les associations dans PieceTravail
+    await PieceTravail.destroy({ where: { TravailID: travailID } });
+
+    res.status(204).send();
+  } catch (error) {
+    console.error('Erreur lors de la suppression du travail :', error);
+    res.status(500).json({ error: 'Erreur serveur' });
+  }
+});
+
+
+
+
+
+
+
+
+
 
 
 
