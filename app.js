@@ -15,6 +15,7 @@ const CategoriePiece=require('./Categorie_piece')
 const EtapeProjet=require('./Etape_projet')
 const Galerie=require('./Galerie')
 const Equipement=require('./Equipement')
+const ModeleEquipement=require('./ModeleEquipement')
 const BesoinProjetRealisation=require('./BesoinProjetRealisation')
 const EtapeProjetRealisation=require('./EtapeProjetRealisation')
 const QuestionCategorie=require('./QuestionCategorie')
@@ -3247,12 +3248,16 @@ app.get('/get_equipements/', async (req, res) => {
 // Read one
 app.get('/get_equipement/:id', async (req, res) => {
   try {
-    const equipement = await Equipement.findByPk(req.params.id,
-       {
-        include: Piece
-      }
-      
-    );
+    const equipement = await Equipement.findByPk(req.params.id,{
+      include: [
+        {
+          model: Piece, // Inclure les informations de la pièce associée à l'équipement
+        },
+        {
+          model: ModeleEquipement, // Inclure tous les modèles d'équipement associés à l'équipement
+        },
+      ],
+    });
     if (equipement) {
       res.status(200).json(equipement);
     } else {
@@ -3495,8 +3500,103 @@ app.delete('/delete_travail/:id', async (req, res) => {
   }
 });
 
+// Endpoint pour ajouter un nouveau modèle d'équipement
+app.post('/add_modele_equipement', async (req, res) => {
+  try {
+    const { Titre, Description, Image, Longeur, Largeur, Hauteur, Epaisseur, Matiere, EquipementID } = req.body;
 
+    // Création du modèle d'équipement dans la base de données
+    const newModeleEquipement = await ModeleEquipement.create({
+      Titre,
+      Description,
+      Image,
+      Longeur,
+      Largeur,
+      Hauteur,
+      Epaisseur,
+      Matiere,
+      EquipementID
+    });
 
+    res.status(201).json(newModeleEquipement);
+  } catch (error) {
+    console.error('Erreur lors de l\'ajout du modèle d\'équipement :', error);
+    res.status(500).json({ error: 'Erreur serveur' });
+  }
+});
+
+// GET one by ID
+app.get('/get_modele_equipement/:id', async (req, res) => {
+  try {
+    const modele = await ModeleEquipement.findByPk(req.params.id);
+    if (modele) {
+      res.status(200).json(modele);
+    } else {
+      res.status(404).json({ error: 'Modèle non trouvé' });
+    }
+  } catch (error) {
+    console.error('Erreur lors de la récupération du modèle :', error);
+    res.status(500).json({ error: 'Erreur serveur' });
+  }
+});
+// Update
+app.put('/update_modele_equipement/:id', async (req, res) => {
+  try {
+    const modele = await ModeleEquipement.findByPk(req.params.id);
+    if (modele) {
+      // Mise à jour des champs requis
+      modele.Titre = req.body.Titre;
+      modele.Description = req.body.Description;
+      modele.Longeur = req.body.Longeur;
+      modele.Largeur = req.body.Largeur;
+      modele.Hauteur = req.body.Hauteur;
+      modele.Epaisseur = req.body.Epaisseur;
+      modele.Matiere = req.body.Matiere;
+      modele.EquipementID = req.body.EquipementID;
+
+      // Mise à jour de l'image uniquement si elle est fournie dans req.body
+      if (req.body.Image !== undefined && req.body.Image !== null && req.body.Image !== '') {
+        modele.Image = req.body.Image;
+      }
+
+      // Enregistrement des modifications
+      await modele.save();
+
+      res.status(200).json(modele);
+    } else {
+      res.status(404).json({ error: 'Modèle non trouvé' });
+    }
+  } catch (error) {
+    console.error('Erreur lors de la mise à jour du modèle :', error);
+    res.status(500).json({ error: 'Erreur serveur' });
+  }
+});
+
+// Delete
+app.delete('/delete_modele_equipement/:id', async (req, res) => {
+  try {
+    const modele = await ModeleEquipement.findByPk(req.params.id);
+    if (modele) {
+      await modele.destroy();
+      res.status(204).end();
+    } else {
+      res.status(404).json({ error: 'Modèle non trouvé' });
+    }
+  } catch (error) {
+    console.error('Erreur lors de la suppression du modèle :', error);
+    res.status(500).json({ error: 'Erreur serveur' });
+  }
+});
+// GET all
+app.get('/get_modeles_equipement', async (req, res) => {
+  try {
+    const modeles = await ModeleEquipement.findAll();
+    res.status(200).json(modeles);
+  } catch (error) {
+    console.error('Erreur lors de la récupération des modèles :', error);
+    res.status(500).json({ error: 'Erreur serveur' });
+  }
+});
 
 
 

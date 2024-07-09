@@ -1,5 +1,6 @@
 const { Sequelize, DataTypes } = require('sequelize');
 const Piece=require('./Piece');
+const ModeleEquipement=require('./ModeleEquipement');
 const sequelize = new Sequelize('mysql://mala3315_concepts_et_travaux_user:h-c4J%25-%7DP%2C12@109.234.166.164:3306/mala3315_concepts_et_travaux');
 
 const Equipement = sequelize.define('Equipement', {
@@ -43,5 +44,5 @@ const Equipement = sequelize.define('Equipement', {
 });
 
 Equipement.belongsTo(Piece, { foreignKey: 'PieceID' });
-
+Equipement.hasMany(ModeleEquipement, { foreignKey: 'EquipementID' });
 module.exports = Equipement;
