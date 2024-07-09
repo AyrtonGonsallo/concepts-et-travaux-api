@@ -3274,7 +3274,35 @@ app.get('/get_equipements_by_piece/:pid', async (req, res) => {
     const pieceID = req.params.pid;
     const equipements = await Equipement.findAll({
       where: { PieceID: pieceID },
-      include: Piece
+      include: [
+        {
+          model: Piece, // Inclure les informations de la pièce associée à l'équipement
+        },
+        {
+          model: ModeleEquipement, // Inclure tous les modèles d'équipement associés à l'équipement
+        },
+      ],
+    });
+    res.status(200).json(equipements);
+  } catch (error) {
+    res.status(400).json({ error: error.message });
+  }
+});
+
+// Endpoint pour récupérer les Equipements par PieceID
+app.get('/get_equipements_by_type/:type', async (req, res) => {
+  try {
+    const type = req.params.type;
+    const equipements = await Equipement.findAll({
+      where: { Type: type },
+      include: [
+        {
+          model: Piece, // Inclure les informations de la pièce associée à l'équipement
+        },
+        {
+          model: ModeleEquipement, // Inclure tous les modèles d'équipement associés à l'équipement
+        },
+      ],
     });
     res.status(200).json(equipements);
   } catch (error) {

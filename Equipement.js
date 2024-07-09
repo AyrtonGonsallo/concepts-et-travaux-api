@@ -21,6 +21,11 @@ const Equipement = sequelize.define('Equipement', {
     allowNull: false,
     field: 'Titre' // Spécifie explicitement le nom de la colonne dans la base de données
   },
+  Type: {
+    type: DataTypes.STRING,
+    allowNull: false,
+    field: 'Type' // Spécifie explicitement le nom de la colonne dans la base de données
+  },
   Description: {
     type: DataTypes.TEXT,
     allowNull: true,
@@ -28,7 +33,7 @@ const Equipement = sequelize.define('Equipement', {
   },
   PieceID: {
     type: DataTypes.INTEGER,
-    allowNull: false,
+    allowNull: true,
     references: {
       model: Piece,
       key: 'ID'
