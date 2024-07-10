@@ -8,6 +8,8 @@ const Travail=require('./Travail')
 const PieceTravail=require('./PieceTravail')
 const Pointcle=require('./Pointcle')
 const Avis=require('./Avis')
+const DevisPiece=require('./DevisPiece')
+const DevisTache=require('./DevisTache')
 const Page=require('./Page')
 const PointcleRealisation=require('./PointcleRealisation')
 const BesoinProjet=require('./Besoin_projet')
@@ -3625,6 +3627,148 @@ app.get('/get_modeles_equipement', async (req, res) => {
     res.status(500).json({ error: 'Erreur serveur' });
   }
 });
+app.post('/add_devis_piece', async (req, res) => {
+  const { username, ip, piece, liste_des_travaux } = req.body;
+  const sequelize = new Sequelize('mysql://mala3315_concepts_et_travaux_user:h-c4J%25-%7DP%2C12@109.234.166.164:3306/mala3315_concepts_et_travaux');
+
+  const t = await sequelize.transaction();
+
+  try {
+    // Créer le DevisPiece
+    const devisPiece = await DevisPiece.create({
+      Username: username,
+      AdresseIP: ip,
+      Date: new Date(),
+      Commentaire: null,
+      PieceID: piece.ID,
+      Prix: null,
+      UtilisateurID: null
+    }, { transaction: t });
+
+    // Créer les DevisTache
+    const devisTaches = liste_des_travaux.map(tache => {
+      return {
+        TravailID: tache.idtache,
+        DevisPieceID: devisPiece.ID,
+        TravailSlug: tache.nomtache,
+        Commentaires: null,
+        Donnees: tache.formulaire
+      };
+    });
+
+    await DevisTache.bulkCreate(devisTaches, { transaction: t });
+
+    await t.commit();
+
+    res.status(201).json({ message: 'Devis créé avec succès' });
+  } catch (error) {
+    await t.rollback();
+    console.error('Erreur lors de la création du devis :', error);
+    res.status(500).json({ error: 'Erreur serveur' });
+  }
+});
+
+app.get('/get_devis_piece/:id', async (req, res) => {
+  const devisId = req.params.id;
+
+  try {
+    const devisPiece = await DevisPiece.findByPk(devisId, {
+      include: [
+        {
+          model: DevisTache,
+          include: [Travail]
+        },
+        {
+          model: Piece
+        }
+      ]
+    });
+
+    if (!devisPiece) {
+      return res.status(404).json({ error: 'Devis non trouvé' });
+    }
+
+    res.status(200).json(devisPiece);
+  } catch (error) {
+    console.error('Erreur lors de la récupération du devis :', error);
+    res.status(500).json({ error: 'Erreur serveur' });
+  }
+});
+app.get('/get_all_devis_piece', async (req, res) => {
+  try {
+    const devisPieces = await DevisPiece.findAll({
+      include: [
+        {
+          model: DevisTache,
+          include: [Travail]
+        },
+        {
+          model: Piece
+        }
+      ]
+    });
+
+    if (!devisPieces || devisPieces.length === 0) {
+      return res.status(404).json({ error: 'Aucun devis trouvé' });
+    }
+
+    res.status(200).json(devisPieces);
+  } catch (error) {
+    console.error('Erreur lors de la récupération des devis :', error);
+    res.status(500).json({ error: 'Erreur serveur' });
+  }
+});
+app.delete('/devis_piece/:id', async (req, res) => {
+  const { id } = req.params;
+
+  try {
+    const deletedDevisPiece = await DevisPiece.findByPk(id);
+
+    if (!deletedDevisPiece) {
+      return res.status(404).json({ error: 'Devis pièce non trouvé' });
+    }
+
+    await deletedDevisPiece.destroy();
+    res.status(204).end(); // 204 No Content: succès de la suppression
+  } catch (error) {
+    console.error('Erreur lors de la suppression du devis pièce :', error);
+    res.status(500).json({ error: 'Erreur serveur lors de la suppression du devis pièce' });
+  }
+});
+app.put('/update_devis_piece/:id', async (req, res)  => {
+  const { id } = req.params;
+  const updatedDevis = req.body;
+
+  try {
+    const devis = await DevisPiece.findByPk(id);
+
+    if (!devis) {
+      return res.status(404).json({ error: 'Devis non trouvé' });
+    }
+
+    // Mettre à jour les champs nécessaires
+    devis.Utilisateur = updatedDevis.Utilisateur;
+    devis.AdresseIP = updatedDevis.AdresseIP;
+    devis.Date = updatedDevis.Date;
+    devis.Commentaire = updatedDevis.Commentaire;
+    devis.Prix = updatedDevis.Prix;
+    devis.UtilisateurID = updatedDevis.UtilisateurID;
+
+    // Sauvegarder les modifications
+    await devis.save();
+
+    return res.status(200).json(devis);
+  } catch (error) {
+    console.error('Erreur lors de la mise à jour du devis :', error);
+    return res.status(500).json({ error: 'Erreur serveur' });
+  }
+});
+
+
+
+
+
+
 
 
 
