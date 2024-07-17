@@ -8,6 +8,7 @@ const Travail=require('./Travail')
 const PieceTravail=require('./PieceTravail')
 const Pointcle=require('./Pointcle')
 const Avis=require('./Avis')
+const Gamme=require('./Gamme')
 const DevisPiece=require('./DevisPiece')
 const DevisTache=require('./DevisTache')
 const Page=require('./Page')
@@ -3718,7 +3719,7 @@ app.get('/get_all_devis_piece', async (req, res) => {
     res.status(500).json({ error: 'Erreur serveur' });
   }
 });
-app.delete('/devis_piece/:id', async (req, res) => {
+app.delete('/delete_devis_piece/:id', async (req, res) => {
   const { id } = req.params;
 
   try {
@@ -3763,9 +3764,82 @@ app.put('/update_devis_piece/:id', async (req, res)  => {
     return res.status(500).json({ error: 'Erreur serveur' });
   }
 });
+app.post('/add_gamme', async (req, res) => {
+  try {
+      const gamme = await Gamme.create(req.body);
+      res.status(201).json(gamme);
+  } catch (error) {
+      res.status(500).json({ error: error.message });
+  }
+});
+app.get('/get_gammes', async (req, res) => {
+  try {
+    const gammes = await Gamme.findAll();
+    res.status(200).json(gammes);
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
 
+app.get('/get_gamme/:id', async (req, res) => {
+  try {
+    const gamme = await Gamme.findByPk(req.params.id);
+    if (gamme) {
+      res.status(200).json(gamme);
+    } else {
+      res.status(404).json({ error: 'Gamme not found' });
+    }
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
 
+app.put('/update_gamme/:id', async (req, res) => {
+  try {
+    const [updated] = await Gamme.update(req.body, {
+      where: { ID: req.params.id }
+    });
+    if (updated) {
+      const updatedGamme = await Gamme.findByPk(req.params.id);
+      res.status(200).json(updatedGamme);
+    } else {
+      res.status(404).json({ error: 'Gamme not found' });
+    }
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
 
+app.delete('/delete_gamme/:id', async (req, res) => {
+  try {
+    const deleted = await Gamme.destroy({
+      where: { ID: req.params.id }
+    });
+    if (deleted) {
+      res.status(204).json();
+    } else {
+      res.status(404).json({ error: 'Gamme not found' });
+    }
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+// Endpoint to fetch gammes by travailID and type
+app.get('/get_gammes_by_type_and_travailID/:tid/:type', async (req, res) => {
+  const { tid, type } = req.params;
+  
+  try {
+    const gammes = await Gamme.findAll({
+      where: {
+        TravailID: tid,
+        Type: type
+      }
+    });
+    res.status(200).json(gammes);
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
 
 
 
