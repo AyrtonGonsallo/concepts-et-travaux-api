@@ -3,12 +3,14 @@ const Role = require('./Role');
 const crypto = require('crypto');
 const Utilisateur = require('./Utilisateur');
 const RoleAutorisation = require('./RoleAutorisation');
+const DevisCalculator = require('./services/DevisCalculator');
 const PieceCategorie=require('./PieceCategorie')
 const Travail=require('./Travail')
 const PieceTravail=require('./PieceTravail')
 const Pointcle=require('./Pointcle')
 const Avis=require('./Avis')
 const Gamme=require('./Gamme')
+const TacheGenerale=require('./TacheGenerale')
 const DevisPiece=require('./DevisPiece')
 const DevisTache=require('./DevisTache')
 const Page=require('./Page')
@@ -3628,13 +3630,46 @@ app.get('/get_modeles_equipement', async (req, res) => {
     res.status(500).json({ error: 'Erreur serveur' });
   }
 });
+app.post('/test_calcul_auto_devis_prix', (req, res) => {
+  try {
+    const calculator = new DevisCalculator();
+      const travaux = req.body;
+      let total=0
+      setTimeout(() => {
+        for(i=0;i<travaux.length;i++){
+          let travail=travaux[i]
+          let prix = calculator.calculer_prix(travail.idtache,travail);
+          console.log("prix: ",prix)
+          total+=prix
+        }
+        res.status(200).json({ prix: total });
+    }, 3000);
+      
+  } catch (error) {
+      res.status(500).json({ error: error.message });
+  }
+});
 app.post('/add_devis_piece', async (req, res) => {
   const { username, ip, piece, liste_des_travaux } = req.body;
   const sequelize = new Sequelize('mysql://mala3315_concepts_et_travaux_user:h-c4J%25-%7DP%2C12@109.234.166.164:3306/mala3315_concepts_et_travaux');
 
   const t = await sequelize.transaction();
-
+  
   try {
+    const calculator = new DevisCalculator();
+    await calculator.initTaches();
+    
+    let total = 0;
+    
+    for (let i = 0; i < liste_des_travaux.length; i++) {
+        let travail = liste_des_travaux[i];
+        let prix = await calculator.calculer_prix(travail.idtache, travail);
+        total += prix;
+    }
+    
+    console.log("Prix: ", total);
+
+
     // Créer le DevisPiece
     const devisPiece = await DevisPiece.create({
       Username: username,
@@ -3642,7 +3677,7 @@ app.post('/add_devis_piece', async (req, res) => {
       Date: new Date(),
       Commentaire: null,
       PieceID: piece.ID,
-      Prix: null,
+      Prix: total,
       UtilisateurID: null
     }, { transaction: t });
 
@@ -3661,7 +3696,7 @@ app.post('/add_devis_piece', async (req, res) => {
 
     await t.commit();
 
-    res.status(201).json({ message: 'Devis créé avec succès' });
+    res.status(201).json({ message: 'Devis créé avec succès',devis:devisPiece });
   } catch (error) {
     await t.rollback();
     console.error('Erreur lors de la création du devis :', error);
@@ -3695,6 +3730,30 @@ app.get('/get_devis_piece/:id', async (req, res) => {
     res.status(500).json({ error: 'Erreur serveur' });
   }
 });
+
+app.post('/get_devis_piece_by_username_and_ip', async (req, res) => {
+  //const { username, ip } = req.body;
+console.log({ username, ip })
+  try {
+    const devisPieces = await DevisPiece.findAll({
+      where: {
+        Username: username,
+        AdresseIP: ip
+      }
+    });
+
+    if (devisPieces.length > 0) {
+      res.status(200).json(devisPieces);
+    } else {
+      res.status(404).json({ message: 'No records found for the provided username and IP address' });
+    }
+  } catch (error) {
+    console.error('Error retrieving DevisPiece records:', error);
+    res.status(500).json({ error: 'Server error' });
+  }
+});
+
+
 app.get('/get_all_devis_piece', async (req, res) => {
   try {
     const devisPieces = await DevisPiece.findAll({
@@ -3840,6 +3899,69 @@ app.get('/get_gammes_by_type_and_travailID/:tid/:type', async (req, res) => {
     res.status(500).json({ error: error.message });
   }
 });
+
+
+app.post('/add_tache_generale', async (req, res) => {
+  try {
+      const tache_generale = await TacheGenerale.create(req.body);
+      res.status(201).json(tache_generale);
+  } catch (error) {
+      res.status(500).json({ error: error.message });
+  }
+});
+app.get('/get_tache_generales', async (req, res) => {
+  try {
+    const tache_generales = await TacheGenerale.findAll();
+    res.status(200).json(tache_generales);
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+app.get('/get_tache_generale/:id', async (req, res) => {
+  try {
+    const tache_generale = await TacheGenerale.findByPk(req.params.id);
+    if (tache_generale) {
+      res.status(200).json(tache_generale);
+    } else {
+      res.status(404).json({ error: 'TacheGenerale not found' });
+    }
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+app.put('/update_tache_generale/:id', async (req, res) => {
+  try {
+    const [updated] = await TacheGenerale.update(req.body, {
+      where: { ID: req.params.id }
+    });
+    if (updated) {
+      const updatedTacheGenerale = await TacheGenerale.findByPk(req.params.id);
+      res.status(200).json(updatedTacheGenerale);
+    } else {
+      res.status(404).json({ error: 'TacheGenerale not found' });
+    }
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+app.delete('/delete_tache_generale/:id', async (req, res) => {
+  try {
+    const deleted = await TacheGenerale.destroy({
+      where: { ID: req.params.id }
+    });
+    if (deleted) {
+      res.status(204).json();
+    } else {
+      res.status(404).json({ error: 'TacheGenerale not found' });
+    }
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
 
 
 
