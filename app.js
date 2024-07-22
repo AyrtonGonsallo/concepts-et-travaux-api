@@ -3678,16 +3678,19 @@ app.post('/add_devis_piece', async (req, res) => {
       Commentaire: null,
       PieceID: piece.ID,
       Prix: total,
+      Payed: 0,
       UtilisateurID: null
     }, { transaction: t });
 
     // Créer les DevisTache
     const devisTaches = liste_des_travaux.map(tache => {
+      let prix = calculator.calculer_prix_tache(tache);
       return {
         TravailID: tache.idtache,
         DevisPieceID: devisPiece.ID,
         TravailSlug: tache.nomtache,
         Commentaires: null,
+        Prix:prix,
         Donnees: tache.formulaire
       };
     });
@@ -3731,8 +3734,10 @@ app.get('/get_devis_piece/:id', async (req, res) => {
   }
 });
 
+
+
 app.post('/get_devis_piece_by_username_and_ip', async (req, res) => {
-  //const { username, ip } = req.body;
+  const { username, ip } = req.body;
 console.log({ username, ip })
   try {
     const devisPieces = await DevisPiece.findAll({
@@ -3740,6 +3745,39 @@ console.log({ username, ip })
         Username: username,
         AdresseIP: ip
       }
+    });
+
+    if (devisPieces.length > 0) {
+      res.status(200).json(devisPieces);
+    } else {
+      res.status(404).json({ message: 'No records found for the provided username and IP address' });
+    }
+  } catch (error) {
+    console.error('Error retrieving DevisPiece records:', error);
+    res.status(500).json({ error: 'Server error' });
+  }
+});
+
+
+
+app.post('/get_no_payed_devis_piece', async (req, res) => {
+  const { username, ip } = req.body;
+console.log({ username, ip })
+  try {
+    const devisPieces = await DevisPiece.findAll({
+      where: {
+        Payed: 0,
+        Username: username,
+        AdresseIP: ip
+      },include: [
+        {
+          model: DevisTache,
+          include: [Travail]
+        },
+        {
+          model: Piece
+        }
+      ]
     });
 
     if (devisPieces.length > 0) {
@@ -3812,6 +3850,7 @@ app.put('/update_devis_piece/:id', async (req, res)  => {
     devis.Date = updatedDevis.Date;
     devis.Commentaire = updatedDevis.Commentaire;
     devis.Prix = updatedDevis.Prix;
+    devis.Payed = updatedDevis.Payed;
     devis.UtilisateurID = updatedDevis.UtilisateurID;
 
     // Sauvegarder les modifications

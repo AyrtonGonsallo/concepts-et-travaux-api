@@ -47,6 +47,12 @@ const DevisPiece = sequelize.define('DevisPiece', {
     type: DataTypes.DOUBLE,
     allowNull: true,
     field: 'Prix'
+  },  
+  Payed: {
+    type: DataTypes.TINYINT,
+    allowNull: false,
+    defaultValue: 0,
+    field: 'Payed'
   },
   UtilisateurID: {
     type: DataTypes.INTEGER,

@@ -37,6 +37,11 @@ const DevisTache = sequelize.define('DevisTache', {
     allowNull: true,
     field: 'Commentaires'
   },
+  Prix: {
+    type: DataTypes.DOUBLE,
+    allowNull: true,
+    field: 'Prix'
+  },
   Donnees: {
     type: DataTypes.JSON,
     allowNull: false,

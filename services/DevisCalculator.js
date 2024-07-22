@@ -42,6 +42,39 @@ class DevisCalculator {
         
         return prix
     }
+
+    calculer_prix_tache(tache) {
+      let donnees_json=tache["formulaire"]
+      let titre=tache["nomtache"]
+      let idtache=tache["idtache"]
+      console.log("calcul du prix de la tache ",titre," d'id ",idtache)
+      
+      let prix=0
+      switch (idtache) {
+          case 5:
+              prix = this.get_prix_tache_5(donnees_json);
+              break;
+          case 10:
+              prix = this.get_prix_tache_10(donnees_json);
+              break;
+          case 12:
+              prix = this.get_prix_tache_12(donnees_json);
+              break;
+          case 9:
+              prix = this.get_prix_tache_9(donnees_json);
+              break;
+          case 8:
+              prix = this.get_prix_tache_8(donnees_json);
+              break;
+          case 14:
+              prix = this.get_prix_tache_14(donnees_json);
+              break;
+          default:
+              throw new Error(`Tâche inconnue avec l'ID ${idtache}`);
+      }
+      
+      return prix
+  }
     async initTaches() {
         try {
             const taches = await Promise.all([
