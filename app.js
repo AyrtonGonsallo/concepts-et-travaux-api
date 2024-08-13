@@ -3649,8 +3649,9 @@ app.post('/test_calcul_auto_devis_prix', (req, res) => {
       res.status(500).json({ error: error.message });
   }
 });
+
 app.post('/add_devis_piece', async (req, res) => {
-  const { username, ip, piece, liste_des_travaux } = req.body;
+  const { username, ip, piece, liste_des_travaux,deviceID } = req.body;
   const sequelize = new Sequelize('mysql://mala3315_concepts_et_travaux_user:h-c4J%25-%7DP%2C12@109.234.166.164:3306/mala3315_concepts_et_travaux');
 
   const t = await sequelize.transaction();
@@ -3679,7 +3680,8 @@ app.post('/add_devis_piece', async (req, res) => {
       PieceID: piece.ID,
       Prix: total,
       Payed: 0,
-      UtilisateurID: null
+      UtilisateurID: null,
+      DeviceID:deviceID
     }, { transaction: t });
 
     // Créer les DevisTache
@@ -3758,6 +3760,36 @@ console.log({ username, ip })
   }
 });
 
+
+app.get('/get_no_payed_devis_piece_by_device_id/:device_id', async (req, res) => {
+  const { device_id } = req.params;
+  try {
+    const devisPieces = await DevisPiece.findAll({
+      where: {
+        Payed: 0,
+        DeviceID:device_id
+        
+      },include: [
+        {
+          model: DevisTache,
+          include: [Travail]
+        },
+        {
+          model: Piece
+        }
+      ]
+    });
+
+    if (devisPieces.length > 0) {
+      res.status(200).json(devisPieces);
+    } else {
+      res.status(404).json({ message: 'No records found for the provided username and IP address' });
+    }
+  } catch (error) {
+    console.error('Error retrieving DevisPiece records:', error);
+    res.status(500).json({ error: 'Server error' });
+  }
+});
 
 
 app.post('/get_no_payed_devis_piece', async (req, res) => {
@@ -3859,6 +3891,25 @@ app.put('/update_devis_piece/:id', async (req, res)  => {
     return res.status(200).json(devis);
   } catch (error) {
     console.error('Erreur lors de la mise à jour du devis :', error);
+    return res.status(500).json({ error: 'Erreur serveur' });
+  }
+});
+
+app.put('/valider_devis_piece/:id', async (req, res)  => {
+  const { id } = req.params;
+  try {
+    const devis = await DevisPiece.findByPk(id);
+    if (!devis) {
+      return res.status(404).json({ error: 'Devis non trouvé' });
+    }
+    // Mettre à jour les champs nécessaire
+    devis.Payed = 1;
+    // Sauvegarder les modifications
+    await devis.save();
+
+    return res.status(200).json(devis);
+  } catch (error) {
+    console.error('Erreur lors de la validation du devis :', error);
     return res.status(500).json({ error: 'Erreur serveur' });
   }
 });

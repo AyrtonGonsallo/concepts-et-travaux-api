@@ -62,7 +62,12 @@ const DevisPiece = sequelize.define('DevisPiece', {
       key: 'ID'
     },
     field: 'UtilisateurID'
-  }
+  },
+  DeviceID: {
+    type: DataTypes.STRING(255),
+    allowNull: true,
+    field: 'DeviceID'
+  },
 }, {
   tableName: 'DevisPiece',
   timestamps: false
