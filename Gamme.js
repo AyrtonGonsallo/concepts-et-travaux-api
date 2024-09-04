@@ -30,6 +30,12 @@ const Gamme = sequelize.define('Gamme', {
     defaultValue: null,
     field: 'Image' // Specifies the column name explicitly
   },
+  Pdf: {
+    type: DataTypes.STRING(255),
+    allowNull: true,
+    defaultValue: null,
+    field: 'Pdf' // Specifies the column name explicitly
+  },
   TravailID: {
     type: DataTypes.INTEGER,
     allowNull: false,
