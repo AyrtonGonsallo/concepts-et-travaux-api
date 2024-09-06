@@ -83,7 +83,8 @@ class DevisCalculator {
                 this.get_tache_generale(1),
                 this.get_tache_generale(3),
                 this.get_tache_generale(6),
-                this.get_tache_generale(5)
+                this.get_tache_generale(5),
+                this.get_tache_generale(7)
             ]);
 
             this.tache_retirer_carrelage = taches[0];
@@ -92,6 +93,7 @@ class DevisCalculator {
             this.tache_retirer_enduit = taches[3];
             this.tache_retirer_lambris = taches[4];
             this.tache_retirer_tissus = taches[5];
+            this.tache_depose_revet_muraux = taches[6];
         } catch (error) {
             console.error("Erreur lors de l'initialisation des tâches:", error.message);
         }
@@ -123,9 +125,12 @@ class DevisCalculator {
           prix+=dimensions[i].surface*gammes[i].papier
           prix+=dimensions[i].surface*gammes[i].enduit */
           let id_prix_gamme=gammes[i].gamme
+          let depose=(etat_surfaces[i].etat=="depose")?1:0;
+          let prix_depose = depose*this.tache_depose_revet_muraux.Prix; 
           let gammeParts = id_prix_gamme.split(':');  // Sépare la chaîne en deux parties
           let prix_gamme = parseFloat(gammeParts[1]); 
           prix+=dimensions[i].surface*prix_gamme
+          prix+=prix_depose
         }
         return prix
       }
@@ -196,7 +201,7 @@ class DevisCalculator {
           let id_prix_plinthes=donnees_json["gammes-produits-pose-sol"].plinthes;
           let gammeParts = id_prix_gamme.split(':');  // Sépare la chaîne en deux parties
           let prix_gamme = parseFloat(gammeParts[1]); 
-          let plinthesParts = id_prix_gamme.split(':');  // Sépare la chaîne en deux parties
+          let plinthesParts = id_prix_plinthes.split(':');  // Sépare la chaîne en deux parties
           let prix_plinthes = parseFloat(plinthesParts[1]); 
           /* prix+=prix_plinthes*surface
           prix+=prix_carrelage*surface

@@ -19,6 +19,12 @@ const Travail = sequelize.define('Travail', {
     type: DataTypes.TEXT,
     allowNull: false,
     field: 'Description' // Spécifie explicitement le nom de la colonne dans la base de données
+  },
+  Valide: {
+    type: DataTypes.BOOLEAN, // TINYINT(1) for boolean-like values
+    allowNull: false,
+    defaultValue: false,  // Default value as false
+    field: 'Valide'
   }
 }, {
   tableName: 'Travail',

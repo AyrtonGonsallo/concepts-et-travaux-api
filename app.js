@@ -3413,6 +3413,38 @@ app.get('/get_travaux_by_piece/:pid', async (req, res) => {
     res.status(500).json({ error: 'Erreur serveur' });
   }
 });
+
+
+
+
+// GET validated travaux par PieceID
+app.get('/get_validated_travaux_by_piece/:pid', async (req, res) => {
+  const sequelize = new Sequelize('mysql://mala3315_concepts_et_travaux_user:h-c4J%25-%7DP%2C12@109.234.166.164:3306/mala3315_concepts_et_travaux');
+
+  const pieceId = req.params.pid;
+
+  try {
+    // Récupérer les questions associées à la catégorie spécifiée
+    const questions = await sequelize.query(
+      `SELECT t.* FROM Travail t,PieceTravail pt,Piece p
+       WHERE t.ID=pt.TravailID and p.ID=pt.PieceID and
+       p.ID = :pieceId and t.Valide=1`,
+      {
+        replacements: { pieceId },
+        type: Sequelize.QueryTypes.SELECT,
+        model: Travail,
+        mapToModel: true,
+        
+      }
+    );
+
+    res.status(200).json(questions);
+  } catch (error) {
+    console.error('Erreur lors de la récupération des travaux par piece :', error);
+    res.status(500).json({ error: 'Erreur serveur' });
+  }
+});
+
 // GET tous les travaux
 app.get('/get_travaux', async (req, res) => {
   try {
@@ -3465,7 +3497,7 @@ app.get('/get_travail/:id', async (req, res) => {
 app.put('/update_travail/:id', async (req, res) => {
   try {
     const travailID = req.params.id;
-    const { Titre, Description, Pieces } = req.body;
+    const { Titre, Description,Valide, Pieces } = req.body;
 
     // Recherche le travail par son ID
     const travail = await Travail.findByPk(travailID);
@@ -3475,7 +3507,7 @@ app.put('/update_travail/:id', async (req, res) => {
     }
 
     // Mettre à jour les données du travail
-    await travail.update({ Titre, Description });
+    await travail.update({ Titre, Description,Valide });
 
     // Mettre à jour les pièces associées (via la table de jointure PieceTravail)
     if (Pieces && Pieces.length > 0) {
