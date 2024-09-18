@@ -23,7 +23,11 @@ const ModeleEquipement = sequelize.define('ModeleEquipement', {
     type: DataTypes.STRING(255),
     allowNull: true,
     field: 'Image'
-  },
+  },Prix: {
+    type: DataTypes.DOUBLE,
+    allowNull: true,
+    field: 'Prix'
+  },  
   Longeur: {
     type: DataTypes.INTEGER,
     allowNull: true,
