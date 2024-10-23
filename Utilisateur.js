@@ -90,6 +90,9 @@ const Utilisateur = sequelize.define('Utilisateur', {
   KBis: {
     type: DataTypes.STRING(255)
   },
+  DeviceID: {
+    type: DataTypes.STRING(255)
+  },
   // Ajoutez une clé étrangère vers le modèle Role
   RoleId: {
     type: DataTypes.INTEGER,

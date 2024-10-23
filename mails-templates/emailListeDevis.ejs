@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>Liste des Devis</title>
+</head>
+<body>
+    <h1>Vos devis en cours</h1>
+    <table border="1" cellspacing="0" cellpadding="5">
+        <thead>
+            <tr>
+                <th>ID Devis</th>
+                <th>Pièce</th>
+                <th>Adresse IP</th>
+                <th>Date</th>
+                <th>Taches</th>
+                <th>Prix</th>
+            </tr>
+        </thead>
+        <tbody>
+            <% devisPieces.forEach(devis => { %>
+                <tr>
+                    <td><%= devis.ID %></td>
+                    <td><%= devis.Piece.Titre %></td>
+                    <td><%= devis.AdresseIP %></td>
+                    <td><%= new Date(devis.Date).toLocaleDateString() %></td>
+                    <td>
+                        <% devis.DevisTaches.forEach(tache => { %>
+                            <%= tache.Travail.Titre %><br>
+                        <% }) %>
+                    </td>
+                    
+                    <td><%= devis.Prix %> €</td>
+                </tr>
+            <% }) %>
+        </tbody>
+    </table>
+</body>
+</html>

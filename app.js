@@ -10,6 +10,7 @@ const PieceTravail=require('./PieceTravail')
 const Pointcle=require('./Pointcle')
 const Avis=require('./Avis')
 const Gamme=require('./Gamme')
+const ejs = require('ejs');
 const TacheGenerale=require('./TacheGenerale')
 const DevisPiece=require('./DevisPiece')
 const DevisTache=require('./DevisTache')
@@ -347,6 +348,58 @@ app.post('/send-email', (req, res) => {
 });
 
 
+app.get('/send-liste-devis-email/:deviceID', async (req, res) => {
+  const { deviceID } = req.params;
+
+  try {
+    // Récupérer les devis non payés associés au DeviceID
+    const devisPieces = await DevisPiece.findAll({
+      where: {
+        Payed: 0,
+        DeviceID: deviceID
+      },
+      include: [
+        {
+          model: DevisTache,
+          include: [Travail]
+        },
+        {
+          model: Piece
+        }
+      ]
+    });
+
+    let htmlContent;
+
+    // Si des devis sont trouvés
+    if (devisPieces.length > 0) {
+      // Générer l'email en utilisant un template EJS avec la liste des devis
+      const emailTemplatePath = path.join(__dirname, 'mails-templates', 'emailListeDevis.ejs');
+      htmlContent = await ejs.renderFile(emailTemplatePath, { devisPieces });
+    } else {
+      // Générer un email indiquant qu'aucun devis n'a été trouvé
+      const emailTemplatePath = path.join(__dirname, 'mails-templates', 'emailAucunDevis.ejs');
+      htmlContent = await ejs.renderFile(emailTemplatePath, { deviceID });
+    }
+
+    // Configuration de l'email
+    const mailOptions = {
+      from: 'gestion@homeren.fr',
+      to: 'ayrtongonsallo444@gmail.com',
+      subject: 'Détails du Device ID',
+      html: htmlContent
+    };
+
+    // Envoyer l'email
+    await transporter.sendMail(mailOptions);
+    res.send(`Email envoyé pour le deviceID: ${deviceID}`);
+  } catch (error) {
+    console.error('Erreur lors de l\'envoi de l\'email:', error);
+    res.status(500).send('Erreur lors de l\'envoi de l\'email');
+  }
+});
+
+
 
 // Endpoint pour envoyer un e-mail
 app.get('/test-email', (req, res) => {
@@ -492,6 +545,43 @@ const hashedPassword = await bcrypt.hash(Password, saltRounds);
 });
 
  
+// Endpoint POST pour ajouter un utilisateur
+app.post('/add_front_utilisateur', async (req, res) => {
+  try {
+     // Récupérer les données de la requête
+    const {  nom, prenom, email, password, phoneNumber, AdressePostale, CodePostal,CommunePostale,roleId,deviceID,Agree } = req.body;
+
+    // Vérifier si l'ID du rôle est fourni dans le corps de la requête
+    if (!roleId) {
+      return res.status(400).json({ error: 'ID du rôle manquant dans la requête' });
+    }
+
+    // Hasher le mot de passe
+    const hashedPassword = await bcrypt.hash(password, saltRounds);
+
+    // Créer un nouvel utilisateur dans la base de données avec son rôle
+    const utilisateur = await Utilisateur.create({
+      Nom:nom,
+      Prenom:prenom,
+      Email:email,
+      Password: hashedPassword,
+      Telephone:phoneNumber,
+      AdressePostale,
+      CommunePostale,
+      CodePostal,
+      DeviceID:deviceID,
+      RoleId:roleId // Associer l'ID du rôle à l'utilisateur
+    });
+
+
+      // Répondre avec l'utilisateur ajouté
+      res.status(201).json(utilisateur);
+  } catch (error) {
+      // En cas d'erreur, répondre avec le code d'erreur 500
+      console.error('Erreur lors de l\'ajout de l\'utilisateur :', error);
+      res.status(500).json({ error: 'Erreur serveur' });
+  }
+});
 
 function cleanFilePath(filePath) {
   return filePath.replace(/^.*\\fakepath\\/, '');
