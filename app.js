@@ -370,16 +370,23 @@ app.get('/send-liste-devis-email/:deviceID', async (req, res) => {
     });
 
     let htmlContent;
-
+    // Obtenir la date et l'heure actuelle
+    const currentDate = new Date().toLocaleString('fr-FR', {
+      day: '2-digit',
+      month: '2-digit',
+      year: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit'
+    });
     // Si des devis sont trouvés
     if (devisPieces.length > 0) {
       // Générer l'email en utilisant un template EJS avec la liste des devis
       const emailTemplatePath = path.join(__dirname, 'mails-templates', 'emailListeDevis.ejs');
-      htmlContent = await ejs.renderFile(emailTemplatePath, { devisPieces });
+      htmlContent = await ejs.renderFile(emailTemplatePath, { devisPieces,currentDate  });
     } else {
       // Générer un email indiquant qu'aucun devis n'a été trouvé
       const emailTemplatePath = path.join(__dirname, 'mails-templates', 'emailAucunDevis.ejs');
-      htmlContent = await ejs.renderFile(emailTemplatePath, { deviceID });
+      htmlContent = await ejs.renderFile(emailTemplatePath, { deviceID,currentDate });
     }
 
     // Configuration de l'email
@@ -393,6 +400,100 @@ app.get('/send-liste-devis-email/:deviceID', async (req, res) => {
     // Envoyer l'email
     await transporter.sendMail(mailOptions);
     res.send(`Email envoyé pour le deviceID: ${deviceID}`);
+  } catch (error) {
+    console.error('Erreur lors de l\'envoi de l\'email:', error);
+    res.status(500).send('Erreur lors de l\'envoi de l\'email');
+  }
+});
+
+
+app.get('/send-account-creation-email/:userid', async (req, res) => {
+  const { userid } = req.params;
+
+  try {
+    // Récupérer les devis non payés associés au DeviceID
+    const utilisateur = await Utilisateur.findOne({
+      where: {
+        Id: userid
+      },
+      include: Role // Inclure les grades associés à l'utilisateur
+    });
+
+    let htmlContent;
+    // Obtenir la date et l'heure actuelle
+    const currentDate = new Date().toLocaleString('fr-FR', {
+      day: '2-digit',
+      month: '2-digit',
+      year: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit'
+    });
+    // Si des devis sont trouvés
+    if (utilisateur) {
+      // Générer l'email en utilisant un template EJS avec la liste des devis
+      const emailTemplatePath = path.join(__dirname, 'mails-templates', 'emailBienvenue.ejs');
+      htmlContent = await ejs.renderFile(emailTemplatePath, { utilisateur,currentDate  });
+    } 
+
+    // Configuration de l'email
+    const mailOptions = {
+      from: 'gestion@homeren.fr',
+      to: 'ayrtongonsallo444@gmail.com',
+      subject: 'Création de compte',
+      html: htmlContent
+    };
+
+    // Envoyer l'email
+    await transporter.sendMail(mailOptions);
+    res.send(`Email de bienvenue envoyé a l'utilisateur: ${userid}`);
+  } catch (error) {
+    console.error('Erreur lors de l\'envoi de l\'email:', error);
+    res.status(500).send('Erreur lors de l\'envoi de l\'email');
+  }
+});
+
+app.get('/send-devis-details-email/:devistacheID', async (req, res) => {
+  const { devistacheID } = req.params;
+
+  try {
+    // Récupérer les devis non payés associés au DeviceID
+    const devisTache = await DevisTache.findOne({
+      where: {
+        ID: devistacheID
+      },
+      include: [
+        {
+          model: Travail
+        }
+      ]
+    });
+
+    let htmlContent;
+    // Obtenir la date et l'heure actuelle
+    const currentDate = new Date().toLocaleString('fr-FR', {
+      day: '2-digit',
+      month: '2-digit',
+      year: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit'
+    });
+    // Si des devis sont trouvés
+    if (devisTache) {
+      // Générer l'email en utilisant un template EJS avec la liste des devis
+      const emailTemplatePath = path.join(__dirname, 'mails-templates', 'emailDetailsTravail.ejs');
+      htmlContent = await ejs.renderFile(emailTemplatePath, { devisTache,currentDate  });
+    } 
+    // Configuration de l'email
+    const mailOptions = {
+      from: 'gestion@homeren.fr',
+      to: 'ayrtongonsallo444@gmail.com',
+      subject: 'Détails de tâche',
+      html: htmlContent
+    };
+
+    // Envoyer l'email
+    await transporter.sendMail(mailOptions);
+    res.send(`Email envoyé pour le devis tache: ${devistacheID}`);
   } catch (error) {
     console.error('Erreur lors de l\'envoi de l\'email:', error);
     res.status(500).send('Erreur lors de l\'envoi de l\'email');
@@ -3754,23 +3855,44 @@ app.get('/get_modeles_equipement', async (req, res) => {
     res.status(500).json({ error: 'Erreur serveur' });
   }
 });
-app.post('/test_calcul_auto_devis_prix', (req, res) => {
+app.get('/get_prix_devis_piece/:id', async (req, res) => {
+  const devisId = req.params.id;
+
   try {
+    const devisPiece = await DevisPiece.findByPk(devisId, {
+      include: [
+        {
+          model: DevisTache,
+          include: [Travail]
+        },
+        {
+          model: Piece
+        }
+      ]
+    });
+
+    if (!devisPiece) {
+      return res.status(404).json({ error: 'Devis non trouvé' });
+    }
     const calculator = new DevisCalculator();
-      const travaux = req.body;
+      const travaux = devisPiece.DevisTaches
       let total=0
       setTimeout(() => {
         for(i=0;i<travaux.length;i++){
           let travail=travaux[i]
-          let prix = calculator.calculer_prix(travail.idtache,travail);
-          console.log("prix: ",prix)
-          total+=prix
+          let donnees={"formulaire":JSON.parse(travail.Donnees),"nomtache":travail.TravailSlug }
+          console.log(donnees)
+          let result = calculator.calculer_prix(travail.TravailID,donnees);
+          console.log("prix: ",result.prix)
+          console.log("formule: ",result.formule)
+          total+=result.prix
+          res.status(200).json(result);
         }
-        res.status(200).json({ prix: total });
+        
     }, 3000);
-      
   } catch (error) {
-      res.status(500).json({ error: error.message });
+    console.error('Erreur lors de la récupération du devis :', error);
+    res.status(500).json({ error: 'Erreur serveur' });
   }
 });
 
@@ -3788,8 +3910,8 @@ app.post('/add_devis_piece', async (req, res) => {
     
     for (let i = 0; i < liste_des_travaux.length; i++) {
         let travail = liste_des_travaux[i];
-        let prix = await calculator.calculer_prix(travail.idtache, travail);
-        total += prix;
+        let results = await calculator.calculer_prix(travail.idtache, travail);
+        total += results.prix;
     }
     
     console.log("Prix: ", total);
@@ -3810,13 +3932,13 @@ app.post('/add_devis_piece', async (req, res) => {
 
     // Créer les DevisTache
     const devisTaches = liste_des_travaux.map(tache => {
-      let prix = calculator.calculer_prix_tache(tache);
+      let results = calculator.calculer_prix_tache(tache);
       return {
         TravailID: tache.idtache,
         DevisPieceID: devisPiece.ID,
         TravailSlug: tache.nomtache,
         Commentaires: null,
-        Prix:prix,
+        Prix:results.prix,
         Donnees: tache.formulaire
       };
     });
@@ -4211,7 +4333,7 @@ app.get('/', (req, res) => {
         Voici la liste des méthodes avec leur nom, type et description au format HTML :
 <ul>
   <li>
-    <strong>Nom :</strong> <code>/api-concepts-et-travaux/open-file/:fileName</code> <br>
+    <strong>Nom :</strong> <code>/open-file/:fileName</code> <br>
     <strong>Type :</strong> GET <br>
     <strong>Description :</strong> Ouvre un fichier dans un nouvel onglet en utilisant son nom de fichier fourni en paramètre.
   </li>

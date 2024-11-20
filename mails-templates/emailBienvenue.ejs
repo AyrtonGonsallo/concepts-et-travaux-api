@@ -157,34 +157,16 @@
         <!-- Main Content -->
         <div class="content">
             
-            <table style="background-color: #fbfbfb !important;">
-                <thead>
-                    <tr style="background: #ffc637 !important;">
-                        <th>ID Devis</th>
-                        <th>Pièce</th>
-                        <th>Adresse IP</th>
-                        <th>Date</th>
-                        <th>Tâches</th>
-                        <th>Prix</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    <% devisPieces.forEach(devis => { %>
-                        <tr style=" border-top: 1px solid #555 !important;">
-                            <td><%= devis.ID %></td>
-                            <td><%= devis.Piece.Titre %></td>
-                            <td><%= devis.AdresseIP %></td>
-                            <td><%= new Date(devis.Date).toLocaleDateString() %></td>
-                            <td>
-                                <% devis.DevisTaches.forEach(tache => { %>
-                                    <%= tache.Travail.Titre %><br>
-                                <% }) %>
-                            </td>
-                            <td><%= devis.Prix %> €</td>
-                        </tr>
-                    <% }) %>
-                </tbody>
-            </table>
+            Bienvenue sur homeren <%= utilisateur.Nom %> <%= utilisateur.Prenom %>.<br>
+            Vous vous êtes inscrit le <%= new Date(utilisateur.DateDeCreation).toLocaleString('fr-FR', {
+                day: '2-digit',
+                month: 'long',
+                year: 'numeric',
+                hour: '2-digit',
+                minute: '2-digit',
+                second: '2-digit'
+              }) %>
+               en tant que <%= utilisateur.Role.Titre %>
         </div>
 <div>
     <p style="font-family:'Montserrat';color:#ffc637;text-align: center;font: 700;">L’equipe HomeRen vous remercie</p>

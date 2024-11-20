@@ -144,7 +144,7 @@
         <div class="header">
             <div style="margin:auto;max-width:1300px;display: flex !important;justify-content: space-between !important;align-items: center !important;">
                 <div style="width: 50%;margin-top: 3%;  ">
-                   <h1>Vos devis en cours</h1>
+                   <h1> <%= devisTache.Travail.Titre %></h1>
                    <p><strong>Date</strong> : <%= currentDate %></p>
                 </div>
                 <div style="width: 50%;">
@@ -157,34 +157,40 @@
         <!-- Main Content -->
         <div class="content">
             
-            <table style="background-color: #fbfbfb !important;">
-                <thead>
-                    <tr style="background: #ffc637 !important;">
-                        <th>ID Devis</th>
-                        <th>Pièce</th>
-                        <th>Adresse IP</th>
-                        <th>Date</th>
-                        <th>Tâches</th>
-                        <th>Prix</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    <% devisPieces.forEach(devis => { %>
-                        <tr style=" border-top: 1px solid #555 !important;">
-                            <td><%= devis.ID %></td>
-                            <td><%= devis.Piece.Titre %></td>
-                            <td><%= devis.AdresseIP %></td>
-                            <td><%= new Date(devis.Date).toLocaleDateString() %></td>
-                            <td>
-                                <% devis.DevisTaches.forEach(tache => { %>
-                                    <%= tache.Travail.Titre %><br>
+            Description: <%- devisTache.Travail.Description %><br>
+            Prix: <%= devisTache.Prix %>€<br>
+            <p><strong>Récap :</strong></p>
+            <ul>
+            <% let donnees = (typeof devisTache.Donnees === 'string') ? JSON.parse(devisTache.Donnees) : devisTache.Donnees; %>
+            <% Object.keys(donnees).forEach(function(key) { %>
+                <li><strong><%= key %>:</strong>
+                <% if (typeof donnees[key] === 'object' && !Array.isArray(donnees[key])) { %>
+                    <ul>
+                    <% Object.keys(donnees[key]).forEach(function(subKey) { %>
+                        <li><strong><%= subKey %>:</strong> 
+                        <% if (Array.isArray(donnees[key][subKey])) { %>
+                            <ul>
+                            <% donnees[key][subKey].forEach(function(item, index) { %>
+                                <li><strong>Élément <%= index + 1 %> :</strong>
+                                <% Object.keys(item).forEach(function(itemKey) { %>
+                                    <p><strong><%= itemKey %>:</strong> <%= item[itemKey] %></p>
                                 <% }) %>
-                            </td>
-                            <td><%= devis.Prix %> €</td>
-                        </tr>
+                                </li>
+                            <% }) %>
+                            </ul>
+                        <% } else { %>
+                            <%= donnees[key][subKey] %>
+                        <% } %>
+                        </li>
                     <% }) %>
-                </tbody>
-            </table>
+                    </ul>
+                <% } else { %>
+                    <%= donnees[key] %>
+                <% } %>
+                </li>
+            <% }) %>
+            </ul>
+
         </div>
 <div>
     <p style="font-family:'Montserrat';color:#ffc637;text-align: center;font: 700;">L’equipe HomeRen vous remercie</p>
