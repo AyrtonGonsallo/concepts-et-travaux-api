@@ -33,6 +33,9 @@ class DevisCalculator {
             case 10:
                 prix = this.get_prix_tache_10(donnees_json);
                 break;
+            case 11:
+                prix = this.get_prix_tache_11(donnees_json);
+                break;
             case 12:
                 prix = this.get_prix_tache_12(donnees_json);
                 break;
@@ -83,6 +86,9 @@ class DevisCalculator {
               break;
           case 10:
               prix = this.get_prix_tache_10(donnees_json);
+              break;
+          case 11:
+              prix = this.get_prix_tache_11(donnees_json);
               break;
           case 12:
               prix = this.get_prix_tache_12(donnees_json);
@@ -136,7 +142,8 @@ class DevisCalculator {
                 this.get_tache_generale(20),
                 this.get_tache_generale(21),
                 this.get_tache_generale(22),
-                this.get_tache_generale(23)
+                this.get_tache_generale(23),
+                this.get_tache_generale(24)
             ]);
 
             this.tache_retirer_carrelage = taches[0];
@@ -162,6 +169,7 @@ class DevisCalculator {
             this.tache_depose_element_salle_de_bain = taches[20];
             this.tache_depose_element_haut_cuisine = taches[21];
             this.tache_depose_element_bas_cuisine = taches[22];
+            this.tache_depose_element_plomberie = taches[23];
         } catch (error) {
             console.error("Erreur lors de l'initialisation des tâches:", error.message);
         }
@@ -419,6 +427,52 @@ class DevisCalculator {
         
           return { prix, formule };
         }
+        
+
+
+        get_prix_tache_11(donnees_json) {
+          let prix = 0;
+          let formule = ""; // Chaîne pour documenter les calculs
+          const prix_depose = this.tache_depose_element_plomberie.Prix; // Prix fixe pour la dépose (modifiable)
+      
+          // Identifier quelle clé est présente
+          let appareils = [];
+          if (donnees_json["gammes-produits-pose-plomberie-cuisine"]?.appareils_cuisine) {
+              appareils = donnees_json["gammes-produits-pose-plomberie-cuisine"].appareils_cuisine;
+          } else if (donnees_json["gammes-produits-pose-plomberie-salle-de-bain"]?.appareils_salle_de_bain) {
+              appareils = donnees_json["gammes-produits-pose-plomberie-salle-de-bain"].appareils_salle_de_bain;
+          } else {
+              // Si aucune des gammes n'est présente, retourner un prix de 0
+              return { prix: 0, formule: "Aucune donnée valide trouvée pour les appareils." };
+          }
+      
+          // Parcourir chaque appareil
+          appareils.forEach((appareil) => {
+              if (appareil.active) {
+                  // Extraire le prix à partir de la fin du champ "modele"
+                  const prix_appareil = parseFloat(appareil.modele.split(":")[2]);
+                  prix += prix_appareil;
+      
+                  // Documenter le prix de l'appareil dans la formule
+                  formule += `${prix_appareil} (prix de l'appareil "${appareil.modele.split(":")[1]}")\n`;
+      
+                  // Ajouter le prix de dépose si applicable
+                  if (appareil.depose) {
+                      prix += prix_depose;
+                      formule += `${prix_depose} (prix de dépose pour "${appareil.modele.split(":")[1]}")\n`;
+                  }
+              }
+          });
+      
+          // Appliquer le coefficient 1.25 au total des prix
+          const prix_final = prix * 1.25;
+      
+          // Ajouter le calcul final à la formule
+          formule += `Total (somme des prix * 1.25) = ${prix_final}`;
+      
+          return { prix: prix_final, formule };
+      }
+      
         
       
          get_prix_tache_12(donnees_json) {

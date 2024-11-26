@@ -19,6 +19,7 @@ const PointcleRealisation=require('./PointcleRealisation')
 const BesoinProjet=require('./Besoin_projet')
 const CategoriePiece=require('./Categorie_piece')
 const EtapeProjet=require('./Etape_projet')
+const EtapeDevis=require('./Etape_devis')
 const Galerie=require('./Galerie')
 const Equipement=require('./Equipement')
 const ModeleEquipement=require('./ModeleEquipement')
@@ -1635,6 +1636,74 @@ app.post('/ajouter_etape_projet', async (req, res) => {
     res.status(500).json({ error: 'Erreur serveur' });
   }
 });
+app.post('/ajouter_etape_devis', async (req, res) => {
+  try {
+    const { Titre, Description } = req.body;
+    // Création de l'étape de projet dans la base de données
+    const etape_d= await EtapeDevis.create({ Titre, Description });
+    res.status(201).json(etape_d);
+  } catch (error) {
+    console.error('Erreur lors de l\'ajout de l\'étape de devis :', error);
+    res.status(500).json({ error: 'Erreur serveur' });
+  }
+});
+
+app.get('/get_etapes_devis', async (req, res) => {
+  try {
+    const etapesDevis = await EtapeDevis.findAll();
+    res.status(200).json(etapesDevis);
+  } catch (error) {
+    console.error('Erreur lors de la récupération des étapes de devis :', error);
+    res.status(500).json({ error: 'Erreur serveur' });
+  }
+});
+
+// Endpoint pour récupérer une étape de devis par son ID
+app.get('/get_etape_devis/:id', async (req, res) => {
+  try {
+    const etapeDevis = await EtapeDevis.findByPk(req.params.id);
+    if (!etapeDevis) {
+      return res.status(404).json({ error: 'Étape de devis non trouvée' });
+    }
+    res.status(200).json(etapeDevis);
+  } catch (error) {
+    console.error('Erreur lors de la récupération de l\'étape de devis :', error);
+    res.status(500).json({ error: 'Erreur serveur' });
+  }
+});
+
+// Endpoint pour mettre à jour une étape de devis
+app.put('/update_etape_devis/:id', async (req, res) => {
+  try {
+    const { Titre, Description } = req.body;
+    const etapeDevis = await EtapeDevis.findByPk(req.params.id);
+    if (!etapeDevis) {
+      return res.status(404).json({ error: 'Étape de devis non trouvée' });
+    }
+
+    etapeDevis.Titre = Titre || etapeDevis.Titre;
+    etapeDevis.Description = Description || etapeDevis.Description;
+    await etapeDevis.save();
+
+    res.status(200).json(etapeDevis);
+  } catch (error) {
+    console.error('Erreur lors de la mise à jour de l\'étape de devis :', error);
+    res.status(500).json({ error: 'Erreur serveur' });
+  }
+});
+
+// Endpoint pour supprimer une étape de devis par son ID
+app.delete('/delete_etape_devis/:id', async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    const result = await EtapeDevis.destroy({ where: { Id: id } });
+    res.status(200).json({ message: 'Étape de devis supprimée avec succès' });
+  } catch (error) {
+    console.error('Erreur lors de la suppression de l\'étape de devis :', error);
+    res.status(500).json({ error: 'Erreur serveur' });
+  }
+});
 // Endpoint DELETE pour supprimer une réalisation sans les relations (besoins et étapes)
 app.delete('/delete_realisation/:realisationId', async (req, res) => {
   try {
@@ -2707,6 +2776,7 @@ app.get('/get_galeries', async (req, res) => {
     res.status(500).json({ error: 'Erreur serveur' });
   }
 });
+
 app.get('/get_etapes_projet', async (req, res) => {
   try {
     const etapesProjet = await EtapeProjet.findAll();
@@ -2763,6 +2833,8 @@ app.delete('/delete_etape_projet/:id', async (req, res) => {
     res.status(500).json({ error: 'Erreur serveur' });
   }
 });
+
+
 
 
 app.get('/get_besoins_projet', async (req, res) => {
