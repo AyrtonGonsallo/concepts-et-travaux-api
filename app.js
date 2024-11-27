@@ -32,6 +32,7 @@ const Image=require('./Image')
 const Realisation=require('./Realisation')
 const Piece=require('./Piece')
 const ProjetArtisan = require('./ProjetArtisan');
+const ProjetDevis = require('./ProjetDevis');
 const cors = require('cors');
 const Projet = require('./Projet'); 
 const Autorisation = require('./Autorisation'); // Importez le modèle Grade
@@ -899,7 +900,7 @@ app.post('/add_role_to_user', async (req, res) => {
 // Définir le point de terminaison pour ajouter un projet
 app.post('/add_project', async (req, res) => {
   try {
-    const { Nom, Description, User_id, Client_id, Artisans } = req.body;
+    const { Nom, Description, User_id, Client_id, Artisans,Devis } = req.body;
     
     // Définir la date de création actuelle et le statut par défaut
     const Date_de_creation = new Date();
@@ -926,13 +927,25 @@ app.post('/add_project', async (req, res) => {
       await Promise.all(artisanPromises);
     }
 
+    // Ajouter les devis au projet
+    if (Devis && Devis.length > 0) {
+      const devisPromises = Devis.map(devisId => 
+        ProjetDevis.create({
+          projet_id: newProject.Id,
+          devis_id: devisId
+        })
+      );
+      await Promise.all(devisPromises);
+    }
+
     // Récupérer le projet avec les associations pour la réponse
     const projectWithAssociations = await Projet.findOne({
       where: { Id: newProject.Id },
       include: [
         { model: Utilisateur, as: 'Utilisateur' },
         { model: Utilisateur, as: 'Client' },
-        { model: Utilisateur, through: { model: ProjetArtisan }, as: 'Artisans' }
+        { model: Utilisateur, through: { model: ProjetArtisan }, as: 'Artisans' },
+        { model: Utilisateur, through: { model: ProjetDevis }, as: 'Devis' }
       ]
     });
 
@@ -1019,7 +1032,8 @@ app.get('/get_project/:id', async (req, res) => {
       include: [
         { model: Utilisateur, as: 'Utilisateur' },
         { model: Utilisateur, as: 'Client' },
-        { model: Utilisateur, as: 'Artisans' }
+        { model: Utilisateur, as: 'Artisans' },
+        { model: DevisPiece, as: 'Devis' }
       ]
     });
 
@@ -1043,8 +1057,10 @@ app.get('/get_projects', async (req, res) => {
       include: [
         { model: Utilisateur, as: 'Utilisateur' },
         { model: Utilisateur, as: 'Client' },
-        { model: Utilisateur, as: 'Artisans' }
-      ]
+        { model: Utilisateur, as: 'Artisans' },
+        { model: DevisPiece, as: 'Devis' }
+      ],
+      order: [['Date_de_creation', 'DESC']]
     });
 
     // Répondez avec les rôles récupérés au format JSON
@@ -3691,7 +3707,7 @@ app.get('/get_validated_travaux_by_piece/:pid', async (req, res) => {
     const questions = await sequelize.query(
       `SELECT t.* FROM Travail t,PieceTravail pt,Piece p
        WHERE t.ID=pt.TravailID and p.ID=pt.PieceID and
-       p.ID = :pieceId and t.Valide=1`,
+       p.ID = :pieceId and t.Valide=0`,//0 a cause du monsieur mathieu qui appele ce champ masqué
       {
         replacements: { pieceId },
         type: Sequelize.QueryTypes.SELECT,
@@ -3950,18 +3966,38 @@ app.get('/get_prix_devis_piece/:id', async (req, res) => {
       const travaux = devisPiece.DevisTaches
       let total=0
       setTimeout(() => {
-        for(i=0;i<travaux.length;i++){
-          let travail=travaux[i]
-          let donnees={"formulaire":JSON.parse(travail.Donnees),"nomtache":travail.TravailSlug }
-          console.log(donnees)
-          let result = calculator.calculer_prix(travail.TravailID,donnees);
-          console.log("prix: ",result.prix)
-          console.log("formule: ",result.formule)
-          total+=result.prix
-          res.status(200).json(result);
+        let total = 0; // Initialise la variable total
+        let resultats = {}; // Objet pour accumuler les résultats
+      
+        for (let i = 0; i < travaux.length; i++) {
+          let travail = travaux[i];
+          let donnees = {
+            "formulaire": JSON.parse(travail.Donnees),
+            "nomtache": travail.TravailSlug
+          };
+      
+          console.log(donnees);
+      
+          let result = calculator.calculer_prix(travail.TravailID, donnees);
+          console.log("prix: ", result.prix);
+          console.log("formule: ", result.formule);
+      
+          // Ajout du résultat sous le slug du travail dans l'objet resultats
+          resultats[travail.TravailSlug] = {
+            prix: result.prix,
+            formule: result.formule
+          };
+      
+          total += result.prix; // Ajoute le prix au total
         }
-        
-    }, 3000);
+      
+        // Envoi du JSON contenant tous les résultats après la boucle
+        res.status(200).json({
+          total: total,
+          resultats: resultats
+        });
+      }, 3000);
+      
   } catch (error) {
     console.error('Erreur lors de la récupération du devis :', error);
     res.status(500).json({ error: 'Erreur serveur' });
@@ -4095,7 +4131,8 @@ app.get('/get_no_payed_devis_piece_by_device_id/:device_id', async (req, res) =>
         {
           model: Piece
         }
-      ]
+      ],
+      order: [['Date', 'DESC']]
     });
 
     if (devisPieces.length > 0) {
