@@ -945,7 +945,7 @@ app.post('/add_project', async (req, res) => {
         { model: Utilisateur, as: 'Utilisateur' },
         { model: Utilisateur, as: 'Client' },
         { model: Utilisateur, through: { model: ProjetArtisan }, as: 'Artisans' },
-        { model: Utilisateur, through: { model: ProjetDevis }, as: 'Devis' }
+        { model: DevisPiece, through: { model: ProjetDevis }, as: 'Devis' }
       ]
     });
 
@@ -1656,7 +1656,7 @@ app.post('/ajouter_etape_devis', async (req, res) => {
   try {
     const { Titre, Description } = req.body;
     // Création de l'étape de projet dans la base de données
-    const etape_d= await EtapeDevis.create({ Titre, Description });
+    const etape_d= await EtapeDevis.create({ Titre, Description,Description_chambre,Description_sdb,Description_salle_manger,Description_wc,Description_cuisine,Description_salon });
     res.status(201).json(etape_d);
   } catch (error) {
     console.error('Erreur lors de l\'ajout de l\'étape de devis :', error);
@@ -1691,7 +1691,7 @@ app.get('/get_etape_devis/:id', async (req, res) => {
 // Endpoint pour mettre à jour une étape de devis
 app.put('/update_etape_devis/:id', async (req, res) => {
   try {
-    const { Titre, Description } = req.body;
+    const { Titre, Description,Description_chambre,Description_sdb,Description_salle_manger,Description_wc,Description_cuisine,Description_salon } = req.body;
     const etapeDevis = await EtapeDevis.findByPk(req.params.id);
     if (!etapeDevis) {
       return res.status(404).json({ error: 'Étape de devis non trouvée' });
@@ -1699,6 +1699,12 @@ app.put('/update_etape_devis/:id', async (req, res) => {
 
     etapeDevis.Titre = Titre || etapeDevis.Titre;
     etapeDevis.Description = Description || etapeDevis.Description;
+    etapeDevis.Description_chambre = Description_chambre || etapeDevis.Description_chambre;
+    etapeDevis.Description_sdb = Description_sdb || etapeDevis.Description_sdb;
+    etapeDevis.Description_salle_manger = Description_salle_manger || etapeDevis.Description_salle_manger;
+    etapeDevis.Description_wc = Description_wc || etapeDevis.Description_wc;
+    etapeDevis.Description_cuisine = Description_cuisine || etapeDevis.Description_cuisine;
+    etapeDevis.Description_salon = Description_salon || etapeDevis.Description_salon;
     await etapeDevis.save();
 
     res.status(200).json(etapeDevis);
@@ -3075,7 +3081,7 @@ app.get('/get_questions_par_categories', async (req, res) => {
       FROM QuestionFaq q
       INNER JOIN Question_Categorie qc ON q.ID = qc.QuestionID
       INNER JOIN CategorieQuestionFaq c ON c.ID = qc.CategorieID
-      ORDER BY c.ID, q.ID`;
+      ORDER BY c.Titre, q.Question asc`;
 
     const questions = await sequelize.query(query, {
       type: Sequelize.QueryTypes.SELECT
@@ -3707,7 +3713,7 @@ app.get('/get_validated_travaux_by_piece/:pid', async (req, res) => {
     const questions = await sequelize.query(
       `SELECT t.* FROM Travail t,PieceTravail pt,Piece p
        WHERE t.ID=pt.TravailID and p.ID=pt.PieceID and
-       p.ID = :pieceId and t.Valide=0`,//0 a cause du monsieur mathieu qui appele ce champ masqué
+       p.ID = :pieceId and t.Valide=0 order  by t.Titre asc`,//0 a cause du monsieur mathieu qui appele ce champ masqué
       {
         replacements: { pieceId },
         type: Sequelize.QueryTypes.SELECT,
@@ -4003,6 +4009,35 @@ app.get('/get_prix_devis_piece/:id', async (req, res) => {
     res.status(500).json({ error: 'Erreur serveur' });
   }
 });
+
+app.post('/edit_devis_tache/:id', async (req, res) => {
+  const { id } = req.params;
+  const newDonnees = req.body;
+
+  try {
+    // Vérifier si l'enregistrement existe
+    const devisTache = await DevisTache.findByPk(id);
+
+    if (!devisTache) {
+      return res.status(404).json({ error: 'DevisTache non trouvée.' });
+    }
+
+    // Mise à jour de la colonne Donnees
+    devisTache.Donnees = newDonnees;
+
+    // Sauvegarde de l'enregistrement mis à jour
+    await devisTache.save();
+
+    res.status(200).json({
+      message: 'DevisTache mise à jour avec succès.',
+      data: devisTache
+    });
+  } catch (error) {
+    console.error('Erreur lors de la mise à jour de DevisTache:', error);
+    res.status(500).json({ error: 'Erreur interne du serveur.' });
+  }
+});
+
 
 app.post('/add_devis_piece', async (req, res) => {
   const { username, ip, piece, liste_des_travaux,deviceID } = req.body;
