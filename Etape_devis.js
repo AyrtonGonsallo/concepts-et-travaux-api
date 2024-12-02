@@ -1,5 +1,16 @@
 const { Sequelize, DataTypes } = require('sequelize');
+const Travail = require('./Travail');
 const sequelize = new Sequelize('mysql://mala3315_concepts_et_travaux_user:h-c4J%25-%7DP%2C12@109.234.166.164:3306/mala3315_concepts_et_travaux');
+const etapeValues = [
+  'Choix de la pièce',
+  'Travaux',
+  'Dimensions',
+  'Etat de surfaces',
+  'Gamme de produits',
+  'Recapitulatif',
+  'Finalisation'
+];
+
 
 const EtapeDevis = sequelize.define('EtapeDevis', {
   ID: {
@@ -48,7 +59,21 @@ const EtapeDevis = sequelize.define('EtapeDevis', {
     type: DataTypes.TEXT,
     allowNull: false,
     field: 'Description_salle_manger' // Spécifie explicitement le nom de la colonne dans la base de données
-  }
+  },
+  TravailID: {
+    type: DataTypes.INTEGER,
+    allowNull: false,
+    references: {
+      model: Travail,
+      key: 'ID'
+    },
+    field: 'TravailID'
+  },
+  Etape: {
+    type: DataTypes.ENUM, // Utilisation du type ENUM
+    values: etapeValues, // Définition des valeurs possibles
+    allowNull: false
+},
 }, {
   tableName: 'Etape_devis',
   timestamps: false,
@@ -57,5 +82,5 @@ const EtapeDevis = sequelize.define('EtapeDevis', {
   collate: 'latin1_swedish_ci'
 });
 
-
+EtapeDevis.belongsTo(Travail, { foreignKey: 'TravailID' });
 module.exports = EtapeDevis;

@@ -1652,51 +1652,95 @@ app.post('/ajouter_etape_projet', async (req, res) => {
     res.status(500).json({ error: 'Erreur serveur' });
   }
 });
+
 app.post('/ajouter_etape_devis', async (req, res) => {
   try {
-    const { Titre, Description } = req.body;
-    // Création de l'étape de projet dans la base de données
-    const etape_d= await EtapeDevis.create({ Titre, Description,Description_chambre,Description_sdb,Description_salle_manger,Description_wc,Description_cuisine,Description_salon });
+    const {
+      Titre,
+      Description,
+      Description_chambre,
+      Description_sdb,
+      Description_salle_manger,
+      Description_wc,
+      Description_cuisine,
+      Description_salon,
+      TravailID,
+      Etape
+    } = req.body;
+
+    // Création de l'étape de devis dans la base de données
+    const etape_d = await EtapeDevis.create({
+      Titre,
+      Description,
+      Description_chambre,
+      Description_sdb,
+      Description_salle_manger,
+      Description_wc,
+      Description_cuisine,
+      Description_salon,
+      TravailID,
+      Etape
+    });
+
     res.status(201).json(etape_d);
   } catch (error) {
-    console.error('Erreur lors de l\'ajout de l\'étape de devis :', error);
+    console.error("Erreur lors de l'ajout de l'étape de devis :", error);
     res.status(500).json({ error: 'Erreur serveur' });
   }
 });
 
 app.get('/get_etapes_devis', async (req, res) => {
   try {
-    const etapesDevis = await EtapeDevis.findAll();
+    const etapesDevis = await EtapeDevis.findAll({
+      include: [{ model: Travail }]
+    });
+
     res.status(200).json(etapesDevis);
   } catch (error) {
-    console.error('Erreur lors de la récupération des étapes de devis :', error);
+    console.error("Erreur lors de la récupération des étapes de devis :", error);
     res.status(500).json({ error: 'Erreur serveur' });
   }
 });
 
-// Endpoint pour récupérer une étape de devis par son ID
 app.get('/get_etape_devis/:id', async (req, res) => {
   try {
-    const etapeDevis = await EtapeDevis.findByPk(req.params.id);
+    const etapeDevis = await EtapeDevis.findByPk(req.params.id, {
+      include: [{ model: Travail }]
+    });
+
     if (!etapeDevis) {
       return res.status(404).json({ error: 'Étape de devis non trouvée' });
     }
+
     res.status(200).json(etapeDevis);
   } catch (error) {
-    console.error('Erreur lors de la récupération de l\'étape de devis :', error);
+    console.error("Erreur lors de la récupération de l'étape de devis :", error);
     res.status(500).json({ error: 'Erreur serveur' });
   }
 });
 
-// Endpoint pour mettre à jour une étape de devis
 app.put('/update_etape_devis/:id', async (req, res) => {
   try {
-    const { Titre, Description,Description_chambre,Description_sdb,Description_salle_manger,Description_wc,Description_cuisine,Description_salon } = req.body;
+    const {
+      Titre,
+      Description,
+      Description_chambre,
+      Description_sdb,
+      Description_salle_manger,
+      Description_wc,
+      Description_cuisine,
+      Description_salon,
+      TravailID,
+      Etape
+    } = req.body;
+
     const etapeDevis = await EtapeDevis.findByPk(req.params.id);
+
     if (!etapeDevis) {
       return res.status(404).json({ error: 'Étape de devis non trouvée' });
     }
 
+    // Mise à jour des champs
     etapeDevis.Titre = Titre || etapeDevis.Titre;
     etapeDevis.Description = Description || etapeDevis.Description;
     etapeDevis.Description_chambre = Description_chambre || etapeDevis.Description_chambre;
@@ -1705,27 +1749,38 @@ app.put('/update_etape_devis/:id', async (req, res) => {
     etapeDevis.Description_wc = Description_wc || etapeDevis.Description_wc;
     etapeDevis.Description_cuisine = Description_cuisine || etapeDevis.Description_cuisine;
     etapeDevis.Description_salon = Description_salon || etapeDevis.Description_salon;
+    etapeDevis.TravailID = TravailID || etapeDevis.TravailID;
+    etapeDevis.Etape = Etape || etapeDevis.Etape;
+
     await etapeDevis.save();
 
     res.status(200).json(etapeDevis);
   } catch (error) {
-    console.error('Erreur lors de la mise à jour de l\'étape de devis :', error);
+    console.error("Erreur lors de la mise à jour de l'étape de devis :", error);
     res.status(500).json({ error: 'Erreur serveur' });
   }
 });
 
-// Endpoint pour supprimer une étape de devis par son ID
 app.delete('/delete_etape_devis/:id', async (req, res) => {
   try {
     const { id } = req.params;
 
-    const result = await EtapeDevis.destroy({ where: { Id: id } });
+    const result = await EtapeDevis.destroy({
+      where: { ID: id }
+    });
+
+    if (result === 0) {
+      return res.status(404).json({ error: 'Étape de devis non trouvée' });
+    }
+
     res.status(200).json({ message: 'Étape de devis supprimée avec succès' });
   } catch (error) {
-    console.error('Erreur lors de la suppression de l\'étape de devis :', error);
+    console.error("Erreur lors de la suppression de l'étape de devis :", error);
     res.status(500).json({ error: 'Erreur serveur' });
   }
 });
+
+
 // Endpoint DELETE pour supprimer une réalisation sans les relations (besoins et étapes)
 app.delete('/delete_realisation/:realisationId', async (req, res) => {
   try {
