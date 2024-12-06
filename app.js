@@ -3908,7 +3908,7 @@ app.delete('/delete_travail/:id', async (req, res) => {
 // Endpoint pour ajouter un nouveau modèle d'équipement
 app.post('/add_modele_equipement', async (req, res) => {
   try {
-    const { Titre, Description, Image, Prix,Longeur, Largeur, Hauteur, Epaisseur, Matiere, EquipementID } = req.body;
+    const { Titre, Description, Image, Prix,Longeur, Largeur, Hauteur, Epaisseur,NombreDeVasques, Matiere, EquipementID } = req.body;
 
     // Création du modèle d'équipement dans la base de données
     const newModeleEquipement = await ModeleEquipement.create({
@@ -3920,6 +3920,7 @@ app.post('/add_modele_equipement', async (req, res) => {
       Largeur,
       Hauteur,
       Epaisseur,
+      NombreDeVasques,
       Matiere,
       EquipementID
     });
@@ -3958,6 +3959,7 @@ app.put('/update_modele_equipement/:id', async (req, res) => {
       modele.Largeur = req.body.Largeur;
       modele.Hauteur = req.body.Hauteur;
       modele.Epaisseur = req.body.Epaisseur;
+      modele.NombreDeVasques = req.body.NombreDeVasques
       modele.Matiere = req.body.Matiere;
       modele.EquipementID = req.body.EquipementID;
 

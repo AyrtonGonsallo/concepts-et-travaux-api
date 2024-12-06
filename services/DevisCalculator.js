@@ -302,8 +302,8 @@ class DevisCalculator {
         if (has_partie_murs) {
           let total_murs = mursnonporteurs.length;
           for (let i = 0; i < total_murs; i++) {
-            let prix_unit_mur = parseFloat(gammes_murs[i].materiaux.split(':')[0]);
-            let volume_mur = mursnonporteurs[i].volume;
+            let prix_unit_mur = parseFloat(gammes_murs[i].cloison.split(':')[0]);
+            let volume_mur = mursnonporteurs[i].longueur*mursnonporteurs[i].hauteur*mursnonporteurs[i].epaisseur;
             let prix_final_mur = 1.25 * (volume_mur * prix_unit_mur);
             prix += prix_final_mur;
       
@@ -311,31 +311,13 @@ class DevisCalculator {
           }
         }
       
-        // Calcul de la démolition des portes
-        if (has_partie_demolition_portes) {
-          let prix_dem_psc = 1.25 * (quantite_psc * this.tache_demolition_porte_simple_creuse.Prix);
-          let prix_dem_psp = 1.25 * (quantite_psp * this.tache_demolition_porte_simple_pleine.Prix);
-          let prix_dem_pdc = 1.25 * (quantite_pdc * this.tache_demolition_porte_double_creuse.Prix);
-          let prix_dem_pdp = 1.25 * (quantite_pdp * this.tache_demolition_porte_double_pleine.Prix);
-      
-          prix += prix_dem_psc;
-          prix += prix_dem_psp;
-          prix += prix_dem_pdc;
-          prix += prix_dem_pdp;
-      
-          formule += `1.25 * (${quantite_psc} * PrixPSC) = ${prix_dem_psc}\n`;
-          formule += `1.25 * (${quantite_psp} * PrixPSP) = ${prix_dem_psp}\n`;
-          formule += `1.25 * (${quantite_pdc} * PrixPDC) = ${prix_dem_pdc}\n`;
-          formule += `1.25 * (${quantite_pdp} * PrixPDP) = ${prix_dem_pdp}\n`;
-        }
-      
         // Calcul des ouvertures partielles
         if (has_partie_ouvertures) {
           let total_ouvertures = ouvertures.length;
           for (let j = 0; j < total_ouvertures; j++) {
             let prix_unit_cloison = parseFloat(gammes_ouvertures[j].cloison.split(':')[0]);
-            let volume_ouverture = ouvertures[j].volume;
-            let prix_final_ouverture = 1.25 * (volume_ouverture * prix_unit_cloison);
+            let volume = ouvertures[j].epaisseur*((ouvertures[j].longueur*ouvertures[j].hauteur)-(ouvertures[j].longueur_ouverture*ouvertures[j].hauteur_ouverture));
+            let prix_final_ouverture = 1.25 * (volume * prix_unit_cloison);
             prix += prix_final_ouverture;
       
             formule += `1.25 * (${volume_ouverture} * ${prix_unit_cloison}) = ${prix_final_ouverture}\n`;

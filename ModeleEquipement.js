@@ -48,6 +48,11 @@ const ModeleEquipement = sequelize.define('ModeleEquipement', {
     allowNull: true,
     field: 'Epaisseur'
   },
+  NombreDeVasques: {
+    type: DataTypes.INTEGER,
+    allowNull: true,
+    field: 'NombreDeVasques'
+  },
   Matiere: {
     type: DataTypes.STRING(255),
     allowNull: true,
