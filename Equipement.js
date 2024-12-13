@@ -31,6 +31,31 @@ const Equipement = sequelize.define('Equipement', {
     allowNull: true,
     field: 'Description' // Spécifie explicitement le nom de la colonne dans la base de données
   },
+  AfficherLongueur: {
+    type: DataTypes.BOOLEAN, // TINYINT(1) for boolean-like values
+    allowNull: false,
+    defaultValue: false,  // Default value as false
+    field: 'AfficherLongueur'
+  },
+  AfficherLargeur: {
+    type: DataTypes.BOOLEAN, // TINYINT(1) for boolean-like values
+    allowNull: false,
+    defaultValue: false,  // Default value as false
+    field: 'AfficherLargeur'
+  },
+  AfficherVasque: {
+    type: DataTypes.BOOLEAN, // TINYINT(1) for boolean-like values
+    allowNull: false,
+    defaultValue: false,  // Default value as false
+    field: 'AfficherVasque'
+  },
+  AfficherEncastreeApparente: {
+    type: DataTypes.BOOLEAN, // TINYINT(1) for boolean-like values
+    allowNull: false,
+    defaultValue: false,  // Default value as false
+    field: 'AfficherEncastreeApparente'
+  },
+  
   PieceID: {
     type: DataTypes.INTEGER,
     allowNull: true,

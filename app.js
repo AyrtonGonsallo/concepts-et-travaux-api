@@ -4437,6 +4437,27 @@ app.get('/get_gammes_by_type_and_travailID/:tid/:type', async (req, res) => {
   }
 });
 
+// Endpoint to fetch gammes by travailID and type
+app.get('/get_ordered_gammes_by_type_and_travailID/:tid/:type', async (req, res) => {
+  const { tid, type } = req.params;
+  
+  try {
+    const gammes = await Gamme.findAll({
+      where: {
+        TravailID: tid,
+        Type: type
+      },
+      order: [
+        ['Label', 'ASC'] // Tri par Titre en ordre croissant
+      ]
+    });
+    res.status(200).json(gammes);
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+
 
 app.post('/add_tache_generale', async (req, res) => {
   try {
