@@ -143,7 +143,8 @@ class DevisCalculator {
                 this.get_tache_generale(21),
                 this.get_tache_generale(22),
                 this.get_tache_generale(23),
-                this.get_tache_generale(24)
+                this.get_tache_generale(24),
+                this.get_tache_generale(25),
             ]);
 
             this.tache_retirer_carrelage = taches[0];
@@ -170,6 +171,7 @@ class DevisCalculator {
             this.tache_depose_element_haut_cuisine = taches[21];
             this.tache_depose_element_bas_cuisine = taches[22];
             this.tache_depose_element_plomberie = taches[23];
+            this.tache_creation_de_murs_non_porteurs = taches[24];
         } catch (error) {
             console.error("Erreur lors de l'initialisation des tâches:", error.message);
         }
@@ -283,26 +285,21 @@ class DevisCalculator {
         let prix = 0;
         let formule = ""; // Initialisation de la chaîne de formule
       
-        let dimensions = donnees_json["dimensions-murs-non-porteurs"];
-        let mursnonporteurs = dimensions.mursNonporteurs;
-        let ouvertures = dimensions.ouverturePartielle;
-        let quantite_psc = dimensions.quantite_portes_simples_creuse;
-        let quantite_pdc = dimensions.quantite_portes_doubles_creuses;
-        let quantite_psp = dimensions.quantite_porte_simple_plein;
-        let quantite_pdp = dimensions.quantite_porte_double_pleine;
-        let has_partie_murs = dimensions.tp1;
-        let has_partie_demolition_portes = dimensions.tp2;
-        let has_partie_ouvertures = dimensions.tp3;
-      
         let gammes = donnees_json["gammes-produits-murs-non-porteurs"];
-        let gammes_murs = gammes.mursnonporteurs;
-        let gammes_ouvertures = gammes.ouverturepartielles;
+        let mursnonporteurs = gammes.mursNonporteurs;
+        let ouvertures = gammes.ouverturePartielle;
+        
+        let has_partie_murs = gammes.tp1;
+        let has_partie_ouvertures = gammes.tp3;
+      
+        
+    
       
         // Calcul des murs non porteurs
         if (has_partie_murs) {
           let total_murs = mursnonporteurs.length;
           for (let i = 0; i < total_murs; i++) {
-            let prix_unit_mur = parseFloat(gammes_murs[i].cloison.split(':')[0]);
+            let prix_unit_mur = parseFloat(mursnonporteurs[i].cloison.split(':')[0]);
             let volume_mur = mursnonporteurs[i].longueur*mursnonporteurs[i].hauteur*mursnonporteurs[i].epaisseur;
             let prix_final_mur = 1.25 * (volume_mur * prix_unit_mur);
             prix += prix_final_mur;
@@ -315,9 +312,9 @@ class DevisCalculator {
         if (has_partie_ouvertures) {
           let total_ouvertures = ouvertures.length;
           for (let j = 0; j < total_ouvertures; j++) {
-            let prix_unit_cloison = parseFloat(gammes_ouvertures[j].cloison.split(':')[0]);
-            let volume = ouvertures[j].epaisseur*((ouvertures[j].longueur*ouvertures[j].hauteur)-(ouvertures[j].longueur_ouverture*ouvertures[j].hauteur_ouverture));
-            let prix_final_ouverture = 1.25 * (volume * prix_unit_cloison);
+            let prix_unit_cloison = parseFloat(ouvertures[j].cloison.split(':')[0]);
+            let volume_ouverture = ouvertures[j].epaisseur*((ouvertures[j].longueur*ouvertures[j].hauteur)-(ouvertures[j].longueur_ouverture*ouvertures[j].hauteur_ouverture));
+            let prix_final_ouverture = 1.25 * (volume_ouverture * prix_unit_cloison);
             prix += prix_final_ouverture;
       
             formule += `1.25 * (${volume_ouverture} * ${prix_unit_cloison}) = ${prix_final_ouverture}\n`;
@@ -341,32 +338,34 @@ class DevisCalculator {
           let prix = 0;
           let formule = ""; // Initialisation de la chaîne de formule
         
-          let murs = donnees_json["dimensions-creation-murs-non-porteurs--murs"].murs_non_porteurs;
-          let types_cloison = donnees_json["etat-surfaces-creation-murs-non-porteurs--murs"].murs_non_porteurs;
+          let murs = donnees_json["gammes-produits-creation-murs-non-porteurs--portes"].murs_non_porteurs;
+          let has_portes = donnees_json["gammes-produits-creation-murs-non-porteurs--portes"].has_portes;
           let portes = donnees_json["gammes-produits-creation-murs-non-porteurs--portes"].portes;
-        
+          let prix_creation = this.tache_creation_de_murs_non_porteurs.Prix;
           // Calcul du prix pour les murs non porteurs
           let total_murs = murs.length;
           for (let i = 0; i < total_murs; i++) {
-            let surface = murs[i].surface;
-            let type_cloison = types_cloison[i].type_cloison;
-            let prix_unit_cloison = parseFloat(type_cloison.split(":")[1]); // Le prix est en position 1 du split
+            let surface = murs[i].longueur*murs[i].hauteur;
+            let prix_unit_cloison = prix_creation; // Le prix est en position 1 du split
             let prix_final_mur = surface * prix_unit_cloison * 1.25;
             prix += prix_final_mur;
         
             formule += `${surface} * ${prix_unit_cloison} = ${prix_final_mur}\n`;
           }
-        
-          // Calcul du prix pour les portes
-          let total_portes = portes.length;
-          for (let j = 0; j < total_portes; j++) {
-            let type_porte = portes[j].type;
-            let prix_unit_porte = parseFloat(type_porte.split(":")[1]); // Le prix est en position 1 du split
-            let prix_final_porte = 1 * prix_unit_porte * 1.25;
-            prix += prix_final_porte;
-        
-            formule += `1 * ${prix_unit_porte} = ${prix_final_porte}\n`;
+
+          if(has_portes){
+            // Calcul du prix pour les portes
+            let total_portes = portes.length;
+            for (let j = 0; j < total_portes; j++) {
+              let gamme_porte = portes[j].gamme;
+              let prix_unit_porte = parseFloat(gamme_porte.split(":")[1]); // Le prix est en position 1 du split
+              let prix_final_porte = 1 * prix_unit_porte * 1.25;
+              prix += prix_final_porte;
+
+              formule += `1 * ${prix_unit_porte} = ${prix_final_porte}\n`;
+            }
           }
+          
         
           // Retourner le prix total et les formules
           return {
@@ -504,8 +503,9 @@ class DevisCalculator {
           let prix = 0;
       
           // Données principales
-          const surface = donnees_json["dimensions-pose-plafond"].surface;
+          const surface = donnees_json["dimensions-pose-plafond"].longueur * donnees_json["dimensions-pose-plafond"].largeur;
           const id_prix_gamme = donnees_json["gammes-produits-pose-plafond"].gamme;
+          const prix_depose = parseFloat(donnees_json["dimensions-pose-plafond"].depose.split(':')[2]);
           const etat_surface = donnees_json["etat-surfaces-pose-plafond"].etat;
       
           // Calcul du prix de la gamme
@@ -514,7 +514,10 @@ class DevisCalculator {
           let sousTotalGamme = prix_gamme * surface;
           prix += sousTotalGamme;
           formule += `Surface (${surface}) * Prix de la gamme (${prix_gamme}) = ${sousTotalGamme}\n`;
-      
+
+          let sousTotalDeposeGamme = prix_depose * surface;
+          prix += sousTotalDeposeGamme;
+          formule += `Surface (${surface}) * Prix de la gamme depose (${prix_depose}) = ${sousTotalDeposeGamme}\n`;
           
       
           // Application d'un facteur global (1.25)
@@ -529,7 +532,8 @@ class DevisCalculator {
         let prix = 0;
     
         // Données principales
-        const surface = donnees_json["dimensions-pose-sol"].surface;
+        const surface = donnees_json["dimensions-pose-sol"].longueur * donnees_json["dimensions-pose-sol"].largeur;
+        const prix_depose = parseFloat(donnees_json["dimensions-pose-sol"].depose.split(":")[2]);
         const etat_surface = donnees_json["etat-surfaces-pose-sol"].etat;
         const gammes = donnees_json["gammes-produits-pose-sol"];
     
@@ -541,6 +545,13 @@ class DevisCalculator {
             prix += sousTotalGamme;
             formule += `Surface (${surface}) * Prix de la gamme principale (${prixGamme}) = ${sousTotalGamme}\n`;
         }
+
+        if (prix_depose>0) {
+          
+          const sousTotaldepose = prix_depose * surface;
+          prix += sousTotaldepose;
+          formule += `Surface (${surface}) * Prix de la depose  (${prix_depose}) = ${sousTotaldepose}\n`;
+      }
     
         // Vérification des plinthes
         if (gammes.plinthes) {
@@ -551,18 +562,7 @@ class DevisCalculator {
             formule += `Surface (${surface}) * Prix des plinthes (${prixPlinthes}) = ${sousTotalPlinthes}\n`;
         }
     
-        // Vérification des sols spécifiques
-        if (gammes.sol_pvc) {
-            const sousTotalPvc = gammes.sol_pvc_prix * surface;
-            prix += sousTotalPvc;
-            formule += `Surface (${surface}) * Prix sol PVC (${gammes.sol_pvc_prix}) = ${sousTotalPvc}\n`;
-        }
-    
-        if (gammes.moquette) {
-            const sousTotalMoquette = gammes.moquette_prix * surface;
-            prix += sousTotalMoquette;
-            formule += `Surface (${surface}) * Prix moquette (${gammes.moquette_prix}) = ${sousTotalMoquette}\n`;
-        }
+       
     
         // Application d'un facteur global (1.25)
         prix *= 1.25;
