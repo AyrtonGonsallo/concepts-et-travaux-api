@@ -131,20 +131,16 @@ class DevisCalculator {
                 this.get_tache_generale(9),
                 this.get_tache_generale(10),
                 this.get_tache_generale(11),
-                this.get_tache_generale(12),
-                this.get_tache_generale(13),
-                this.get_tache_generale(14),
-                this.get_tache_generale(15),
-                this.get_tache_generale(16),
-                this.get_tache_generale(17),
-                this.get_tache_generale(18),
-                this.get_tache_generale(19),
-                this.get_tache_generale(20),
+               
                 this.get_tache_generale(21),
                 this.get_tache_generale(22),
                 this.get_tache_generale(23),
                 this.get_tache_generale(24),
                 this.get_tache_generale(25),
+                this.get_tache_generale(26),
+                this.get_tache_generale(27),
+                this.get_tache_generale(28),
+                this.get_tache_generale(29),
             ]);
 
             this.tache_retirer_carrelage = taches[0];
@@ -158,20 +154,17 @@ class DevisCalculator {
             this.tache_demolition_porte_double_creuse = taches[8];
             this.tache_demolition_porte_simple_pleine = taches[9];
             this.tache_demolition_porte_double_pleine = taches[10];
-            this.tache_creation_de_porte = taches[11];
-            this.tache_remplacement_de_porte = taches[12];
-            this.tache_passage_fils_electrique = taches[13];
-            this.tache_remplacement_prise = taches[14];
-            this.tache_remplacement_eclairage_profond = taches[15];
-            this.tache_remplacement_eclairage_applique = taches[16];
-            this.tache_remplacement_convecteur_electrique = taches[17];
-            this.tache_remplacement_radiateur = taches[18];
-            this.tache_deplacement_radiateur = taches[19];
-            this.tache_depose_element_salle_de_bain = taches[20];
-            this.tache_depose_element_haut_cuisine = taches[21];
-            this.tache_depose_element_bas_cuisine = taches[22];
-            this.tache_depose_element_plomberie = taches[23];
-            this.tache_creation_de_murs_non_porteurs = taches[24];
+         
+           
+            this.tache_depose_element_salle_de_bain = taches[11];
+            this.tache_depose_element_haut_cuisine = taches[12];
+            this.tache_depose_element_bas_cuisine = taches[13];
+            this.tache_depose_element_plomberie = taches[14];
+            this.tache_creation_de_murs_non_porteurs = taches[15];
+            this.tache_mise_en_securité = taches[16];
+            this.tache_renovation_electrique_de_chauffage = taches[17];
+            this.tache_creation_appareils_electrique = taches[18];
+            this.tache_remplacement_appareils_electrique = taches[19];
         } catch (error) {
             console.error("Erreur lors de l'initialisation des tâches:", error.message);
         }
@@ -200,7 +193,7 @@ class DevisCalculator {
       const gammesProduits = donnees_json["gammes-produits-pose-murs"].murs;
   
       murs.forEach((mur, index) => {
-          let surface = mur.surface;
+          let surface = mur.hauteur * mur.longueur;
   
           // Récupération du prix de la gamme pour ce mur
           const gammePrix = parseFloat(gammesProduits[index].gamme.split(':').pop());
@@ -384,26 +377,17 @@ class DevisCalculator {
         
           // Parcourir chaque porte
           portes.forEach((porte, index) => {
-            if (porte.creation_ou_remplacement === "remplacement") {
-              prix += 1.25 * this.tache_remplacement_de_porte.Prix;
-              formule += `1.25 * ${this.tache_remplacement_de_porte.Prix} (remplacement de porte)\n`;
-            } else {
-              prix += 1.25 * this.tache_creation_de_porte.Prix;
-              formule += `1.25 * ${this.tache_creation_de_porte.Prix} (création de porte)\n`;
-            }
+            let prix_gamme=1.25 * parseFloat(porte.gamme.split(":")[1]);
+            let prix_nature_porte=1.25 * parseFloat(porte.nature_porte.split(":")[1]);
+            let prix_type_porte=1.25 * parseFloat(porte.type_porte.split(":")[1]);
+            
         
-            let prix_type = 1.25 * parseFloat(porte.type.split(":")[1]);
-            let prix_type3 = 1.25 * parseFloat(porte.type3.split(":")[1]);
-            let prix_type2 = 1.25 * parseFloat(porte.type2.split(":")[1]);
-            let prix_finition = 1.25 * parseFloat(porte.finition.split(":")[1]);
-        
-            prix += prix_type + prix_type3 + prix_type2 + prix_finition;
+            prix += prix_gamme + prix_nature_porte + prix_type_porte ;
         
             // Ajouter les calculs à la formule
-            formule += `1.25 * ${porte.type.split(":")[1]} = ${prix_type}\n`;
-            formule += `1.25 * ${porte.type3.split(":")[1]} = ${prix_type3}\n`;
-            formule += `1.25 * ${porte.type2.split(":")[1]} = ${prix_type2}\n`;
-            formule += `1.25 * ${porte.finition.split(":")[1]} = ${prix_finition}\n`;
+            formule += `Prix de la gamme de porte (${porte.gamme.split(":")[2]}) = 1.25 * ${porte.gamme.split(":")[1]} = ${prix_gamme}\n`;
+            formule += `Prix de la nature de la porte (${porte.nature_porte.split(":")[2]}) = 1.25 * ${porte.nature_porte.split(":")[1]} = ${prix_nature_porte}\n`;
+            formule += `Prix du type de porte (${porte.type_porte.split(":")[2]}) = 1.25 * ${porte.type_porte.split(":")[1]} = ${prix_type_porte}\n`;
           });
         
           return { prix, formule };
@@ -462,33 +446,26 @@ class DevisCalculator {
       
           // Données principales
           const surface = donnees_json["dimensions-pose-chauffage"].surface;
-          const radiateursEtat = donnees_json["etat-surfaces-pose-chauffage"].radiateurs;
+          const radiateursTypes = donnees_json["etat-surfaces-pose-chauffage"].radiateurs;
           const radiateursGammes = donnees_json["gammes-produits-pose-chauffage"].radiateurs;
       
-          // Variables pour les prix des états spécifiques
-          const prixRemplacement = this.tache_remplacement_radiateur.Prix; // Prix par radiateur à remplacer (modifiable)
-          const prixDeplacement = this.tache_deplacement_radiateur.Prix;  // Prix par radiateur à déplacer (modifiable)
-      
+        
           // Itération sur chaque radiateur
-          radiateursEtat.forEach((radiateur, index) => {
-              const etat = radiateur.etat;
-              const gamme = radiateursGammes[index];
+          radiateursTypes.forEach((radiateur, index) => {
+              const type = radiateur.type;
+              const gamme = radiateursGammes[index].gamme;
       
-              if (etat === "radiateur à poser" && gamme.visible && gamme.gamme) {
+              
                   // Si le radiateur est à poser et que la gamme est visible
-                  const gammeParts = gamme.gamme.split(":");
+                  const TypeParts = type.split(":");
+                  const gammeParts = gamme.split(":");
+                  const prixType = parseFloat(TypeParts[1]); // Prix du Type
                   const prixGamme = parseFloat(gammeParts[1]); // Prix de la gamme
+                  const nomGamme = (gammeParts[2]); // nom de la gamme
+                  const nomType = (TypeParts[2]); // nom du Type
                   prix += prixGamme;
-                  formule += `Radiateur ${index + 1} à poser: Prix gamme (${prixGamme}) = ${prixGamme}\n`;
-              } else if (etat === "radiateur à remplacer") {
-                  // Si le radiateur est à remplacer
-                  prix += prixRemplacement;
-                  formule += `Radiateur ${index + 1} à remplacer: Prix fixe (${prixRemplacement}) = ${prixRemplacement}\n`;
-              } else if (etat === "radiateur à déplacer") {
-                  // Si le radiateur est à déplacer
-                  prix += prixDeplacement;
-                  formule += `Radiateur ${index + 1} à déplacer: Prix fixe (${prixDeplacement}) = ${prixDeplacement}\n`;
-              }
+                  formule += `Radiateur ${index + 1}: Type (${nomType}) = ${prixType}  Gamme (${nomGamme}) = ${prixGamme}\n`;
+            
           });
       
           // Application d'un facteur global (1.25)
@@ -577,41 +554,38 @@ class DevisCalculator {
           let prix = 0;
           let formule = ""; // Pour construire la formule explicative
         
-          const appareils = donnees_json["gammes-produits-pose-electricite"].appareils_electrique;
-        
+          const appareils = donnees_json["gammes-produits-pose-electricite"].appareils_electrique_a_remplacer;
+          const gamme = donnees_json["gammes-produits-pose-electricite"].gamme
+          let prix_tache_creation = this.tache_creation_appareils_electrique.Prix;
+          let prix_tache_remplacement = this.tache_remplacement_appareils_electrique.Prix;
+
           // Calcul pour chaque appareil électrique
           appareils.forEach((appareil, index) => {
             if (appareil.active) {
-              // Extraire le prix d'achat à partir de la chaîne "modele"
-              let prix_achat = parseFloat(appareil.modele.split(":")[2]);
-              let nombre = appareil.nombre;
-              let prix_appareil = nombre * prix_achat;
-        
-              prix += prix_appareil;
-              formule += `${nombre} * ${prix_achat} = ${prix_appareil} (Appareil ${index + 1})\n`;
+
+              // création
+              let nombre_a_creer = appareil.nombre_a_creer;
+              let prix_creation = nombre_a_creer * prix_tache_creation;
+              prix += prix_creation;
+              formule += `Création: ${nombre_a_creer} * ${prix_tache_creation} = ${prix_creation} (Appareil ${appareil.titre})\n`;
+
+
+              // remplacement
+              let nombre_a_remplacer = appareil.nombre_a_remplacer;
+              let prix_remplacement = nombre_a_remplacer * prix_tache_remplacement;
+              prix += prix_remplacement;
+              formule += `Remplacement: ${nombre_a_remplacer} * ${prix_tache_remplacement} = ${prix_remplacement} (Appareil ${appareil.titre})\n`;
+            
             }
           });
         
-          // Quantités pour les équipements électriques
-          let qte_prises = donnees_json["gammes-produits-pose-electricite"].qte_prises;
-          let qte_eclairage_profond = donnees_json["gammes-produits-pose-electricite"].qte_eclairage_profond;
-          let qte_eclairage_applique = donnees_json["gammes-produits-pose-electricite"].qte_eclairage_applique;
-          let qte_convecteur_electrique = donnees_json["gammes-produits-pose-electricite"].qte_convecteur_electrique;
-        
-          // Calcul des coûts pour chaque tâche de remplacement, multiplié par les quantités
-          let prix_rem_conv_ele = qte_convecteur_electrique * this.tache_remplacement_convecteur_electrique.Prix;
-          let prix_rem_ecl_app = qte_eclairage_applique * this.tache_remplacement_eclairage_applique.Prix;
-          let prix_rem_ecl_prof = qte_eclairage_profond * this.tache_remplacement_eclairage_profond.Prix;
-          let prix_rem_prise = qte_prises * this.tache_remplacement_prise.Prix;
-          let prix_passage_fils = 1 * this.tache_passage_fils_electrique.Prix; // Multiplié par 1 pour le passage de fils
-        
-          prix += prix_rem_conv_ele + prix_rem_ecl_app + prix_rem_ecl_prof + prix_rem_prise + prix_passage_fils;
-          formule += `${qte_convecteur_electrique} * ${this.tache_remplacement_convecteur_electrique.Prix} = ${prix_rem_conv_ele} (Remplacement convecteur électrique)\n`;
-          formule += `${qte_eclairage_applique} * ${this.tache_remplacement_eclairage_applique.Prix} = ${prix_rem_ecl_app} (Remplacement éclairage appliqué)\n`;
-          formule += `${qte_eclairage_profond} * ${this.tache_remplacement_eclairage_profond.Prix} = ${prix_rem_ecl_prof} (Remplacement éclairage profond)\n`;
-          formule += `${qte_prises} * ${this.tache_remplacement_prise.Prix} = ${prix_rem_prise} (Remplacement prise)\n`;
-          formule += `1 * ${this.tache_passage_fils_electrique.Prix} = ${prix_passage_fils} (Passage de fils électrique)\n`;
-        
+              let nom_gamme =  (gamme.split(":")[2]);;
+              let prix_gamme = parseFloat(gamme.split(":")[1]);;
+              let prix_final_gamme = 1 * prix_gamme;
+              prix += prix_final_gamme;
+              formule += `Gamme (${nom_gamme}) : 1 * ${prix_gamme} = ${prix_final_gamme} \n`;
+            
+         
           // Multiplier le prix total par 1.25
           prix *= 1.25;
           formule += `Total * 1.25 = ${prix}`;
@@ -669,17 +643,30 @@ class DevisCalculator {
         get_prix_tache_15(donnees_json) {
           let formule = ""; // Pour construire la formule explicative
           let prix = 0; // Prix total initialisé à 0
-          let gammes = donnees_json["gammes-produits-renovation-electrique"].appareils_electrique;
-          let chauffage_exist = donnees_json["gammes-produits-renovation-electrique"].chauffage_exist === "true";
-      
-          gammes.forEach((appareil, index) => {
-              if (appareil.active && appareil.modele) {
-                  let prixUnitaire = parseFloat(appareil.modele.split(':').pop()); // Récupère le dernier nombre du champ 'modele'
-                  let sousTotal = appareil.nombre * prixUnitaire; // Calcul du sous-total pour cet appareil
-                  prix += sousTotal; // Ajoute le sous-total au prix total
-                  formule += `Appareil ${index + 1}: ${appareil.nombre} * ${prixUnitaire} = ${sousTotal}\n`;
-              }
-          });
+       
+          const prix_mise_en_securite = this.tache_mise_en_securité.Prix;
+          const prix_renovation_chauffage = this.tache_renovation_electrique_de_chauffage.Prix;
+          let surface = donnees_json["gammes-produits-renovation-electrique"].surface;
+          let chauffage_exist = donnees_json["gammes-produits-renovation-electrique"].chauffage_exist;
+          let quantite_chauffage = donnees_json["gammes-produits-renovation-electrique"].quantite_chauffage;
+          let renovation_conforme = donnees_json["gammes-produits-renovation-electrique"].renovation_conforme;
+          let mise_en_securite = donnees_json["gammes-produits-renovation-electrique"].mise_en_securite;
+          
+          if(chauffage_exist){
+            let sousTotal = quantite_chauffage * prix_renovation_chauffage; // Calcul du sous-total pour cet appareil
+            prix += sousTotal; // Ajoute le sous-total au prix total
+            formule += `Renovation de chauffage: ${quantite_chauffage} * ${prix_renovation_chauffage} = ${sousTotal}\n`;
+          }
+
+         
+
+          if(mise_en_securite){
+            let sousTotal = 1 * prix_mise_en_securite; // Calcul du sous-total pour cet appareil
+            prix += sousTotal; // Ajoute le sous-total au prix total
+            formule += `Mise en sécurité: 1 * ${prix_mise_en_securite} = ${sousTotal}\n`;
+          }
+
+         
           prix *= 1.25; 
           formule += `prix total * 1.25 = ${prix}\n`;
           
