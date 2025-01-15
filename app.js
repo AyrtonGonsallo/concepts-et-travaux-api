@@ -409,6 +409,76 @@ app.get('/send-liste-devis-email/:deviceID', async (req, res) => {
 });
 
 
+
+app.get('/send-liste-devis-email-to-user/:userID', async (req, res) => {
+  const { userID } = req.params;
+
+  try {
+    // Récupérer les devis non payés associés au userID
+    const devisPieces = await DevisPiece.findAll({
+      where: {
+        Payed: 0,
+        UtilisateurID: userID
+      },
+      include: [
+        {
+          model: DevisTache,
+          include: [Travail]
+        },
+        {
+          model: Piece
+        },
+        {
+          model: Utilisateur
+        },
+      ]
+    });
+
+    if (!devisPieces) {
+      throw new Error(`Aucun devis trouvé avec l'UID: ${userID}`);
+    }
+    let deviceID=devisPieces[0].DeviceID
+    let user_email=devisPieces[0].Utilisateur.Email
+    let htmlContent;
+    // Obtenir la date et l'heure actuelle
+    const currentDate = new Date().toLocaleString('fr-FR', {
+      day: '2-digit',
+      month: '2-digit',
+      year: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit'
+    });
+    // Si des devis sont trouvés
+    if (devisPieces.length > 0) {
+      // Générer l'email en utilisant un template EJS avec la liste des devis
+      const emailTemplatePath = path.join(__dirname, 'mails-templates', 'emailListeDevis.ejs');
+      htmlContent = await ejs.renderFile(emailTemplatePath, { devisPieces,currentDate  });
+    } else {
+      // Générer un email indiquant qu'aucun devis n'a été trouvé
+      const emailTemplatePath = path.join(__dirname, 'mails-templates', 'emailAucunDevis.ejs');
+      htmlContent = await ejs.renderFile(emailTemplatePath, { deviceID,currentDate });
+    }
+
+    // Configuration de l'email
+    const mailOptions = {
+      from: 'gestion@homeren.fr',
+      to: 'ayrtongonsallo444@gmail.com',
+      subject: 'Détails du Device ID',
+      html: htmlContent
+    };
+
+    // Envoyer l'email
+    await transporter.sendMail(mailOptions);
+    res.json({ message: `Email envoyé pour l'utilisateur: ${user_email}` });
+    console.log(`Email envoyé pour l'utilisateur: ${user_email}`)
+  } catch (error) {
+    console.error('Erreur lors de l\'envoi de l\'email:', error);
+    res.json({ message: `Erreur lors de l\'envoi de l\'email à l'utilisateur : ${user_email}` });
+    res.status(500).send('Erreur lors de l\'envoi de l\'email');
+  }
+});
+
+
 app.get('/send-account-creation-email/:userid', async (req, res) => {
   const { userid } = req.params;
 
@@ -686,9 +756,47 @@ app.post('/add_front_utilisateur', async (req, res) => {
   }
 });
 
+
+// Endpoint POST pour ajouter un utilisateur
+app.post('/add_front_utilisateur_with_datas', async (req, res) => {
+  try {
+     // Récupérer les données de la requête
+    const {   email, password,deviceID } = req.body;
+
+  
+    // Hasher le mot de passe
+    const hashedPassword = await bcrypt.hash(password, saltRounds);
+
+    // Créer un nouvel utilisateur dans la base de données avec son rôle
+    const utilisateur = await Utilisateur.create({
+      Nom:email,
+      Prenom:email,
+      Email:email,
+      Password: hashedPassword,
+      Telephone:"0032323232",
+      AdressePostale:"",
+      CommunePostale:"",
+      CodePostal:"",
+      DeviceID:deviceID,
+      RoleId:3 // Associer l'ID du rôle à l'utilisateur
+    });
+
+
+      // Répondre avec l'utilisateur ajouté
+      res.status(201).json(utilisateur);
+  } catch (error) {
+      // En cas d'erreur, répondre avec le code d'erreur 500
+      console.error('Erreur lors de l\'ajout de l\'utilisateur :', error);
+      res.status(500).json({ error: 'Erreur serveur' });
+  }
+});
+
 function cleanFilePath(filePath) {
   return filePath.replace(/^.*\\fakepath\\/, '');
 }
+
+
+
 
 
 
@@ -4047,11 +4155,11 @@ app.get('/get_prix_devis_piece/:id', async (req, res) => {
       
           // Ajout du résultat sous le slug du travail dans l'objet resultats
           resultats[travail.TravailSlug] = {
-            prix: result.prix,
+            prix: parseFloat(result.prix),
             formule: result.formule
           };
       
-          total += result.prix; // Ajoute le prix au total
+          total += parseFloat(result.prix); // Ajoute le prix au total
         }
       
         // Envoi du JSON contenant tous les résultats après la boucle
@@ -4097,7 +4205,7 @@ app.post('/edit_devis_tache/:id', async (req, res) => {
 
 
 app.post('/add_devis_piece', async (req, res) => {
-  const { username, ip, piece, liste_des_travaux,deviceID } = req.body;
+  const { username, ip, piece, liste_des_travaux,deviceID,UtilisateurID } = req.body;
   const sequelize = new Sequelize('mysql://mala3315_concepts_et_travaux_user:h-c4J%25-%7DP%2C12@109.234.166.164:3306/mala3315_concepts_et_travaux');
 
   const t = await sequelize.transaction();
@@ -4111,7 +4219,8 @@ app.post('/add_devis_piece', async (req, res) => {
     for (let i = 0; i < liste_des_travaux.length; i++) {
         let travail = liste_des_travaux[i];
         let results = await calculator.calculer_prix(travail.idtache, travail);
-        total += results.prix;
+        total += parseFloat(results.prix);
+        
     }
     
     console.log("Prix: ", total);
@@ -4126,7 +4235,7 @@ app.post('/add_devis_piece', async (req, res) => {
       PieceID: piece.ID,
       Prix: total,
       Payed: 0,
-      UtilisateurID: null,
+      UtilisateurID: UtilisateurID,
       DeviceID:deviceID
     }, { transaction: t });
 
@@ -4138,7 +4247,7 @@ app.post('/add_devis_piece', async (req, res) => {
         DevisPieceID: devisPiece.ID,
         TravailSlug: tache.nomtache,
         Commentaires: null,
-        Prix:results.prix,
+        Prix:parseFloat(results.prix),
         Donnees: tache.formulaire
       };
     });
@@ -4148,12 +4257,120 @@ app.post('/add_devis_piece', async (req, res) => {
     await t.commit();
 
     res.status(201).json({ message: 'Devis créé avec succès',devis:devisPiece });
+    sendDevisDetailsEmail(devisPiece.ID);
+  
+    
+
   } catch (error) {
     await t.rollback();
     console.error('Erreur lors de la création du devis :', error);
     res.status(500).json({ error: 'Erreur serveur' });
   }
 });
+
+
+async function sendDevisDetailsEmail( devis_id) {
+  try {
+    const calculator = new DevisCalculator();
+    await calculator.initTaches();
+
+    // Récupérer le devis
+    const devisPiece = await DevisPiece.findByPk(devis_id, {
+      include: [
+        {
+          model: DevisTache,
+          include: [Travail]
+        },
+        {
+          model: Piece
+        },
+        {
+          model: Utilisateur
+        }
+      ]
+    });
+
+    if (!devisPiece) {
+      throw new Error(`Aucun devis trouvé avec l'ID: ${devis_id}`);
+    }
+
+    //recuperer les taches
+    const devisTaches = devisPiece.DevisTaches || [];
+    const emailResults = []; 
+
+   
+  
+
+    // Obtenir la date et l'heure actuelle
+    const currentDate = new Date().toLocaleString('fr-FR', {
+      day: '2-digit',
+      month: '2-digit',
+      year: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit',
+    });
+    
+    for (let tache of devisTaches) {
+      try {
+        let donnees = {
+          "formulaire": JSON.parse(tache.Donnees),
+          "nomtache": tache.TravailSlug
+        };
+        const results = await calculator.calculer_prix(tache.TravailID, donnees);
+        const prix = parseFloat(results.prix);
+        const formule = results.formule;
+        const formuleHtml = formule.replace(/\n/g, '<br>');
+
+        // Générer le contenu HTML de l'email
+        const emailTemplatePath = path.join(__dirname, 'mails-templates', 'emailDetailsTravail.ejs');
+        const htmlContent = await ejs.renderFile(emailTemplatePath, {
+          tache,
+          prix,
+          formuleHtml,
+          currentDate,
+        });
+
+        // Configuration de l'email
+        const mailOptions = {
+          from: 'gestion@homeren.fr',
+          to: 'ayrtongonsallo444@gmail.com',
+          subject: `Détails de tâche - ID: ${tache.ID}`,
+          html: htmlContent,
+        };
+
+        // Envoyer l'email
+        await transporter.sendMail(mailOptions);
+        console.log(`Email envoyé pour le devis tâche ID: ${tache.ID}`);
+        emailResults.push({ tacheID: tache.ID, status: 'success',formule:formule });
+      } catch (error) {
+        console.error(`Erreur lors de l'envoi de l'email pour la tâche ID: ${tache.ID}`, error);
+        emailResults.push({ tacheID: tache.ID, status: 'error', error: error.message });
+      }
+    }
+     // Retourner les résultats
+     return {
+      message: `Traitement terminé pour le devis ID: ${devis_id}`,
+      emailResults,
+    };
+  } catch (error) {
+    console.error('Erreur lors de l\'envoi des emails:', error);
+    throw new Error('Erreur lors de l\'envoi des emails');
+  }
+}
+
+
+
+app.get('/send_tasks_details_by_email/:devisID', async (req, res) => {
+  const { devisID } = req.params;
+
+  try {
+    const result = await sendDevisDetailsEmail(devisID);
+    res.status(200).json(result);
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+});
+
 
 app.get('/get_devis_piece/:id', async (req, res) => {
   const devisId = req.params.id;
@@ -4167,7 +4384,11 @@ app.get('/get_devis_piece/:id', async (req, res) => {
         },
         {
           model: Piece
-        }
+        },
+        {
+          model: Utilisateur
+        },
+        
       ]
     });
 

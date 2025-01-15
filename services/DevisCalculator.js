@@ -196,28 +196,32 @@ class DevisCalculator {
           let surface = mur.hauteur * mur.longueur;
   
           // Récupération du prix de la gamme pour ce mur
-          const gammePrix = parseFloat(gammesProduits[index].gamme.split(':').pop());
+          const gammePrix = parseFloat(gammesProduits[index].gamme.split(':')[2]);
+          const gammeTitre = (gammesProduits[index].gamme.split(':')[1]);
           let sousTotalGamme = surface * gammePrix;
           prix += sousTotalGamme;
-          formule += `Mur ${index + 1}: ${surface} * ${gammePrix} (prix de la gamme) = ${sousTotalGamme}\n`;
+          formule += `Prix de pose du mur ${index + 1}: surface (${surface} cm²) * prix de la gamme choisie "${gammeTitre}" (${gammePrix} €) = ${sousTotalGamme} €\n`;
   
           // Vérification de l'état de la surface pour inclure les coûts de dépose
           const etat = etatSurfaces[index].etat;
-          const typedepose = etatSurfaces[index].typedepose;
-  
-          if (etat === "depose" && typedepose) {
-              const prixDepose = parseFloat(typedepose.split(':').pop());
-              let sousTotalDepose = surface * prixDepose;
-              prix += sousTotalDepose;
-              formule += `Mur ${index + 1} (dépose): ${surface} * ${prixDepose} (prix de la dépose) = ${sousTotalDepose}\n`;
-          }
+          const typedepose = mur.depose;
+          const prixDepose = parseFloat(typedepose.split(':')[2]);
+          const titreDepose = (typedepose.split(':')[1]);
+          let sousTotalDepose = surface * prixDepose;
+          prix += sousTotalDepose;
+          formule += `Prix de dépose du mur ${index + 1}: surface (${surface} cm²) * prix du revêtement à déposer "${titreDepose}" (${prixDepose} €) = ${sousTotalDepose} €\n`;
+          
       });
   
-      // Application du facteur de 1.25
-      prix *= 1.25;
-      formule += `Facteur global (1.25): prix total * 1.25 = ${prix}\n`;
-  
-      return { prix, formule };
+      // Multiplier le prix total par 1.25
+      let total = (prix * 1.25).toFixed(2);
+      formule += `Prix final = prix total (${prix} €) * Facteur global (1.25) = ${total} €\n`;
+    
+      // Retourner le prix total et la formule descriptive
+      return {
+        prix: total, // Formatage du prix en 2 décimales
+        formule: formule
+      };
     }
   
     get_prix_tache_2(donnees_json) {
@@ -225,50 +229,37 @@ class DevisCalculator {
       let formule = "";
     
       // Extraire les données nécessaires
-      const dimensions = donnees_json["dimensions-depose-elementcuisines"];
-      const gammesProduits = donnees_json["gammes-produits-depose-elementcuisines"].gammes;
+      const appareils_cuisine = donnees_json["gammes-produits-pose-elementcuisines"].appareils_cuisine;
+      const gammes_depose_form = donnees_json["gammes-produits-pose-elementcuisines"].gammes_depose_form;
     
-      // Prix des éléments haut et bas
-      const prixElementCuisine = {
-        haut: this.tache_depose_element_haut_cuisine.Prix, // Remplacez par le prix réel pour "elementcuisines_haut"
-        bas: this.tache_depose_element_bas_cuisine.Prix  // Remplacez par le prix réel pour "elementcuisines_bas"
-      };
-    
-      // Calculer le prix pour "elementcuisines_haut"
-      if (dimensions.elementcuisines_haut && dimensions.is_active_Ech) {
-        dimensions.elementcuisines_haut.forEach(element => {
-          const prixLocal = element.quantite * prixElementCuisine.haut;
-          prix += prixLocal;
-          formule += `(${element.quantite} * ${prixElementCuisine.haut}) + `;
-        });
-      }
-    
-      // Calculer le prix pour "elementcuisines_bas"
-      if (dimensions.elementcuisines_bas && dimensions.is_active_Ecb) {
-        dimensions.elementcuisines_bas.forEach(element => {
-          const prixLocal = element.quantite * prixElementCuisine.bas;
-          prix += prixLocal;
-          formule += `(${element.quantite} * ${prixElementCuisine.bas}) + `;
-        });
-      }
-    
-      // Calculer le prix pour "gammes-produits-depose-elementcuisines"
-      gammesProduits.forEach(gamme => {
-        if (gamme.active) {
-          const prixLocal = gamme.quantite * gamme.prix;
-          prix += prixLocal;
-          formule += `(${gamme.quantite} * ${gamme.prix}) + `;
-        }
+      // Prix des éléments a deposer
+      gammes_depose_form.forEach(element => {
+        let qte=(element.longueur<1)?element.quantite:1;
+        let prixLocal = qte * element.prix;
+        prix += prixLocal;
+        formule += `Prix de dépose de l'élement "${element.titre}": quantité (${qte}) * prix de dépose (${element.prix} €) = ${prixLocal} €\n`;
       });
     
+      // Calculer le prix pour " pose appareils_cuisine"
+      
+        appareils_cuisine.forEach(element => {
+          if(element.active){
+            let prixLocal = parseFloat(element.modele.split(':')[2]);
+            let titre = (element.modele.split(':')[1]);
+            prix += prixLocal;
+            formule += `Prix de pose de l'élement "${titre}": quantité (1) * prix (${prixLocal} €) = ${prixLocal} €\n`;
+          }
+          
+        });
+      
+    
       // Multiplier le prix total par 1.25
-      prix *= 1.25;
-      formule = formule.slice(0, -3); // Retirer le dernier "+ " de la formule
-      formule = `(${formule}) * 1.25`;
+      let total = (prix * 1.25).toFixed(2);
+      formule += `Prix final = prix total (${prix} €) * Facteur global (1.25) = ${total} €\n`;
     
       // Retourner le prix total et la formule descriptive
       return {
-        prix: prix.toFixed(2), // Formatage du prix en 2 décimales
+        prix: total, // Formatage du prix en 2 décimales
         formule: formule
       };
     }
@@ -294,10 +285,10 @@ class DevisCalculator {
           for (let i = 0; i < total_murs; i++) {
             let prix_unit_mur = parseFloat(mursnonporteurs[i].cloison.split(':')[0]);
             let volume_mur = mursnonporteurs[i].longueur*mursnonporteurs[i].hauteur*mursnonporteurs[i].epaisseur;
-            let prix_final_mur = 1.25 * (volume_mur * prix_unit_mur);
+            let prix_final_mur =  (volume_mur * prix_unit_mur);
             prix += prix_final_mur;
       
-            formule += `1.25 * (${volume_mur} * ${prix_unit_mur}) = ${prix_final_mur}\n`;
+            formule += `Prix du mur ${i+1}: volume (${volume_mur} cm³) * prix unitaire (${prix_unit_mur} €) = ${prix_final_mur} €\n`;
           }
         }
       
@@ -307,16 +298,20 @@ class DevisCalculator {
           for (let j = 0; j < total_ouvertures; j++) {
             let prix_unit_cloison = parseFloat(ouvertures[j].cloison.split(':')[0]);
             let volume_ouverture = ouvertures[j].epaisseur*((ouvertures[j].longueur*ouvertures[j].hauteur)-(ouvertures[j].longueur_ouverture*ouvertures[j].hauteur_ouverture));
-            let prix_final_ouverture = 1.25 * (volume_ouverture * prix_unit_cloison);
+            let prix_final_ouverture =  (volume_ouverture * prix_unit_cloison);
             prix += prix_final_ouverture;
       
-            formule += `1.25 * (${volume_ouverture} * ${prix_unit_cloison}) = ${prix_final_ouverture}\n`;
+            formule += `Prix de l'ouverture ${j+1}: volume (${volume_ouverture} cm³) * prix unitaire (${prix_unit_cloison} €) = ${prix_final_ouverture} €\n`;
           }
         }
       
-        // Retourner le prix total et les formules
+        // Multiplier le prix total par 1.25
+        let total = (prix * 1.25).toFixed(2);
+        formule += `Prix final = prix total (${prix} €) * Facteur global (1.25) = ${total} €\n`;
+      
+        // Retourner le prix total et la formule descriptive
         return {
-          prix: prix,
+          prix: total, // Formatage du prix en 2 décimales
           formule: formule
         };
       }
@@ -340,10 +335,10 @@ class DevisCalculator {
           for (let i = 0; i < total_murs; i++) {
             let surface = murs[i].longueur*murs[i].hauteur;
             let prix_unit_cloison = prix_creation; // Le prix est en position 1 du split
-            let prix_final_mur = surface * prix_unit_cloison * 1.25;
+            let prix_final_mur = surface * prix_unit_cloison * 1;
             prix += prix_final_mur;
         
-            formule += `${surface} * ${prix_unit_cloison} = ${prix_final_mur}\n`;
+            formule += `Prix du mur ${i+1} = surface ${surface} cm² * prix unitaire ${prix_unit_cloison} € = ${prix_final_mur} €\n`;
           }
 
           if(has_portes){
@@ -352,17 +347,20 @@ class DevisCalculator {
             for (let j = 0; j < total_portes; j++) {
               let gamme_porte = portes[j].gamme;
               let prix_unit_porte = parseFloat(gamme_porte.split(":")[1]); // Le prix est en position 1 du split
-              let prix_final_porte = 1 * prix_unit_porte * 1.25;
+              let prix_final_porte = 1 * prix_unit_porte * 1;
               prix += prix_final_porte;
 
-              formule += `1 * ${prix_unit_porte} = ${prix_final_porte}\n`;
+              formule += `Prix porte ${j+1} = 1 * prix unitaire ${prix_unit_porte} € = ${prix_final_porte} €\n`;
             }
           }
           
+          // Multiplier le prix total par 1.25
+          let total = (prix * 1.25).toFixed(2);
+          formule += `Prix final = prix total (${prix} €) * Facteur global (1.25) = ${total} €\n`;
         
-          // Retourner le prix total et les formules
+          // Retourner le prix total et la formule descriptive
           return {
-            prix: prix,
+            prix: total, // Formatage du prix en 2 décimales
             formule: formule
           };
         }
@@ -377,20 +375,29 @@ class DevisCalculator {
         
           // Parcourir chaque porte
           portes.forEach((porte, index) => {
-            let prix_gamme=1.25 * parseFloat(porte.gamme.split(":")[1]);
-            let prix_nature_porte=1.25 * parseFloat(porte.nature_porte.split(":")[1]);
-            let prix_type_porte=1.25 * parseFloat(porte.type_porte.split(":")[1]);
+            let prix_gamme= parseFloat(porte.gamme.split(":")[1]);
+            let prix_nature_porte= parseFloat(porte.nature_porte.split(":")[1]);
+            let prix_type_porte= parseFloat(porte.type_porte.split(":")[1]);
+            let titre_gamme= (porte.gamme.split(":")[2]);
+            let titre_nature_porte= (porte.nature_porte.split(":")[2]);
+            let titre_type_porte= (porte.type_porte.split(":")[2]);
             
         
             prix += prix_gamme + prix_nature_porte + prix_type_porte ;
         
             // Ajouter les calculs à la formule
-            formule += `Prix de la gamme de porte (${porte.gamme.split(":")[2]}) = 1.25 * ${porte.gamme.split(":")[1]} = ${prix_gamme}\n`;
-            formule += `Prix de la nature de la porte (${porte.nature_porte.split(":")[2]}) = 1.25 * ${porte.nature_porte.split(":")[1]} = ${prix_nature_porte}\n`;
-            formule += `Prix du type de porte (${porte.type_porte.split(":")[2]}) = 1.25 * ${porte.type_porte.split(":")[1]} = ${prix_type_porte}\n`;
-          });
+            formule += `Prix de la porte ${index+1} = Prix de la gamme de porte "${titre_gamme}" (${prix_gamme} €) + Prix de la nature de la porte "${titre_nature_porte}" (${prix_nature_porte} €) + Prix du type de porte "${titre_type_porte}" (${prix_type_porte} €) = ${prix_gamme + prix_nature_porte + prix_type_porte} €\n`;
+           });
         
-          return { prix, formule };
+          // Multiplier le prix total par 1.25
+          let total = (prix * 1.25).toFixed(2);
+          formule += `Prix final = prix total (${prix} €) * Facteur global (1.25) = ${total} €\n`;
+        
+          // Retourner le prix total et la formule descriptive
+          return {
+            prix: total, // Formatage du prix en 2 décimales
+            formule: formule
+          };
         }
         
 
@@ -429,13 +436,15 @@ class DevisCalculator {
               }
           });
       
-          // Appliquer le coefficient 1.25 au total des prix
-          const prix_final = prix * 1.25;
-      
-          // Ajouter le calcul final à la formule
-          formule += `Total (somme des prix * 1.25) = ${prix_final}`;
-      
-          return { prix: prix_final, formule };
+          // Multiplier le prix total par 1.25
+          let total = (prix * 1.25).toFixed(2);
+          formule += `Prix final = prix total (${prix} €) * Facteur global (1.25) = ${total} €\n`;
+        
+          // Retourner le prix total et la formule descriptive
+          return {
+            prix: total, // Formatage du prix en 2 décimales
+            formule: formule
+          };
       }
       
         
@@ -464,15 +473,19 @@ class DevisCalculator {
                   const nomGamme = (gammeParts[2]); // nom de la gamme
                   const nomType = (TypeParts[2]); // nom du Type
                   prix += prixGamme;
-                  formule += `Radiateur ${index + 1}: Type (${nomType}) = ${prixType}  Gamme (${nomGamme}) = ${prixGamme}\n`;
+                  formule += `Prix du radiateur ${index + 1}= Prix de la gamme choisie (${nomGamme}) = ${prixGamme} €\n`;
             
           });
       
-          // Application d'un facteur global (1.25)
-          prix *= 1.25;
-          formule += `Facteur global (1.25): prix total * 1.25 = ${prix}\n`;
-      
-          return { prix, formule };
+          // Multiplier le prix total par 1.25
+          let total = (prix * 1.25).toFixed(2);
+          formule += `Prix final = prix total (${prix} €) * Facteur global (1.25) = ${total} €\n`;
+        
+          // Retourner le prix total et la formule descriptive
+          return {
+            prix: total, // Formatage du prix en 2 décimales
+            formule: formule
+          };
       }
       
          get_prix_tache_8(donnees_json) {
@@ -483,25 +496,31 @@ class DevisCalculator {
           const surface = donnees_json["dimensions-pose-plafond"].longueur * donnees_json["dimensions-pose-plafond"].largeur;
           const id_prix_gamme = donnees_json["gammes-produits-pose-plafond"].gamme;
           const prix_depose = parseFloat(donnees_json["dimensions-pose-plafond"].depose.split(':')[2]);
+          const titre_depose = (donnees_json["dimensions-pose-plafond"].depose.split(':')[1]);
           const etat_surface = donnees_json["etat-surfaces-pose-plafond"].etat;
       
           // Calcul du prix de la gamme
           const gammeParts = id_prix_gamme.split(':'); // Sépare la chaîne en parties
-          const prix_gamme = parseFloat(gammeParts[gammeParts.length - 1]); // Dernier élément
+          const prix_gamme = parseFloat(gammeParts[2]); // Dernier élément
+          const nom_gamme = (gammeParts[1]); // Dernier élément
           let sousTotalGamme = prix_gamme * surface;
           prix += sousTotalGamme;
-          formule += `Surface (${surface}) * Prix de la gamme (${prix_gamme}) = ${sousTotalGamme}\n`;
+          formule += `Prix de la pose = Surface (${surface} cm²) * Prix de la gamme choisie "${nom_gamme}" (${prix_gamme} €) = ${sousTotalGamme} €\n`;
 
           let sousTotalDeposeGamme = prix_depose * surface;
           prix += sousTotalDeposeGamme;
-          formule += `Surface (${surface}) * Prix de la gamme depose (${prix_depose}) = ${sousTotalDeposeGamme}\n`;
+          formule += `Prix de la dépose = Surface (${surface} cm²) * Prix de la gamme du revêtement à déposer "${titre_depose}" (${prix_depose} €) = ${sousTotalDeposeGamme} €\n`;
           
       
-          // Application d'un facteur global (1.25)
-          prix *= 1.25;
-          formule += `Facteur global (1.25): prix total * 1.25 = ${prix}\n`;
-      
-          return { prix, formule };
+          // Multiplier le prix total par 1.25
+          let total = (prix * 1.25).toFixed(2);
+          formule += `Prix final = prix total (${prix} €) * Facteur global (1.25) = ${total} €\n`;
+        
+          // Retourner le prix total et la formule descriptive
+          return {
+            prix: total, // Formatage du prix en 2 décimales
+            formule: formule
+          };
       }
       
        get_prix_tache_9(donnees_json) {
@@ -511,6 +530,7 @@ class DevisCalculator {
         // Données principales
         const surface = donnees_json["dimensions-pose-sol"].longueur * donnees_json["dimensions-pose-sol"].largeur;
         const prix_depose = parseFloat(donnees_json["dimensions-pose-sol"].depose.split(":")[2]);
+        const nom_depose = (donnees_json["dimensions-pose-sol"].depose.split(":")[1]);
         const etat_surface = donnees_json["etat-surfaces-pose-sol"].etat;
         const gammes = donnees_json["gammes-produits-pose-sol"];
     
@@ -518,34 +538,40 @@ class DevisCalculator {
         if (gammes.gamme) {
             const gammeParts = gammes.gamme.split(":");
             const prixGamme = parseFloat(gammeParts[gammeParts.length - 1]); // Dernier élément
+            const nomGamme = (gammeParts[1]); // Dernier élément
             const sousTotalGamme = prixGamme * surface;
             prix += sousTotalGamme;
-            formule += `Surface (${surface}) * Prix de la gamme principale (${prixGamme}) = ${sousTotalGamme}\n`;
+            formule += `Prix de pose = Surface (${surface} cm²) * Prix de la gamme choisie "${nomGamme}" (${prixGamme} €) = ${sousTotalGamme} €\n`;
         }
 
         if (prix_depose>0) {
           
           const sousTotaldepose = prix_depose * surface;
           prix += sousTotaldepose;
-          formule += `Surface (${surface}) * Prix de la depose  (${prix_depose}) = ${sousTotaldepose}\n`;
+          formule += `Prix de dépose = Surface (${surface} cm²) * Prix du revêtement à déposer "${nom_depose}" (${prix_depose} €) = ${sousTotaldepose} €\n`;
       }
     
         // Vérification des plinthes
         if (gammes.plinthes) {
             const plintheParts = gammes.plinthes.split(":");
             const prixPlinthes = parseFloat(plintheParts[plintheParts.length - 1]); // Dernier élément
+            const nomPlinthes = (plintheParts[1]); // Dernier élément
             const sousTotalPlinthes = prixPlinthes * surface;
             prix += sousTotalPlinthes;
-            formule += `Surface (${surface}) * Prix des plinthes (${prixPlinthes}) = ${sousTotalPlinthes}\n`;
+            formule += `Prix de la pose de plinthes = Surface (${surface} cm²) * Prix des plinthes "${nomPlinthes}" (${prixPlinthes} €) = ${sousTotalPlinthes} €\n`;
         }
     
        
     
-        // Application d'un facteur global (1.25)
-        prix *= 1.25;
-        formule += `Facteur global (1.25): prix total * 1.25 = ${prix}\n`;
-    
-        return { prix, formule };
+        // Multiplier le prix total par 1.25
+        let total = (prix * 1.25).toFixed(2);
+        formule += `Prix final = prix total (${prix} €) * Facteur global (1.25) = ${total} €\n`;
+      
+        // Retourner le prix total et la formule descriptive
+        return {
+          prix: total, // Formatage du prix en 2 décimales
+          formule: formule
+        };
     }
     
         
@@ -563,19 +589,20 @@ class DevisCalculator {
           appareils.forEach((appareil, index) => {
             if (appareil.active) {
 
-              // création
-              let nombre_a_creer = appareil.nombre_a_creer;
-              let prix_creation = nombre_a_creer * prix_tache_creation;
-              prix += prix_creation;
-              formule += `Création: ${nombre_a_creer} * ${prix_tache_creation} = ${prix_creation} (Appareil ${appareil.titre})\n`;
-
-
-              // remplacement
-              let nombre_a_remplacer = appareil.nombre_a_remplacer;
-              let prix_remplacement = nombre_a_remplacer * prix_tache_remplacement;
-              prix += prix_remplacement;
-              formule += `Remplacement: ${nombre_a_remplacer} * ${prix_tache_remplacement} = ${prix_remplacement} (Appareil ${appareil.titre})\n`;
-            
+              if (appareil.nombre_a_creer>0) {
+                // création
+                let nombre_a_creer = appareil.nombre_a_creer;
+                let prix_creation = nombre_a_creer * prix_tache_creation;
+                prix += prix_creation;
+                formule += `Prix de la création de l'appareil "${appareil.titre}": nombre à créer (${nombre_a_creer}) * ${prix_tache_creation} € = ${prix_creation} € \n`;
+              }
+              if (appareil.nombre_a_remplacer>0) {
+                // remplacement
+                let nombre_a_remplacer = appareil.nombre_a_remplacer;
+                let prix_remplacement = nombre_a_remplacer * prix_tache_remplacement;
+                prix += prix_remplacement;
+                formule += `Prix du remplacement de l'appareil "${appareil.titre}": nombre à remplacer (${nombre_a_remplacer}) * ${prix_tache_remplacement} € = ${prix_remplacement} € \n`;
+              }
             }
           });
         
@@ -583,14 +610,18 @@ class DevisCalculator {
               let prix_gamme = parseFloat(gamme.split(":")[1]);;
               let prix_final_gamme = 1 * prix_gamme;
               prix += prix_final_gamme;
-              formule += `Gamme (${nom_gamme}) : 1 * ${prix_gamme} = ${prix_final_gamme} \n`;
+              formule += `Prix de la gamme "${nom_gamme}" = 1 * ${prix_gamme} € = ${prix_final_gamme} € \n`;
             
          
           // Multiplier le prix total par 1.25
-          prix *= 1.25;
-          formule += `Total * 1.25 = ${prix}`;
+          let total = (prix * 1.25).toFixed(2);
+          formule += `Prix final = prix total (${prix} €) * Facteur global (1.25) = ${total} €\n`;
         
-          return { prix, formule };
+          // Retourner le prix total et la formule descriptive
+          return {
+            prix: total, // Formatage du prix en 2 décimales
+            formule: formule
+          };
         }
         
 
@@ -655,7 +686,7 @@ class DevisCalculator {
           if(chauffage_exist){
             let sousTotal = quantite_chauffage * prix_renovation_chauffage; // Calcul du sous-total pour cet appareil
             prix += sousTotal; // Ajoute le sous-total au prix total
-            formule += `Renovation de chauffage: ${quantite_chauffage} * ${prix_renovation_chauffage} = ${sousTotal}\n`;
+            formule += `Prix renovation de chauffage: ${quantite_chauffage} * ${prix_renovation_chauffage} € = ${sousTotal} €\n`;
           }
 
          
@@ -663,15 +694,19 @@ class DevisCalculator {
           if(mise_en_securite){
             let sousTotal = 1 * prix_mise_en_securite; // Calcul du sous-total pour cet appareil
             prix += sousTotal; // Ajoute le sous-total au prix total
-            formule += `Mise en sécurité: 1 * ${prix_mise_en_securite} = ${sousTotal}\n`;
+            formule += `Prix mise en sécurité: 1 * ${prix_mise_en_securite} € = ${sousTotal} €\n`;
           }
 
          
-          prix *= 1.25; 
-          formule += `prix total * 1.25 = ${prix}\n`;
-          
-      
-          return { prix, formule };
+          // Multiplier le prix total par 1.25
+          let total = (prix * 1.25).toFixed(2);
+          formule += `Prix final = prix total (${prix} €) * Facteur global (1.25) = ${total} €\n`;
+        
+          // Retourner le prix total et la formule descriptive
+          return {
+            prix: total, // Formatage du prix en 2 décimales
+            formule: formule
+          };
         }
       
       
@@ -684,31 +719,47 @@ class DevisCalculator {
           let prix = 0;
       
           // Données principales
-          const appareils = donnees_json["gammes-produits-pose-app-san"]["appareils_salle_de_bain"];
-      
+          const appareils_pose = donnees_json["gammes-produits-pose-app-san"]["appareils_salle_de_bain"];
+          const appareils_depose = donnees_json["gammes-produits-pose-app-san"]["gammes_depose_form"];
           // Prix fixe pour la dépose d'un appareil
           const prixDepose = this.tache_depose_element_salle_de_bain.Prix; // À personnaliser selon vos besoins
       
           // Itération sur les appareils
-          appareils.forEach((appareil, index) => {
+          appareils_pose.forEach((appareil, index) => {
               if (appareil.active) {
                   // Récupérer le prix du modèle (dernier élément après le dernier ':')
-                  const modeleParts = appareil.modele.split(":");
-                  const prixModele = parseFloat(modeleParts[2]); // Prix du modèle
+                  let modeleParts = appareil.modele.split(":");
+                  let prixModele = parseFloat(modeleParts[2]); // Prix du modèle
+                  let titreModele = (modeleParts[1]); // Prix du modèle
                   prix += prixModele;
-                  formule += `Appareil ${index + 1} (modèle actif): Prix modèle (${prixModele}) = ${prixModele}\n`;
+                  formule += `Prix de pose ${titreModele}: 1 * prix de pose (${prixModele} €) = ${prixModele} €\n`;
       
-                  // Ajouter le prix de la dépose si applicable
-                  if (appareil.depose) {
-                      prix += prixDepose;
-                      formule += `Appareil ${index + 1} (dépose): Prix fixe pour dépose (${prixDepose}) = ${prixDepose}\n`;
-                  }
+                 
               }
           });
-          prix *= 1.25; 
-          formule += `prix total * 1.25 = ${prix}\n`;
-          // Retourner le prix total et la formule explicative
-          return { prix, formule };
+
+          appareils_depose.forEach((appareil, index) => {
+            if (appareil.quantite>0) {
+                // Récupérer le prix du modèle (dernier élément après le dernier ':')
+                let titreModele = appareil.titre; // Prix du modèle
+                let prixModele = appareil.prix; // Prix du modèle
+                prix += prixModele;
+                formule += `Prix de dépose ${titreModele} : 1 * prix de dépose (${prixModele} €) = ${prixModele} €\n`;
+            }
+                
+            
+        });
+          
+        
+        // Multiplier le prix total par 1.25
+        let total = (prix * 1.25).toFixed(2);
+        formule += `Prix final = prix total (${prix} €) * Facteur global (1.25) = ${total} €\n`;
+      
+        // Retourner le prix total et la formule descriptive
+        return {
+          prix: total, // Formatage du prix en 2 décimales
+          formule: formule
+        };
       }
       
 
