@@ -4256,7 +4256,21 @@ app.post('/add_devis_piece', async (req, res) => {
 
     await t.commit();
 
-    res.status(201).json({ message: 'Devis créé avec succès',devis:devisPiece });
+    const devisPieceRes = await DevisPiece.findByPk(devisPiece.ID, {
+      include: [
+        {
+          model: DevisTache,
+          include: [Travail]
+        },
+        {
+          model: Piece
+        },
+        {
+          model: Utilisateur
+        }
+      ]
+    });
+    res.status(201).json({ message: 'Devis créé avec succès',devis:devisPieceRes });
     sendDevisDetailsEmail(devisPiece.ID);
   
     
@@ -4333,7 +4347,7 @@ async function sendDevisDetailsEmail( devis_id) {
         // Configuration de l'email
         const mailOptions = {
           from: 'gestion@homeren.fr',
-          to: 'ayrtongonsallo444@gmail.com',
+          to: devisPiece.Utilisateur.Email,
           subject: `Détails de tâche - ID: ${tache.ID}`,
           html: htmlContent,
         };

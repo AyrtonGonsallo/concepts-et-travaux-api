@@ -193,14 +193,14 @@ class DevisCalculator {
       const gammesProduits = donnees_json["gammes-produits-pose-murs"].murs;
   
       murs.forEach((mur, index) => {
-          let surface = mur.hauteur * mur.longueur;
+          let surface = mur.hauteur * mur.longueur/10000;
   
           // Récupération du prix de la gamme pour ce mur
           const gammePrix = parseFloat(gammesProduits[index].gamme.split(':')[2]);
           const gammeTitre = (gammesProduits[index].gamme.split(':')[1]);
           let sousTotalGamme = surface * gammePrix;
           prix += sousTotalGamme;
-          formule += `Prix de pose du mur ${index + 1}: surface (${surface} cm²) * prix de la gamme choisie "${gammeTitre}" (${gammePrix} €) = ${sousTotalGamme} €\n`;
+          formule += `Prix de pose du mur ${index + 1}: surface (${surface} m²) * prix de la gamme choisie "${gammeTitre}" (${gammePrix} €) = ${sousTotalGamme} €\n`;
   
           // Vérification de l'état de la surface pour inclure les coûts de dépose
           const etat = etatSurfaces[index].etat;
@@ -209,7 +209,7 @@ class DevisCalculator {
           const titreDepose = (typedepose.split(':')[1]);
           let sousTotalDepose = surface * prixDepose;
           prix += sousTotalDepose;
-          formule += `Prix de dépose du mur ${index + 1}: surface (${surface} cm²) * prix du revêtement à déposer "${titreDepose}" (${prixDepose} €) = ${sousTotalDepose} €\n`;
+          formule += `Prix de dépose du mur ${index + 1}: surface (${surface} m²) * prix du revêtement à déposer "${titreDepose}" (${prixDepose} €) = ${sousTotalDepose} €\n`;
           
       });
   
@@ -284,11 +284,11 @@ class DevisCalculator {
           let total_murs = mursnonporteurs.length;
           for (let i = 0; i < total_murs; i++) {
             let prix_unit_mur = parseFloat(mursnonporteurs[i].cloison.split(':')[0]);
-            let volume_mur = mursnonporteurs[i].longueur*mursnonporteurs[i].hauteur*mursnonporteurs[i].epaisseur;
+            let volume_mur = mursnonporteurs[i].longueur*mursnonporteurs[i].hauteur*mursnonporteurs[i].epaisseur/1000000;
             let prix_final_mur =  (volume_mur * prix_unit_mur);
             prix += prix_final_mur;
       
-            formule += `Prix du mur ${i+1}: volume (${volume_mur} cm³) * prix unitaire (${prix_unit_mur} €) = ${prix_final_mur} €\n`;
+            formule += `Prix du mur ${i+1}: volume (${volume_mur} m³) * prix unitaire (${prix_unit_mur} €) = ${prix_final_mur} €\n`;
           }
         }
       
@@ -297,11 +297,11 @@ class DevisCalculator {
           let total_ouvertures = ouvertures.length;
           for (let j = 0; j < total_ouvertures; j++) {
             let prix_unit_cloison = parseFloat(ouvertures[j].cloison.split(':')[0]);
-            let volume_ouverture = ouvertures[j].epaisseur*((ouvertures[j].longueur*ouvertures[j].hauteur)-(ouvertures[j].longueur_ouverture*ouvertures[j].hauteur_ouverture));
+            let volume_ouverture = ouvertures[j].epaisseur*((ouvertures[j].longueur*ouvertures[j].hauteur)-(ouvertures[j].longueur_ouverture*ouvertures[j].hauteur_ouverture))/1000000;
             let prix_final_ouverture =  (volume_ouverture * prix_unit_cloison);
             prix += prix_final_ouverture;
       
-            formule += `Prix de l'ouverture ${j+1}: volume (${volume_ouverture} cm³) * prix unitaire (${prix_unit_cloison} €) = ${prix_final_ouverture} €\n`;
+            formule += `Prix de l'ouverture ${j+1}: volume (${volume_ouverture} m³) * prix unitaire (${prix_unit_cloison} €) = ${prix_final_ouverture} €\n`;
           }
         }
       
@@ -333,12 +333,12 @@ class DevisCalculator {
           // Calcul du prix pour les murs non porteurs
           let total_murs = murs.length;
           for (let i = 0; i < total_murs; i++) {
-            let surface = murs[i].longueur*murs[i].hauteur;
+            let surface = murs[i].longueur*murs[i].hauteur/10000;
             let prix_unit_cloison = prix_creation; // Le prix est en position 1 du split
             let prix_final_mur = surface * prix_unit_cloison * 1;
             prix += prix_final_mur;
         
-            formule += `Prix du mur ${i+1} = surface ${surface} cm² * prix unitaire ${prix_unit_cloison} € = ${prix_final_mur} €\n`;
+            formule += `Prix du mur ${i+1} = surface ${surface} m² * prix unitaire ${prix_unit_cloison} € = ${prix_final_mur} €\n`;
           }
 
           if(has_portes){
@@ -493,7 +493,7 @@ class DevisCalculator {
           let prix = 0;
       
           // Données principales
-          const surface = donnees_json["dimensions-pose-plafond"].longueur * donnees_json["dimensions-pose-plafond"].largeur;
+          const surface = donnees_json["dimensions-pose-plafond"].longueur * donnees_json["dimensions-pose-plafond"].largeur/10000;
           const id_prix_gamme = donnees_json["gammes-produits-pose-plafond"].gamme;
           const prix_depose = parseFloat(donnees_json["dimensions-pose-plafond"].depose.split(':')[2]);
           const titre_depose = (donnees_json["dimensions-pose-plafond"].depose.split(':')[1]);
@@ -505,11 +505,11 @@ class DevisCalculator {
           const nom_gamme = (gammeParts[1]); // Dernier élément
           let sousTotalGamme = prix_gamme * surface;
           prix += sousTotalGamme;
-          formule += `Prix de la pose = Surface (${surface} cm²) * Prix de la gamme choisie "${nom_gamme}" (${prix_gamme} €) = ${sousTotalGamme} €\n`;
+          formule += `Prix de la pose = Surface (${surface} m²) * Prix de la gamme choisie "${nom_gamme}" (${prix_gamme} €) = ${sousTotalGamme} €\n`;
 
           let sousTotalDeposeGamme = prix_depose * surface;
           prix += sousTotalDeposeGamme;
-          formule += `Prix de la dépose = Surface (${surface} cm²) * Prix de la gamme du revêtement à déposer "${titre_depose}" (${prix_depose} €) = ${sousTotalDeposeGamme} €\n`;
+          formule += `Prix de la dépose = Surface (${surface} m²) * Prix de la gamme du revêtement à déposer "${titre_depose}" (${prix_depose} €) = ${sousTotalDeposeGamme} €\n`;
           
       
           // Multiplier le prix total par 1.25
@@ -528,7 +528,7 @@ class DevisCalculator {
         let prix = 0;
     
         // Données principales
-        const surface = donnees_json["dimensions-pose-sol"].longueur * donnees_json["dimensions-pose-sol"].largeur;
+        const surface = donnees_json["dimensions-pose-sol"].longueur * donnees_json["dimensions-pose-sol"].largeur/10000;
         const prix_depose = parseFloat(donnees_json["dimensions-pose-sol"].depose.split(":")[2]);
         const nom_depose = (donnees_json["dimensions-pose-sol"].depose.split(":")[1]);
         const etat_surface = donnees_json["etat-surfaces-pose-sol"].etat;
@@ -541,14 +541,14 @@ class DevisCalculator {
             const nomGamme = (gammeParts[1]); // Dernier élément
             const sousTotalGamme = prixGamme * surface;
             prix += sousTotalGamme;
-            formule += `Prix de pose = Surface (${surface} cm²) * Prix de la gamme choisie "${nomGamme}" (${prixGamme} €) = ${sousTotalGamme} €\n`;
+            formule += `Prix de pose = Surface (${surface} m²) * Prix de la gamme choisie "${nomGamme}" (${prixGamme} €) = ${sousTotalGamme} €\n`;
         }
 
         if (prix_depose>0) {
           
           const sousTotaldepose = prix_depose * surface;
           prix += sousTotaldepose;
-          formule += `Prix de dépose = Surface (${surface} cm²) * Prix du revêtement à déposer "${nom_depose}" (${prix_depose} €) = ${sousTotaldepose} €\n`;
+          formule += `Prix de dépose = Surface (${surface} m²) * Prix du revêtement à déposer "${nom_depose}" (${prix_depose} €) = ${sousTotaldepose} €\n`;
       }
     
         // Vérification des plinthes
@@ -558,7 +558,7 @@ class DevisCalculator {
             const nomPlinthes = (plintheParts[1]); // Dernier élément
             const sousTotalPlinthes = prixPlinthes * surface;
             prix += sousTotalPlinthes;
-            formule += `Prix de la pose de plinthes = Surface (${surface} cm²) * Prix des plinthes "${nomPlinthes}" (${prixPlinthes} €) = ${sousTotalPlinthes} €\n`;
+            formule += `Prix de la pose de plinthes = Surface (${surface} m²) * Prix des plinthes "${nomPlinthes}" (${prixPlinthes} €) = ${sousTotalPlinthes} €\n`;
         }
     
        
