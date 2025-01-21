@@ -284,11 +284,12 @@ class DevisCalculator {
           let total_murs = mursnonporteurs.length;
           for (let i = 0; i < total_murs; i++) {
             let prix_unit_mur = parseFloat(mursnonporteurs[i].cloison.split(':')[0]);
-            let volume_mur = mursnonporteurs[i].longueur*mursnonporteurs[i].hauteur*mursnonporteurs[i].epaisseur/1000000;
-            let prix_final_mur =  (volume_mur * prix_unit_mur);
+           // let volume_mur = mursnonporteurs[i].longueur*mursnonporteurs[i].hauteur*mursnonporteurs[i].epaisseur/1000000;
+           let surface_mur = mursnonporteurs[i].longueur*mursnonporteurs[i].hauteur*mursnonporteurs[i].epaisseur/1000000;
+            let prix_final_mur =  (surface_mur * prix_unit_mur);
             prix += prix_final_mur;
       
-            formule += `Prix du mur ${i+1}: volume (${volume_mur} m³) * prix unitaire (${prix_unit_mur} €) = ${prix_final_mur} €\n`;
+            formule += `Prix du mur ${i+1}: surface (${surface_mur} m²) * prix unitaire (${prix_unit_mur} €) = ${prix_final_mur} €\n`;
           }
         }
       
@@ -297,11 +298,11 @@ class DevisCalculator {
           let total_ouvertures = ouvertures.length;
           for (let j = 0; j < total_ouvertures; j++) {
             let prix_unit_cloison = parseFloat(ouvertures[j].cloison.split(':')[0]);
-            let volume_ouverture = ouvertures[j].epaisseur*((ouvertures[j].longueur*ouvertures[j].hauteur)-(ouvertures[j].longueur_ouverture*ouvertures[j].hauteur_ouverture))/1000000;
-            let prix_final_ouverture =  (volume_ouverture * prix_unit_cloison);
+            let surface_ouverture = ouvertures[j].epaisseur*((ouvertures[j].longueur*ouvertures[j].hauteur)-(ouvertures[j].longueur_ouverture*ouvertures[j].hauteur_ouverture))/1000000;
+            let prix_final_ouverture =  (surface_ouverture * prix_unit_cloison);
             prix += prix_final_ouverture;
       
-            formule += `Prix de l'ouverture ${j+1}: volume (${volume_ouverture} m³) * prix unitaire (${prix_unit_cloison} €) = ${prix_final_ouverture} €\n`;
+            formule += `Prix de l'ouverture ${j+1}: surface (${surface_ouverture} m²) * prix unitaire (${prix_unit_cloison} €) = ${prix_final_ouverture} €\n`;
           }
         }
       

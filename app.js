@@ -724,6 +724,12 @@ app.post('/add_front_utilisateur', async (req, res) => {
      // Récupérer les données de la requête
     const {  nom, prenom, email, password, phoneNumber, AdressePostale, CodePostal,CommunePostale,roleId,deviceID,Agree } = req.body;
 
+     // Vérifier si l'email existe déjà dans la base de données
+     const existingUserByEmail = await Utilisateur.findOne({ where: { Email: email } });
+
+     if (existingUserByEmail) {
+       return res.status(400).json({ error: 'Un utilisateur avec cet email existe déjà.' });
+     }
     // Vérifier si l'ID du rôle est fourni dans le corps de la requête
     if (!roleId) {
       return res.status(400).json({ error: 'ID du rôle manquant dans la requête' });
@@ -757,39 +763,53 @@ app.post('/add_front_utilisateur', async (req, res) => {
 });
 
 
-// Endpoint POST pour ajouter un utilisateur
+
 app.post('/add_front_utilisateur_with_datas', async (req, res) => {
   try {
-     // Récupérer les données de la requête
-    const {   email, password,deviceID } = req.body;
+    // Récupérer les données de la requête
+    const { email, password, deviceID } = req.body;
 
-  
+    // Vérifier si l'email existe déjà dans la base de données
+    const existingUserByEmail = await Utilisateur.findOne({ where: { Email: email } });
+
+    if (existingUserByEmail) {
+      return res.status(400).json({ error: 'Un utilisateur avec cet email existe déjà.' });
+    }
+
+    // Vérifier si le deviceID existe déjà dans la base de données
+    const existingUserByDeviceID = await Utilisateur.findOne({ where: { DeviceID: deviceID } });
+
+    if (existingUserByDeviceID) {
+      return res.status(400).json({ error: 'Un utilisateur avec ce deviceID existe déjà.' });
+    }
+
     // Hasher le mot de passe
     const hashedPassword = await bcrypt.hash(password, saltRounds);
 
     // Créer un nouvel utilisateur dans la base de données avec son rôle
     const utilisateur = await Utilisateur.create({
-      Nom:email,
-      Prenom:email,
-      Email:email,
+      Nom: email,
+      Prenom: email,
+      Email: email,
       Password: hashedPassword,
-      Telephone:"0032323232",
-      AdressePostale:"",
-      CommunePostale:"",
-      CodePostal:"",
-      DeviceID:deviceID,
-      RoleId:3 // Associer l'ID du rôle à l'utilisateur
+      Telephone: "0032323232",
+      AdressePostale: "",
+      CommunePostale: "",
+      CodePostal: "",
+      DeviceID: deviceID,
+      RoleId: 3 // Associer l'ID du rôle à l'utilisateur
     });
 
+    // Répondre avec l'utilisateur ajouté
+    res.status(201).json(utilisateur);
 
-      // Répondre avec l'utilisateur ajouté
-      res.status(201).json(utilisateur);
   } catch (error) {
-      // En cas d'erreur, répondre avec le code d'erreur 500
-      console.error('Erreur lors de l\'ajout de l\'utilisateur :', error);
-      res.status(500).json({ error: 'Erreur serveur' });
+    // En cas d'erreur, répondre avec le code d'erreur 500
+    console.error('Erreur lors de l\'ajout de l\'utilisateur :', error);
+    res.status(500).json({ error: 'Erreur serveur' });
   }
 });
+
 
 function cleanFilePath(filePath) {
   return filePath.replace(/^.*\\fakepath\\/, '');
