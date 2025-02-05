@@ -46,6 +46,7 @@ const fs = require('fs');
 const mime = require('mime-types');
 const nodemailer = require('nodemailer');
 const { Op,Sequelize } = require('sequelize');
+const Stripe = require('stripe');
 
 // Définir le chemin du répertoire contenant les fichiers
 const filesDirectory = path.join(__dirname, 'files');
@@ -478,6 +479,94 @@ app.get('/send-liste-devis-email-to-user/:userID', async (req, res) => {
   }
 });
 
+
+app.get('/paiement', async (req, res) => {
+  //const { montant, source } = req.body;
+  const stripe = require('stripe')('sk_test_51PIqjhHuUJR23uZuT8B8UCGKAObmNduji5iZwEgzb11SDEJpzHppuuy73Gh59iWsnnGvyfzNsxeZ7WJQ3isnKNAh00seDwsYiQ');
+  try {
+    const charge = await stripe.charges.create({
+      amount: 10000,// en centimes
+      currency: 'eur',
+      source: 'tok_visa',
+      description: 'Paiement de test',
+    });
+
+    res.json({ message: 'Paiement réussi', charge });
+  } catch (error) {
+    res.status(500).json({ message: 'Échec du paiement', error });
+  }
+});
+
+
+app.post('/create-checkout-session', async (req, res) => {
+  try {
+    const { montant, liste_devis } = req.body;
+
+    if (!montant || !liste_devis) {
+      return res.status(400).json({ error: "Montant et liste_devis sont requis" });
+    }
+
+    const stripe = require('stripe')('sk_test_51PIqjhHuUJR23uZuT8B8UCGKAObmNduji5iZwEgzb11SDEJpzHppuuy73Gh59iWsnnGvyfzNsxeZ7WJQ3isnKNAh00seDwsYiQ');
+
+    const session = await stripe.checkout.sessions.create({
+      payment_method_types: ['card'],
+      line_items: [
+        {
+          price_data: {
+            currency: 'eur',
+            product_data: {
+              name: `${liste_devis.length} devis`,
+              description: `Paiement pour ${liste_devis.length} devis d'un montant total de ${montant}€`,
+              images: ['https://homeren.fr//assets/logo.svg'],
+            },
+            unit_amount: montant * 100, // Convertir en centimes
+          },
+          quantity: 1,
+        },
+      ],
+      mode: 'payment',
+      success_url: `http://localhost:4300/panier?checkout=1`,
+      cancel_url: `http://localhost:4300/panier?checkout=-1`,
+    });
+
+    res.json({ url: session.url });
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+
+app.post('/get_paiement', async (req, res) => {
+  //const { montant, source } = req.body;
+  const stripe = require('stripe')('sk_test_51PIqjhHuUJR23uZuT8B8UCGKAObmNduji5iZwEgzb11SDEJpzHppuuy73Gh59iWsnnGvyfzNsxeZ7WJQ3isnKNAh00seDwsYiQ');
+  const amount = req.body?.data?.amount || 1000;
+    try {
+        //create stripe session
+        const session = await stripe.checkout.sessions.create({
+            payment_method_types: ['card'],
+            line_items: [
+                {
+                    price_data: {
+                        currency: 'usd',
+                        product_data: {
+                            name: 'Test payment',
+                        },
+                        unit_amount: amount,
+                    },
+                    quantity: 1,
+                },
+            ],
+            mode: 'payment',
+            success_url: `${'http://localhost:4300'}/stripe-successful-payment?hash=hash`,
+            cancel_url: `${'http://localhost:4300'}/stripe-canceled-payment?hash=hash`,
+            expand: ['payment_intent']
+        });
+
+        return res.send(session);
+    } catch (err) {
+        console.log('stripe error', err);
+    }
+});
 
 app.get('/send-account-creation-email/:userid', async (req, res) => {
   const { userid } = req.params;
@@ -4469,6 +4558,42 @@ app.get('/get_no_payed_devis_piece_by_device_id/:device_id', async (req, res) =>
       where: {
         Payed: 0,
         DeviceID:device_id
+        
+      },include: [
+        {
+          model: DevisTache,
+          include: [Travail]
+        },
+        {
+          model: Piece
+        }
+      ],
+      order: [['Date', 'DESC']]
+    });
+
+    if (devisPieces.length > 0) {
+      res.status(200).json(devisPieces);
+    } else {
+      res.status(404).json({ message: 'No records found for the provided username and IP address' });
+    }
+  } catch (error) {
+    console.error('Error retrieving DevisPiece records:', error);
+    res.status(500).json({ error: 'Server error' });
+  }
+});
+
+
+
+app.get('/get_no_payed_devis_piece_by_user/:device_id/:user_id', async (req, res) => {
+  const { device_id,user_id } = req.params;
+  try {
+    const devisPieces = await DevisPiece.findAll({
+      where: {
+        Payed: 0,
+        [Op.or]: [
+          { DeviceID: device_id },
+          { UtilisateurID: user_id }
+        ]
         
       },include: [
         {
