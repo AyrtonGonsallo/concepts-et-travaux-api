@@ -368,6 +368,9 @@ app.get('/send-liste-devis-email/:deviceID', async (req, res) => {
         },
         {
           model: Piece
+        },
+        {
+          model: Utilisateur
         }
       ]
     });
@@ -664,9 +667,11 @@ app.get('/send-devis-details-email/:devistacheID', async (req, res) => {
     if (devisTache) {
       const formule = results.formule;
       const formuleHtml = formule.replace(/\n/g, '<br>');
+      const email_user = "ayrtongonsallo444@gmail.com";
       // Générer l'email en utilisant un template EJS avec la liste des devis
       const emailTemplatePath = path.join(__dirname, 'mails-templates', 'emailDetailsTravail.ejs');
-      htmlContent = await ejs.renderFile(emailTemplatePath, { devisTache,currentDate,formuleHtml  });
+
+      htmlContent = await ejs.renderFile(emailTemplatePath, { devisTache,currentDate,formuleHtml,email_user  });
     } 
     // Configuration de l'email
     const mailOptions = {
@@ -767,7 +772,7 @@ app.get('/restore_user_password/:email', async (req, res) => {
       await user.update({ Password: hashedPassword });
       // Préparer les données pour l'e-mail
       const mailData = {
-        from: 'gestion@homeren.fr',
+        from: '"HOMEREN" <gestion@homeren.fr>',
         to: email,
         subject: 'Confirmation de la réinitialisation du mot de passe',
         text: `Bonjour,
@@ -4457,41 +4462,43 @@ async function sendDevisDetailsEmail( devis_id) {
       minute: '2-digit',
     });
     
-    for (let tache of devisTaches) {
+    for (let devisTache of devisTaches) {
       try {
         let donnees = {
-          "formulaire": JSON.parse(tache.Donnees),
-          "nomtache": tache.TravailSlug
+          "formulaire": JSON.parse(devisTache.Donnees),
+          "nomtache": devisTache.TravailSlug
         };
-        const results = await calculator.calculer_prix(tache.TravailID, donnees);
+        const results = await calculator.calculer_prix(devisTache.TravailID, donnees);
         const prix = parseFloat(results.prix);
         const formule = results.formule;
         const formuleHtml = formule.replace(/\n/g, '<br>');
-
+        const email_user = devisPiece.Utilisateur.Email;
         // Générer le contenu HTML de l'email
         const emailTemplatePath = path.join(__dirname, 'mails-templates', 'emailDetailsTravail.ejs');
         const htmlContent = await ejs.renderFile(emailTemplatePath, {
-          tache,
+          devisTache,
           prix,
           formuleHtml,
           currentDate,
+          email_user,
+          
         });
 
         // Configuration de l'email
         const mailOptions = {
-          from: 'gestion@homeren.fr',
-          to: devisPiece.Utilisateur.Email,
-          subject: `Détails de tâche - ID: ${tache.ID}`,
+          from: '"HOMEREN" <gestion@homeren.fr>',
+          to: email_user,
+          subject: `Votre devis est prêt !`,
           html: htmlContent,
         };
 
         // Envoyer l'email
         await transporter.sendMail(mailOptions);
-        console.log(`Email envoyé pour le devis tâche ID: ${tache.ID}`);
-        emailResults.push({ tacheID: tache.ID, status: 'success',formule:formule });
+        console.log(`Email envoyé pour le devis tâche ID: ${devisTache.ID}`);
+        emailResults.push({ tacheID: devisTache.ID, status: 'success',formule:formule });
       } catch (error) {
-        console.error(`Erreur lors de l'envoi de l'email pour la tâche ID: ${tache.ID}`, error);
-        emailResults.push({ tacheID: tache.ID, status: 'error', error: error.message });
+        console.error(`Erreur lors de l'envoi de l'email pour la tâche ID: ${devisTache.ID}`, error);
+        emailResults.push({ tacheID: devisTache.ID, status: 'error', error: error.message });
       }
     }
      // Retourner les résultats
