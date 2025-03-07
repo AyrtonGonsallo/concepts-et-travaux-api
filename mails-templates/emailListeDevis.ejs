@@ -9,27 +9,30 @@
             font-family: 'Sarpanch-Regular';
             src: url('/Sarpanch-Regular.ttf') format('truetype');
         }
+        .center{text-align: center;}
         body {
             font-family: "Montserrat";
-            background-color: #f4f4f4;
+            background-color: #F4F4F4;
             margin: 0;
             padding: 0;
         }
-        .container {
+        .content{font-size: 15px;}
+        .body-cnt{
+            padding-top: 20px;
+            padding-bottom: 20px;
+            background: #F4F4F4;
             width: 100%;
-            max-width: 1440px;
+        }
+        .container {
+            width: 60%;
             margin: 0 auto;
             background-color: #ffffff;
             border-radius: 0px;
+            padding: 15px;
             overflow: hidden;
         }
         .header {
             position: relative;
-            /*background: url('https://homeren.fr/icons/bg-footer.png');
-            background-position: bottom center;
-            background-repeat: no-repeat;
-            background-size: cover;*/
-            background-color: #555;
             width:auto;
             height:100%;
             font-family: 'Sarpanch-Regular' !important;
@@ -39,32 +42,21 @@
             max-width: 100%;
             margin: auto;
         }
-        .header img {
-            width: 130px;
-            height: auto;
-            text-align: end;
-            float: right;
-            padding: 10px;
+        .footer a {
+            color: #FFC637;
+            text-decoration: underline;
         }
-        .content {
-            max-width: 1200px;
-            margin: auto;
-            padding: 20px;
+        .footer a:hover {
+            color: #555555;
         }
-        .header div p{ 
-            text-align: left;
-            color: white;
-            margin-top: 0px; margin-bottom: 0px;
-            font-family: 'Montserrat' !important;
-        }
-
         h1 {
             font-family: 'Montserrat' !important;
             text-align: left;
+            font-size: 18px;
             margin-top: 0px;
             margin-bottom: 2px;
             width: 100%;
-            color: #ffc735;
+            color: #555555;
         }
         table {
             width: 100%;
@@ -73,6 +65,7 @@
             margin-bottom: 30px;
         }
         table th, table td {
+            font-size: 11px;
             padding: 10px;
             text-align: left;
         }
@@ -81,85 +74,43 @@
             font-size: 14px;
             border-bottom: 2px solid #ffc735;
         }
-        .footer {
-            /*background: url('https://homeren.fr/icons/bg-2-ftr.png');
-            background-position: top center;
-            background-repeat: no-repeat;
-            background-size: cover;*/
-            width:auto;
-            height:100%;
-            background-color: #555;
-            display: flex;
-            color: white;
-            text-align: center;
-            padding: 20px;
-            margin-top: 0px;
-        }
-        .footer p{margin-bottom: 0px;}
-        .col-ftr{width:33%;float:left;}
-        .footer a {
-            margin: 0 10px;
-            color: white;
-            text-decoration: none;
-        }
-        .footer img {
-            width: fit-content;
-            height: 24px;
-            margin: 0 5px;
-        }
+
         table{background-color: #fbfbfb;}
         table tr td {
             padding: 10px;
          }
- 
+         table thead tr th {
+            color: #ffffff;
+            border-bottom-color: #ffffff;
+         }
          tr:nth-child(even) {
     background-color: #f0f0f0 !important;
 }
 
  tr:nth-child(odd) {
     background-color: #ffffff !important; }
-        #triangle-code{
- height : 0;
- width : 0;
- margin: 0 auto;
-    display: block;
-    border-top: 29px solid #555555;
-    border-right: 181px solid transparent;
-    border-left: 181px solid transparent;
-}
-#triangle-code2{
- margin: 0 auto;
- display: block;
- height : 0;
- width : 0;
- border-right : 181px solid transparent;
- border-bottom : 29px solid #555;
- border-left : 181px solid transparent;
-}  
     </style>
 </head>
 <body>
+<div class="body-cnt">
     <div class="container">
         <!-- Header -->
         <div class="header">
-            <div style="margin:auto;max-width:1300px;display: flex !important;justify-content: space-between !important;align-items: center !important;">
-                <div style="width: 50%;margin-top: 3%;  ">
-                   <h1>Vos devis en cours</h1>
+            <div>
+                <!--<div>
                    <p><strong>Date</strong> : <%= currentDate %></p>
-                </div>
-                <div style="width: 50%;">
-                <img src="https://homeren.fr/icons/logo.png" alt="Logo du site">      
+                </div>-->
+                <div class="center">
+                <img src="https://homeren.fr/icons/logo-homeren.png" alt="Logo du site">      
             </div>
         </div>       
         </div>
-        <div id="triangle-code"></div>
-
         <!-- Main Content -->
         <div class="content">
-            
+            <h1>Vos devis en cours</h1>
             <table style="background-color: #fbfbfb !important;">
                 <thead>
-                    <tr style="background: #ffc637 !important;">
+                    <tr style="background: #555555 !important; color: #ffffff;">
                         <th>ID Devis</th>
                         <th>Pièce</th>
                         <th>Adresse IP</th>
@@ -180,32 +131,35 @@
                                     <%= tache.Travail.Titre %><br>
                                 <% }) %>
                             </td>
-                            <td><%= devis.Prix %> €</td>
+                            <td><%= devis.Prix*1.2 %> €</td>
                         </tr>
                     <% }) %>
                 </tbody>
             </table>
         </div>
 <div>
-    <p style="font-family:'Montserrat';color:#ffc637;text-align: center;font: 700;">L’equipe HomeRen vous remercie</p>
 </div>
         <!-- Footer -->
-        <div id="triangle-code2"></div>
-        <div class="footer">
+  <div class="footer">
+            <div style="border:1px solid #E6E6E6 ;"></div>
+  <p class="center" style="font-size: 11px;">
+    Ce message a été envoyé automatiquement à  <a href="mailto:mathieu01@gmail.com">lmathieu01@gmail.com</a> dans le cadre de votre inscription au service de mise en relation HomeRen
+    <br>
 
-            <div class="col-ftr">
-                <img src="https://homeren.fr/icons/tel.png"/>
-                <p>02 00 00 00 00</p>
-            </div>
-            <div class="col-ftr">
-                <img src="https://homeren.fr/icons/address.png"/>
-                <p>21 place de la République<br>75003 Paris</p>
-            </div>
-            <div class="col-ftr">
-                <img src="https://homeren.fr/icons/email.png"/>
-                <p>contact@homeren.fr</p>
-            </div>
-        </div>
+    <strong>Une question ?</strong>  
+    <br>
+    
+    Contactez votre Conseiller Travaux HomeRen au <a href="tel:02 00 00 00 00">02 00 00 00 00</a>  
+    Nos horaires sont <a href="http://" target="_blank" style="text-decoration: underline;">consultables ici</a>.
+  </p>
+  <div style="border:1px solid #E6E6E6 ;"></div>
+  <p class="center" style="font-size: 10px;">
+    HomeRen traite vos données pour vous proposer un service de mise en relation avec des professionnels du bâtiment. Consultez la rubrique <a href="/" target="_blank"> Vos données et vos droits</a> sur notre site web pour en savoir plus.
+    <br>
+    Conformément aux dispositions de la loi « Informatique et Libertés » et du règlement général sur la protection des données du 27 avril 2016, vous disposez d'un droit d'accès, de rectification et de suppression de vos données personnelles. Consulter nos <a target="_blank" href="/mentions-legales/">informations légales.</a>
+  </p>
+  </div>
     </div>
+</div>
 </body>
 </html>

@@ -394,9 +394,9 @@ app.get('/send-liste-devis-email/:deviceID', async (req, res) => {
 
     // Configuration de l'email
     const mailOptions = {
-      from: 'gestion@homeren.fr',
+      from: '"HOMEREN" <gestion@homeren.fr>',
       to: 'ayrtongonsallo444@gmail.com',
-      subject: 'Détails du Device ID',
+      subject: 'Nous avons reçu votre paiement !',
       html: htmlContent
     };
 
@@ -462,9 +462,9 @@ app.get('/send-liste-devis-email-to-user/:userID', async (req, res) => {
 
     // Configuration de l'email
     const mailOptions = {
-      from: 'gestion@homeren.fr',
-      to: 'ayrtongonsallo444@gmail.com',
-      subject: 'Détails du Device ID',
+      from: '"HOMEREN" <gestion@homeren.fr>',
+      to: user_email,
+      subject: 'Nous avons reçu votre paiement !',
       html: htmlContent
     };
 
@@ -497,16 +497,15 @@ app.get('/paiement', async (req, res) => {
   }
 });
 
-
 app.post('/create-checkout-session', async (req, res) => {
   try {
-    const { montant, liste_devis } = req.body;
+    const stripe = require('stripe')('sk_test_51PIqjhHuUJR23uZuT8B8UCGKAObmNduji5iZwEgzb11SDEJpzHppuuy73Gh59iWsnnGvyfzNsxeZ7WJQ3isnKNAh00seDwsYiQ');
 
-    if (!montant || !liste_devis) {
+    const { montant, liste_devis, url_de_retour } = req.body;
+
+    if (!montant || !liste_devis || liste_devis.length === 0) {
       return res.status(400).json({ error: "Montant et liste_devis sont requis" });
     }
-
-    const stripe = require('stripe')('sk_test_51PIqjhHuUJR23uZuT8B8UCGKAObmNduji5iZwEgzb11SDEJpzHppuuy73Gh59iWsnnGvyfzNsxeZ7WJQ3isnKNAh00seDwsYiQ');
 
     const session = await stripe.checkout.sessions.create({
       payment_method_types: ['card'],
@@ -517,7 +516,7 @@ app.post('/create-checkout-session', async (req, res) => {
             product_data: {
               name: `${liste_devis.length} devis`,
               description: `Paiement pour ${liste_devis.length} devis d'un montant total de ${montant}€`,
-              images: ['https://homeren.fr//assets/logo.svg'],
+              images: ['https://homeren.fr/assets/logo.svg'],
             },
             unit_amount: montant * 100, // Convertir en centimes
           },
@@ -525,15 +524,26 @@ app.post('/create-checkout-session', async (req, res) => {
         },
       ],
       mode: 'payment',
-      success_url: `http://localhost:4300/panier?checkout=1`,
-      cancel_url: `http://localhost:4300/panier?checkout=-1`,
+      success_url: `${url_de_retour}panier?checkout=1&session_id={CHECKOUT_SESSION_ID}`,
+      cancel_url: `${url_de_retour}panier?checkout=-1`,
+      metadata: { liste_devis: liste_devis.map(devis => devis.ID).join(",") }, // Stocker les IDs sous forme de chaîne
     });
 
     res.json({ url: session.url });
+    const listeDevis = session.metadata.liste_devis.split(",").map(id => parseInt(id, 10)); // Convertir en tableau d'entiers
+
+    try {
+      await DevisPiece.update({ Payed: 1 }, { where: { ID: listeDevis } });
+      console.log(`Devis mis à jour : ${listeDevis.join(", ")}`);
+    } catch (err) {
+      console.error('Erreur mise à jour devis :', err);
+    }
   } catch (error) {
+    console.error('Erreur lors de la création de la session Stripe :', error);
     res.status(500).json({ error: error.message });
   }
 });
+
 
 
 app.post('/get_paiement', async (req, res) => {
@@ -557,8 +567,8 @@ app.post('/get_paiement', async (req, res) => {
                 },
             ],
             mode: 'payment',
-            success_url: `${'http://localhost:4300'}/stripe-successful-payment?hash=hash`,
-            cancel_url: `${'http://localhost:4300'}/stripe-canceled-payment?hash=hash`,
+            success_url: `${'http://109.234.166.164:4300'}/stripe-successful-payment?hash=hash`,
+            cancel_url: `${'http://109.234.166.164:4300'}/stripe-canceled-payment?hash=hash`,
             expand: ['payment_intent']
         });
 
@@ -617,6 +627,8 @@ app.get('/send-devis-details-email/:devistacheID', async (req, res) => {
   const { devistacheID } = req.params;
 
   try {
+
+    
     // Récupérer les devis non payés associés au DeviceID
     const devisTache = await DevisTache.findOne({
       where: {
@@ -629,6 +641,16 @@ app.get('/send-devis-details-email/:devistacheID', async (req, res) => {
       ]
     });
 
+    const calculator = new DevisCalculator();
+    await calculator.initTaches();
+    let travail = devisTache.Travail;
+    let donnees = {
+      "formulaire": JSON.parse(devisTache.Donnees),
+      "nomtache": devisTache.TravailSlug
+    };
+    let results = await calculator.calculer_prix(travail.ID, donnees);
+        
+    
     let htmlContent;
     // Obtenir la date et l'heure actuelle
     const currentDate = new Date().toLocaleString('fr-FR', {
@@ -640,15 +662,17 @@ app.get('/send-devis-details-email/:devistacheID', async (req, res) => {
     });
     // Si des devis sont trouvés
     if (devisTache) {
+      const formule = results.formule;
+      const formuleHtml = formule.replace(/\n/g, '<br>');
       // Générer l'email en utilisant un template EJS avec la liste des devis
       const emailTemplatePath = path.join(__dirname, 'mails-templates', 'emailDetailsTravail.ejs');
-      htmlContent = await ejs.renderFile(emailTemplatePath, { devisTache,currentDate  });
+      htmlContent = await ejs.renderFile(emailTemplatePath, { devisTache,currentDate,formuleHtml  });
     } 
     // Configuration de l'email
     const mailOptions = {
-      from: 'gestion@homeren.fr',
+      from: '"HOMEREN" <gestion@homeren.fr>',
       to: 'ayrtongonsallo444@gmail.com',
-      subject: 'Détails de tâche',
+      subject: 'Votre devis est prêt !',
       html: htmlContent
     };
 

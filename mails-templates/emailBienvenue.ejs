@@ -3,24 +3,33 @@
 <head>
     <meta charset="UTF-8">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
-    <title>Liste des Devis</title>
+    <title>Détails de tâche</title>
     <style>
         @font-face {
             font-family: 'Sarpanch-Regular';
             src: url('/Sarpanch-Regular.ttf') format('truetype');
         }
+        .center{text-align: center;}
+        .desc p{margin-top: 0px; margin-bottom: 0px;}
         body {
             font-family: "Montserrat";
-            background-color: #f4f4f4;
+            background-color: #F4F4F4;
             margin: 0;
             padding: 0;
         }
-        .container {
+        .content{font-size: 15px;}
+        .body-cnt{
+            padding-top: 20px;
+            padding-bottom: 20px;
+            background: #F4F4F4;
             width: 100%;
-            max-width: 1440px;
+        }
+        .container {
+            width: 60%;
             margin: 0 auto;
             background-color: #ffffff;
             border-radius: 0px;
+            padding: 15px;
             overflow: hidden;
         }
         .header {
@@ -29,7 +38,6 @@
             background-position: bottom center;
             background-repeat: no-repeat;
             background-size: cover;*/
-            background-color: #555;
             width:auto;
             height:100%;
             font-family: 'Sarpanch-Regular' !important;
@@ -39,7 +47,14 @@
             max-width: 100%;
             margin: auto;
         }
-        .header img {
+        .footer a {
+            color: #FFC637;
+            text-decoration: underline;
+        }
+        .footer a:hover {
+            color: #555555;
+        }
+        /*.header img {
             width: 130px;
             height: auto;
             text-align: end;
@@ -85,7 +100,7 @@
             /*background: url('https://homeren.fr/icons/bg-2-ftr.png');
             background-position: top center;
             background-repeat: no-repeat;
-            background-size: cover;*/
+            background-size: cover;
             width:auto;
             height:100%;
             background-color: #555;
@@ -135,43 +150,58 @@
  border-right : 181px solid transparent;
  border-bottom : 29px solid #555;
  border-left : 181px solid transparent;
-}  
+}  */
     </style>
 </head>
 <body>
+<div class="body-cnt">
     <div class="container">
         <!-- Header -->
         <div class="header">
-            <div style="margin:auto;max-width:1300px;display: flex !important;justify-content: space-between !important;align-items: center !important;">
-                <div style="width: 50%;margin-top: 3%;  ">
-                   <h1>Vos devis en cours</h1>
-                   <p><strong>Date</strong> : <%= currentDate %></p>
+            <div>
+                <div>
+                   <!--<h1> <%= devisTache.Travail.Titre %></h1>
+                   <p><strong>Date</strong> : <%= currentDate %></p>-->
                 </div>
-                <div style="width: 50%;">
-                <img src="https://homeren.fr/icons/logo.png" alt="Logo du site">      
-            </div>
+                <div class="center">
+                <img src="https://homeren.fr/icons/logo-homeren.png" alt="Logo du site">  
+  
+                </div>
         </div>       
         </div>
-        <div id="triangle-code"></div>
+        <!--<div id="triangle-code"></div>-->
 
         <!-- Main Content -->
         <div class="content">
-            
-            Bienvenue sur homeren <%= utilisateur.Nom %> <%= utilisateur.Prenom %>.<br>
-            Vous vous êtes inscrit le <%= new Date(utilisateur.DateDeCreation).toLocaleString('fr-FR', {
-                day: '2-digit',
-                month: 'long',
-                year: 'numeric',
-                hour: '2-digit',
-                minute: '2-digit',
-                second: '2-digit'
-              }) %>
-               en tant que <%= utilisateur.Role.Titre %>
+            <p>Bonjour,
+                <br>
+            Bienvenue chez HomeRen ! </p> 
+            <span class="desc">
+                Bienvenue sur homeren <%= utilisateur.Nom %> <%= utilisateur.Prenom %>.<br>
+                Vous vous êtes inscrit le <%= new Date(utilisateur.DateDeCreation).toLocaleString('fr-FR', {
+                    day: '2-digit',
+                    month: 'long',
+                    year: 'numeric',
+                    hour: '2-digit',
+                    minute: '2-digit',
+                    second: '2-digit'
+                  }) %>
+                   en tant que <%= utilisateur.Role.Titre %>
+            </span><br>
+            <span><strong>Prix</strong> : <%= devisTache.Prix %> €</span><br>
+            <p><strong>Récap</strong> :</p>
+            <p>
+                Depuis cet espace, vous pourrez retrouver tous les détails de votre projet, en créer de nouveaux… et sélectionner des professionnels partenaires pour les concrétiser !
+                <br>
+                Merci de votre confiance.
+                <br><br>
+                A bientôt,
+
+                L'équipe HomeRen
+            </p>
+
         </div>
-<div>
-    <p style="font-family:'Montserrat';color:#ffc637;text-align: center;font: 700;">L’equipe HomeRen vous remercie</p>
-</div>
-        <!-- Footer -->
+        <!-- Footer
         <div id="triangle-code2"></div>
         <div class="footer">
 
@@ -187,7 +217,27 @@
                 <img src="https://homeren.fr/icons/email.png"/>
                 <p>contact@homeren.fr</p>
             </div>
+        </div> -->
+
+        <div class="footer">
+            <div style="border:1px solid #E6E6E6 ;"></div>
+  <p class="center" style="font-size: 11px;">
+    Ce message a été envoyé automatiquement à  <a href="mailto:mathieu01@gmail.com">lmathieu01@gmail.com</a> dans le cadre de votre inscription au service de mise en relation HomeRen
+    <br>
+    <strong>Une question ?</strong>  
+    <br>
+    Contactez votre Conseiller Travaux HomeRen au <a href="tel:02 00 00 00 00">02 00 00 00 00</a>  
+    Nos horaires sont <a href="http://" target="_blank" style="text-decoration: underline;">consultables ici</a>.
+  </p>
+  <div style="border:1px solid #E6E6E6 ;"></div>
+  <p class="center" style="font-size: 10px;">
+    HomeRen traite vos données pour vous proposer un service de mise en relation avec des professionnels du bâtiment. Consultez la rubrique <a href="/" target="_blank"> Vos données et vos droits</a> sur notre site web pour en savoir plus.
+    <br>
+    Conformément aux dispositions de la loi « Informatique et Libertés » et du règlement général sur la protection des données du 27 avril 2016, vous disposez d'un droit d'accès, de rectification et de suppression de vos données personnelles. Consulter nos <a target="_blank" href="/mentions-legales/">informations légales.</a>
+  </p>
         </div>
+
     </div>
+</div>
 </body>
 </html>
