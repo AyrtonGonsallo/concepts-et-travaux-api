@@ -200,7 +200,7 @@ class DevisCalculator {
           const gammeTitre = (gammesProduits[index].gamme.split(':')[1]);
           let sousTotalGamme = surface * gammePrix;
           prix += sousTotalGamme;
-          formule += `Prix de pose du mur ${index + 1}: surface (${surface} m²) * prix de la gamme choisie "${gammeTitre}" (${gammePrix} €) = ${sousTotalGamme} €\n`;
+          formule += `<u>Prix de pose du mur ${index + 1}</u>\n surface (${surface} m²) * prix de la gamme choisie "${gammeTitre}" (${gammePrix} €) = ${sousTotalGamme} €\n`;
   
           // Vérification de l'état de la surface pour inclure les coûts de dépose
           const etat = etatSurfaces[index].etat;
@@ -209,13 +209,13 @@ class DevisCalculator {
           const titreDepose = (typedepose.split(':')[1]);
           let sousTotalDepose = surface * prixDepose;
           prix += sousTotalDepose;
-          formule += `Prix de dépose du mur ${index + 1}: surface (${surface} m²) * prix du revêtement à déposer "${titreDepose}" (${prixDepose} €) = ${sousTotalDepose} €\n`;
+          formule += `<u>Prix de dépose du mur ${index + 1}</u>\n surface (${surface} m²) * prix du revêtement à déposer "${titreDepose}" (${prixDepose} €) = ${sousTotalDepose} €\n`;
           
       });
   
       // Multiplier le prix total par 1.25
       let total = (prix * 1.25).toFixed(2);
-      formule += `Prix final = prix total (${prix} €) * Facteur global (1.25) = ${total} €\n`;
+      formule += `<u>Prix TTC </u>\n prix total (${prix} €) * Facteur global (1.25) = ${total} €\n`;
     
       // Retourner le prix total et la formule descriptive
       return {
@@ -237,7 +237,7 @@ class DevisCalculator {
         let qte=(element.longueur<1)?element.quantite:1;
         let prixLocal = qte * element.prix;
         prix += prixLocal;
-        formule += `Prix de dépose de l'élement "${element.titre}": quantité (${qte}) * prix de dépose (${element.prix} €) = ${prixLocal} €\n`;
+        formule += `<u>Prix de dépose de l'élement "${element.titre}"</u>\n quantité (${qte}) * prix de dépose (${element.prix} €) = ${prixLocal} €\n`;
       });
     
       // Calculer le prix pour " pose appareils_cuisine"
@@ -247,7 +247,7 @@ class DevisCalculator {
             let prixLocal = parseFloat(element.modele.split(':')[2]);
             let titre = (element.modele.split(':')[1]);
             prix += prixLocal;
-            formule += `Prix de pose de l'élement "${titre}": quantité (1) * prix (${prixLocal} €) = ${prixLocal} €\n`;
+            formule += `<u>Prix de pose de l'élement "${titre}"</u>\n quantité (1) * prix (${prixLocal} €) = ${prixLocal} €\n`;
           }
           
         });
@@ -255,7 +255,7 @@ class DevisCalculator {
     
       // Multiplier le prix total par 1.25
       let total = (prix * 1.25).toFixed(2);
-      formule += `Prix final = prix total (${prix} €) * Facteur global (1.25) = ${total} €\n`;
+      formule += `<u>Prix TTC </u>\n prix total (${prix} €) * Facteur global (1.25) = ${total} €\n`;
     
       // Retourner le prix total et la formule descriptive
       return {
@@ -289,7 +289,7 @@ class DevisCalculator {
             let prix_final_mur =  (surface_mur * prix_unit_mur);
             prix += prix_final_mur;
       
-            formule += `Prix du mur ${i+1}: surface (${surface_mur} m²) * prix unitaire (${prix_unit_mur} €) = ${prix_final_mur} €\n`;
+            formule += `<u>Prix du mur ${i+1}</u>\n surface (${surface_mur} m²) * prix unitaire (${prix_unit_mur} €) = ${prix_final_mur} €\n`;
           }
         }
       
@@ -302,13 +302,13 @@ class DevisCalculator {
             let prix_final_ouverture =  (surface_ouverture * prix_unit_cloison);
             prix += prix_final_ouverture;
       
-            formule += `Prix de l'ouverture ${j+1}: surface (${surface_ouverture} m²) * prix unitaire (${prix_unit_cloison} €) = ${prix_final_ouverture} €\n`;
+            formule += `<u>Prix de l'ouverture ${j+1}</u>\n surface (${surface_ouverture} m²) * prix unitaire (${prix_unit_cloison} €) = ${prix_final_ouverture} €\n`;
           }
         }
       
         // Multiplier le prix total par 1.25
         let total = (prix * 1.25).toFixed(2);
-        formule += `Prix final = prix total (${prix} €) * Facteur global (1.25) = ${total} €\n`;
+        formule += `<u>Prix TTC </u>\n prix total (${prix} €) * Facteur global (1.25) = ${total} €\n`;
       
         // Retourner le prix total et la formule descriptive
         return {
@@ -339,7 +339,7 @@ class DevisCalculator {
             let prix_final_mur = surface * prix_unit_cloison * 1;
             prix += prix_final_mur;
         
-            formule += `Prix du mur ${i+1} = surface ${surface} m² * prix unitaire ${prix_unit_cloison} € = ${prix_final_mur} €\n`;
+            formule += `<u>Prix du mur ${i+1}</u>\n  surface ${surface} m² * prix unitaire ${prix_unit_cloison} € = ${prix_final_mur} €\n`;
           }
 
           if(has_portes){
@@ -351,13 +351,13 @@ class DevisCalculator {
               let prix_final_porte = 1 * prix_unit_porte * 1;
               prix += prix_final_porte;
 
-              formule += `Prix porte ${j+1} = 1 * prix unitaire ${prix_unit_porte} € = ${prix_final_porte} €\n`;
+              formule += `<u>Prix porte ${j+1}</u>\n 1 * prix unitaire ${prix_unit_porte} € = ${prix_final_porte} €\n`;
             }
           }
           
           // Multiplier le prix total par 1.25
           let total = (prix * 1.25).toFixed(2);
-          formule += `Prix final = prix total (${prix} €) * Facteur global (1.25) = ${total} €\n`;
+          formule += `<u>Prix TTC </u>\n prix total (${prix} €) * Facteur global (1.25) = ${total} €\n`;
         
           // Retourner le prix total et la formule descriptive
           return {
@@ -387,12 +387,12 @@ class DevisCalculator {
             prix += prix_gamme + prix_nature_porte + prix_type_porte ;
         
             // Ajouter les calculs à la formule
-            formule += `Prix de la porte ${index+1} = Prix de la gamme de porte "${titre_gamme}" (${prix_gamme} €) + Prix de la nature de la porte "${titre_nature_porte}" (${prix_nature_porte} €) + Prix du type de porte "${titre_type_porte}" (${prix_type_porte} €) = ${prix_gamme + prix_nature_porte + prix_type_porte} €\n`;
+            formule += `<u>Prix de la porte ${index+1} </u>\n Prix de la gamme de porte "${titre_gamme}" (${prix_gamme} €) + Prix de la nature de la porte "${titre_nature_porte}" (${prix_nature_porte} €) + Prix du type de porte "${titre_type_porte}" (${prix_type_porte} €) = ${prix_gamme + prix_nature_porte + prix_type_porte} €\n`;
            });
         
           // Multiplier le prix total par 1.25
           let total = (prix * 1.25).toFixed(2);
-          formule += `Prix final = prix total (${prix} €) * Facteur global (1.25) = ${total} €\n`;
+          formule += `<u>Prix TTC </u>\n prix total (${prix} €) * Facteur global (1.25) = ${total} €\n`;
         
           // Retourner le prix total et la formule descriptive
           return {
@@ -439,7 +439,7 @@ class DevisCalculator {
       
           // Multiplier le prix total par 1.25
           let total = (prix * 1.25).toFixed(2);
-          formule += `Prix final = prix total (${prix} €) * Facteur global (1.25) = ${total} €\n`;
+          formule += `<u>Prix TTC</u>\n prix total (${prix} €) * Facteur global (1.25) = ${total} €\n`;
         
           // Retourner le prix total et la formule descriptive
           return {
@@ -474,13 +474,13 @@ class DevisCalculator {
                   const nomGamme = (gammeParts[2]); // nom de la gamme
                   const nomType = (TypeParts[2]); // nom du Type
                   prix += prixGamme;
-                  formule += `Prix du radiateur ${index + 1}= Prix de la gamme choisie (${nomGamme}) = ${prixGamme} €\n`;
+                  formule += `<u>Prix du radiateur ${index + 1}</u>\n Prix de la gamme choisie (${nomGamme}) = ${prixGamme} €\n`;
             
           });
       
           // Multiplier le prix total par 1.25
           let total = (prix * 1.25).toFixed(2);
-          formule += `Prix final = prix total (${prix} €) * Facteur global (1.25) = ${total} €\n`;
+          formule += `<u>Prix TTC </u>\n prix total (${prix} €) * Facteur global (1.25) = ${total} €\n`;
         
           // Retourner le prix total et la formule descriptive
           return {
@@ -506,16 +506,16 @@ class DevisCalculator {
           const nom_gamme = (gammeParts[1]); // Dernier élément
           let sousTotalGamme = prix_gamme * surface;
           prix += sousTotalGamme;
-          formule += `Prix de la pose = Surface (${surface} m²) * Prix de la gamme choisie "${nom_gamme}" (${prix_gamme} €) = ${sousTotalGamme} €\n`;
+          formule += `<u>Prix de la pose</u>\n  Surface (${surface} m²) * Prix de la gamme choisie "${nom_gamme}" (${prix_gamme} €) = ${sousTotalGamme} €\n`;
 
           let sousTotalDeposeGamme = prix_depose * surface;
           prix += sousTotalDeposeGamme;
-          formule += `Prix de la dépose = Surface (${surface} m²) * Prix de la gamme du revêtement à déposer "${titre_depose}" (${prix_depose} €) = ${sousTotalDeposeGamme} €\n`;
+          formule += `<u>Prix de la dépose</u>\n Surface (${surface} m²) * Prix de la gamme du revêtement à déposer "${titre_depose}" (${prix_depose} €) = ${sousTotalDeposeGamme} €\n`;
           
       
           // Multiplier le prix total par 1.25
           let total = (prix * 1.25).toFixed(2);
-          formule += `Prix final = prix total (${prix} €) * Facteur global (1.25) = ${total} €\n`;
+          formule += `<u>Prix TTC</u>\n prix total (${prix} €) * Facteur global (1.25) = ${total} €\n`;
         
           // Retourner le prix total et la formule descriptive
           return {
@@ -542,14 +542,14 @@ class DevisCalculator {
             const nomGamme = (gammeParts[1]); // Dernier élément
             const sousTotalGamme = prixGamme * surface;
             prix += sousTotalGamme;
-            formule += `Prix de pose = Surface (${surface} m²) * Prix de la gamme choisie "${nomGamme}" (${prixGamme} €) = ${sousTotalGamme} €\n`;
+            formule += `<u>Prix de pose</u>\n  Surface (${surface} m²) * Prix de la gamme choisie "${nomGamme}" (${prixGamme} €) = ${sousTotalGamme} €\n`;
         }
 
         if (prix_depose>0) {
           
           const sousTotaldepose = prix_depose * surface;
           prix += sousTotaldepose;
-          formule += `Prix de dépose = Surface (${surface} m²) * Prix du revêtement à déposer "${nom_depose}" (${prix_depose} €) = ${sousTotaldepose} €\n`;
+          formule += `<u>Prix de dépose</u>\n  Surface (${surface} m²) * Prix du revêtement à déposer "${nom_depose}" (${prix_depose} €) = ${sousTotaldepose} €\n`;
       }
     
         // Vérification des plinthes
@@ -559,14 +559,14 @@ class DevisCalculator {
             const nomPlinthes = (plintheParts[1]); // Dernier élément
             const sousTotalPlinthes = prixPlinthes * surface;
             prix += sousTotalPlinthes;
-            formule += `Prix de la pose de plinthes = Surface (${surface} m²) * Prix des plinthes "${nomPlinthes}" (${prixPlinthes} €) = ${sousTotalPlinthes} €\n`;
+            formule += `<u>Prix de la pose de plinthes</u>\n  Surface (${surface} m²) * Prix des plinthes "${nomPlinthes}" (${prixPlinthes} €) = ${sousTotalPlinthes} €\n`;
         }
     
        
     
         // Multiplier le prix total par 1.25
         let total = (prix * 1.25).toFixed(2);
-        formule += `Prix final = prix total (${prix} €) * Facteur global (1.25) = ${total} €\n`;
+        formule += `<u>Prix TTC</u>\n  prix total (${prix} €) * Facteur global (1.25) = ${total} €\n`;
       
         // Retourner le prix total et la formule descriptive
         return {
@@ -595,14 +595,14 @@ class DevisCalculator {
                 let nombre_a_creer = appareil.nombre_a_creer;
                 let prix_creation = nombre_a_creer * prix_tache_creation;
                 prix += prix_creation;
-                formule += `Prix de la création de l'appareil "${appareil.titre}": nombre à créer (${nombre_a_creer}) * ${prix_tache_creation} € = ${prix_creation} € \n`;
+                formule += `<u>Prix de la création de l'appareil "${appareil.titre}"</u>\n nombre à créer (${nombre_a_creer}) * ${prix_tache_creation} € = ${prix_creation} € \n`;
               }
               if (appareil.nombre_a_remplacer>0) {
                 // remplacement
                 let nombre_a_remplacer = appareil.nombre_a_remplacer;
                 let prix_remplacement = nombre_a_remplacer * prix_tache_remplacement;
                 prix += prix_remplacement;
-                formule += `Prix du remplacement de l'appareil "${appareil.titre}": nombre à remplacer (${nombre_a_remplacer}) * ${prix_tache_remplacement} € = ${prix_remplacement} € \n`;
+                formule += `<u>Prix du remplacement de l'appareil "${appareil.titre}"</u>\n nombre à remplacer (${nombre_a_remplacer}) * ${prix_tache_remplacement} € = ${prix_remplacement} € \n`;
               }
             }
           });
@@ -611,12 +611,12 @@ class DevisCalculator {
               let prix_gamme = parseFloat(gamme.split(":")[1]);;
               let prix_final_gamme = 1 * prix_gamme;
               prix += prix_final_gamme;
-              formule += `Prix de la gamme "${nom_gamme}" = 1 * ${prix_gamme} € = ${prix_final_gamme} € \n`;
+              formule += `<u>Prix de la gamme "${nom_gamme}" </u>\n 1 * ${prix_gamme} € = ${prix_final_gamme} € \n`;
             
          
           // Multiplier le prix total par 1.25
           let total = (prix * 1.25).toFixed(2);
-          formule += `Prix final = prix total (${prix} €) * Facteur global (1.25) = ${total} €\n`;
+          formule += `<u>Prix TTC</u>\n prix total (${prix} €) * Facteur global (1.25) = ${total} €\n`;
         
           // Retourner le prix total et la formule descriptive
           return {
@@ -687,7 +687,7 @@ class DevisCalculator {
           if(chauffage_exist){
             let sousTotal = quantite_chauffage * prix_renovation_chauffage; // Calcul du sous-total pour cet appareil
             prix += sousTotal; // Ajoute le sous-total au prix total
-            formule += `Prix renovation de chauffage: ${quantite_chauffage} * ${prix_renovation_chauffage} € = ${sousTotal} €\n`;
+            formule += `<u>Prix renovation de chauffage</u>\n ${quantite_chauffage} * ${prix_renovation_chauffage} € = ${sousTotal} €\n`;
           }
 
          
@@ -695,13 +695,13 @@ class DevisCalculator {
           if(mise_en_securite){
             let sousTotal = 1 * prix_mise_en_securite; // Calcul du sous-total pour cet appareil
             prix += sousTotal; // Ajoute le sous-total au prix total
-            formule += `Prix mise en sécurité: 1 * ${prix_mise_en_securite} € = ${sousTotal} €\n`;
+            formule += `<u>Prix mise en sécurité</u>\n 1 * ${prix_mise_en_securite} € = ${sousTotal} €\n`;
           }
 
          
           // Multiplier le prix total par 1.25
           let total = (prix * 1.25).toFixed(2);
-          formule += `Prix final = prix total (${prix} €) * Facteur global (1.25) = ${total} €\n`;
+          formule += `<u>Prix TTC</u>\n prix total (${prix} €) * Facteur global (1.25) = ${total} €\n`;
         
           // Retourner le prix total et la formule descriptive
           return {
@@ -733,7 +733,7 @@ class DevisCalculator {
                   let prixModele = parseFloat(modeleParts[2]); // Prix du modèle
                   let titreModele = (modeleParts[1]); // Prix du modèle
                   prix += prixModele;
-                  formule += `Prix de pose ${titreModele}: 1 * prix de pose (${prixModele} €) = ${prixModele} €\n`;
+                  formule += `<u>Prix de pose</u>\n ${titreModele}: 1 * prix de pose (${prixModele} €) = ${prixModele} €\n`;
       
                  
               }
@@ -745,7 +745,7 @@ class DevisCalculator {
                 let titreModele = appareil.titre; // Prix du modèle
                 let prixModele = appareil.prix; // Prix du modèle
                 prix += prixModele;
-                formule += `Prix de dépose ${titreModele} : 1 * prix de dépose (${prixModele} €) = ${prixModele} €\n`;
+                formule += `<u>Prix de dépose</u>\n ${titreModele} : 1 * prix de dépose (${prixModele} €) = ${prixModele} €\n`;
             }
                 
             
@@ -754,7 +754,7 @@ class DevisCalculator {
         
         // Multiplier le prix total par 1.25
         let total = (prix * 1.25).toFixed(2);
-        formule += `Prix final = prix total (${prix} €) * Facteur global (1.25) = ${total} €\n`;
+        formule += `<u>Prix TTC</u>\n prix total (${prix} €) * Facteur global (1.25) = ${total} €\n`;
       
         // Retourner le prix total et la formule descriptive
         return {

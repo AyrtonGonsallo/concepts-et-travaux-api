@@ -42,11 +42,11 @@
             max-width: 100%;
             margin: auto;
         }
-        .footer a {
+        .footer a,a {
             color: #FFC637;
             text-decoration: underline;
         }
-        .footer a:hover {
+        .footer a:hover,a:hover {
             color: #555555;
         }
         h1 {
@@ -61,7 +61,7 @@
         table {
             width: 100%;
             border-collapse: collapse;
-            margin-top: 0px;
+            margin-top: 30px;
             margin-bottom: 30px;
         }
         table th, table td {
@@ -97,7 +97,9 @@
         <!-- Header -->
         <div class="header">
             <div>
-                
+                <!--<div>
+                   <p><strong>Date</strong> : <%= currentDate %></p>
+                </div>-->
                 <div class="center">
                 <img src="https://homeren.fr/icons/logo-homeren.png" alt="Logo du site">      
             </div>
@@ -105,65 +107,38 @@
         </div>
         <!-- Main Content -->
         <div class="content">
-            <p>Bonjour,
-                <br>
-                Nous avons le plaisir de confirmer l'enregistrement de votre paiement éffectuée sur Homeren le <%= dateString  %> </p> 
-                 <br>
-            
-            <table style="background-color: #fbfbfb !important;">
-                <thead>
-                    <tr style="background: #555555 !important; color: #ffffff;">
-                        <th>ID Devis</th>
-                        <th>Pièce</th>
-                        <th>Date</th>
-                        <th>Tâches</th>
-                        <th>Prix TTC</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    <% devisPieces.forEach(devis => { %>
-                        <tr style=" border-top: 1px solid #555 !important;">
-                            <td><%= devis.ID %></td>
-                            <td><%= devis.Piece.Titre %></td>
-                            <td><%= new Date(devis.Date).toLocaleDateString() %></td>
-                            <td>
-                                <% devis.DevisTaches.forEach(tache => { %>
-                                    <%= tache.Travail.Titre %><br>
-                                <% }) %>
-                            </td>
-                            <td><%= devis.Prix %> €</td>
-                        </tr>
-                    <% }) %>
-                </tbody>
-            </table>
-            <p>
-            Vous avez effexctué le paiement par CB.
-            Merci de votre confiance et à bientôt sur Homeren.</p>
-            <br><br>
+            <h1>Bonjour,</h1>
+            <p>Vous avez demandé la réinitialisation de votre mot de passe. Votre mot de passe a été mis à jour avec succès.</p>
+            <p><strong>Pour définir votre nouveau mot de passe, cliquez sur :</strong> <a href="http://localhost:3000/reset_password_form?uid=<%= uid %>" target="_blank">ce lien</a></p>
+            <p>Si vous n'avez pas demandé la réinitialisation de votre mot de passe, veuillez contacter notre support immédiatement.</p>
+            <br>
+            <p>Cordialement,</p>
+            <p>L'équipe HOMEREN</p>
+           
         </div>
 <div>
 </div>
-          <!-- Footer -->
+        <!-- Footer -->
   <div class="footer">
-    <div style="border:1px solid #E6E6E6 ;"></div>
-<p class="center" style="font-size: 11px;">
-Ce message a été envoyé automatiquement à  <a href="mailto:<%= email_user %>"><%= email_user %></a> dans le cadre de votre inscription au service HomeRen
-<br>
+            <div style="border:1px solid #E6E6E6 ;"></div>
+  <p class="center" style="font-size: 11px;">
+    Ce message a été envoyé automatiquement à  <a href="mailto:<%= email %>"><%= email %></a> dans le cadre de votre inscription au service HomeRen
+    <br>
 
-<strong>Une question ?</strong>  
-<br>
-
-Contactez votre Conseiller HomeRen au <a href="tel:02 00 00 00 00">02 00 00 00 00</a>  
-Nos horaires sont <a href="#"  style="text-decoration: underline;">consultables ici</a>.
-</p>
-<div style="border:1px solid #E6E6E6 ;"></div>
-<p class="center" style="font-size: 10px;">
-HomeRen traite vos données pour vous proposer un service de mise en relation avec des professionnels du bâtiment. Consultez la rubrique <a href="#" > Vos données et vos droits</a> sur notre site web pour en savoir plus.
-<br>
-Conformément aux dispositions de la loi « Informatique et Libertés » et du règlement général sur la protection des données du 27 avril 2016, vous disposez d'un droit d'accès, de rectification et de suppression de vos données personnelles. Consulter nos <a href="#">informations légales.</a>
-</p>
-</div>
-</div>
+    <strong>Une question ?</strong>  
+    <br>
+    
+    Contactez votre Conseiller HomeRen au <a href="tel:02 00 00 00 00">02 00 00 00 00</a>  
+    Nos horaires sont <a href="#"  style="text-decoration: underline;">consultables ici</a>.
+  </p>
+  <div style="border:1px solid #E6E6E6 ;"></div>
+  <p class="center" style="font-size: 10px;">
+    HomeRen traite vos données pour vous proposer un service de mise en relation avec des professionnels du bâtiment. Consultez la rubrique <a href="#" > Vos données et vos droits</a> sur notre site web pour en savoir plus.
+    <br>
+    Conformément aux dispositions de la loi « Informatique et Libertés » et du règlement général sur la protection des données du 27 avril 2016, vous disposez d'un droit d'accès, de rectification et de suppression de vos données personnelles. Consulter nos <a href="#">informations légales.</a>
+  </p>
+  </div>
+    </div>
 </div>
 </body>
 </html>

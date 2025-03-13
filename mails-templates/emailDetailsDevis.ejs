@@ -159,10 +159,7 @@
         <!-- Header -->
         <div class="header">
             <div>
-                <div>
-                   <!--<h1> <%= devisTache.Travail.Titre %></h1>
-                   <p><strong>Date</strong> : <%= currentDate %></p>-->
-                </div>
+                
                 <div class="center">
                 <img src="https://homeren.fr/icons/logo-homeren.png" alt="Logo du site">  
   
@@ -175,39 +172,32 @@
         <div class="content">
             <p>Bonjour,
                 <br>
-            Bienvenue chez HomeRen ! </p> 
-            <span class="desc">
-                Bienvenue sur homeren <%= utilisateur.Nom %> <%= utilisateur.Prenom %>.<br>
-                Vous vous êtes inscrit le <%= new Date(utilisateur.DateDeCreation).toLocaleString('fr-FR', {
-                    day: '2-digit',
-                    month: 'long',
-                    year: 'numeric',
-                    hour: '2-digit',
-                    minute: '2-digit',
-                    second: '2-digit'
-                  }) %>
-                   en tant que <%= utilisateur.Role.Titre %>
-            </span><br>
-            <span><strong>Prix</strong> : <%= devisTache.Prix %> €</span><br>
-            <p><strong>Récap</strong> :</p>
-            <p>
-                Depuis cet espace, vous pourrez retrouver tous les détails de votre projet, en créer de nouveaux… et sélectionner des professionnels partenaires pour les concrétiser !
+                 Voici votre devis suite à la demande éffectuée sur Homeren le <%= dateString  %> </p> 
+                 <br>
+            <strong>PRESTATIONS</strong><br>
+            
+            <% devisPiece.DevisTaches.forEach((devisTache, index) => { %>
+                <strong><%= devisPiece.Piece.Titre %> - <%= devisTache.Travail.Titre %> : <%= devisTache.Prix %> €</strong>
+                <p><%- results[index].formule %></p>
                 <br>
-                Merci de votre confiance.
-                <br><br>
-                A bientôt,
+              <% }); %>
 
-                L'équipe HomeRen
+            <strong>PRIX TOTAL TTC : <%= prix_total  %> €</strong><br>
+            <p>
+                Vous pouvez retrouver toutes ces informations en vous connectant à votre <a href="#">Espace Personnel</a> et proceder au paiement
+                <br>
+                Homeren vous remercie pour votre confiance.
+                
             </p>
 
         </div>
         
 
-       <!-- Footer -->
+        <!-- Footer -->
   <div class="footer">
     <div style="border:1px solid #E6E6E6 ;"></div>
 <p class="center" style="font-size: 11px;">
-Ce message a été envoyé automatiquement à  <a href="mailto:<%= email %>"><%= email %></a> dans le cadre de votre inscription au service HomeRen
+Ce message a été envoyé automatiquement à  <a href="mailto:<%= email_user %>"><%= email_user %></a> dans le cadre de votre inscription au service HomeRen
 <br>
 
 <strong>Une question ?</strong>  

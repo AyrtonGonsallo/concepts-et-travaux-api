@@ -175,10 +175,12 @@
         <div class="content">
             <p>Bonjour,
                 <br>
-            Bienvenue chez HomeRen ! </p> 
+                 Voici cotre devis suite à la demande éffectuée sur Homeren le <%= currentDate %> </p> 
+                 <br>
+            <strong>PRESTATIONS</strong>
             <span class="desc"><strong>Description</strong> : <%- devisTache.Travail.Description %></span><br>
-            <span><strong>Prix</strong> : <%= devisTache.Prix*1.2 %> €</span><br>
-            <p><strong>Récap</strong> :</p>
+            <span><strong>Prix</strong> : <%= devisTache.Prix %> €</span><br>
+            <p><strong>Récap</strong> : <%- formuleHtml %></p>
             <p>
                 Depuis cet espace, vous pourrez retrouver tous les détails de votre projet, en créer de nouveaux… et sélectionner des professionnels partenaires pour les concrétiser !
                 <br>
@@ -190,43 +192,29 @@
             </p>
 
         </div>
-        <!-- Footer
-        <div id="triangle-code2"></div>
-        <div class="footer">
+        
 
-            <div class="col-ftr">
-                <img src="https://homeren.fr/icons/tel.png"/>
-                <p>02 00 00 00 00</p>
-            </div>
-            <div class="col-ftr">
-                <img src="https://homeren.fr/icons/address.png"/>
-                <p>21 place de la République<br>75003 Paris</p>
-            </div>
-            <div class="col-ftr">
-                <img src="https://homeren.fr/icons/email.png"/>
-                <p>contact@homeren.fr</p>
-            </div>
-        </div> -->
+        <!-- Footer -->
+  <div class="footer">
+    <div style="border:1px solid #E6E6E6 ;"></div>
+<p class="center" style="font-size: 11px;">
+Ce message a été envoyé automatiquement à  <a href="mailto:<%= email_user %>"><%= email_user %></a> dans le cadre de votre inscription au service HomeRen
+<br>
 
-        <div class="footer">
-            <div style="border:1px solid #E6E6E6 ;"></div>
-  <p class="center" style="font-size: 11px;">
-    Ce message a été envoyé automatiquement à  <a href="mailto:<%= email_user %>"><%= email_user %></a> dans le cadre de votre inscription au service de mise en relation HomeRen
-    <br>
-    <strong>Une question ?</strong>  
-    <br>
-    Contactez votre Conseiller Travaux HomeRen au <a href="tel:02 00 00 00 00">02 00 00 00 00</a>  
-    Nos horaires sont <a href="http://" target="_blank" style="text-decoration: underline;">consultables ici</a>.
-  </p>
-  <div style="border:1px solid #E6E6E6 ;"></div>
-  <p class="center" style="font-size: 10px;">
-    HomeRen traite vos données pour vous proposer un service de mise en relation avec des professionnels du bâtiment. Consultez la rubrique <a href="/" target="_blank"> Vos données et vos droits</a> sur notre site web pour en savoir plus.
-    <br>
-    Conformément aux dispositions de la loi « Informatique et Libertés » et du règlement général sur la protection des données du 27 avril 2016, vous disposez d'un droit d'accès, de rectification et de suppression de vos données personnelles. Consulter nos <a target="_blank" href="/mentions-legales/">informations légales.</a>
-  </p>
-        </div>
+<strong>Une question ?</strong>  
+<br>
 
-    </div>
+Contactez votre Conseiller HomeRen au <a href="tel:02 00 00 00 00">02 00 00 00 00</a>  
+Nos horaires sont <a href="#"  style="text-decoration: underline;">consultables ici</a>.
+</p>
+<div style="border:1px solid #E6E6E6 ;"></div>
+<p class="center" style="font-size: 10px;">
+HomeRen traite vos données pour vous proposer un service de mise en relation avec des professionnels du bâtiment. Consultez la rubrique <a href="#" > Vos données et vos droits</a> sur notre site web pour en savoir plus.
+<br>
+Conformément aux dispositions de la loi « Informatique et Libertés » et du règlement général sur la protection des données du 27 avril 2016, vous disposez d'un droit d'accès, de rectification et de suppression de vos données personnelles. Consulter nos <a href="#">informations légales.</a>
+</p>
+</div>
+</div>
 </div>
 </body>
 </html>

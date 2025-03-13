@@ -6,6 +6,7 @@ const RoleAutorisation = require('./RoleAutorisation');
 const DevisCalculator = require('./services/DevisCalculator');
 const PieceCategorie=require('./PieceCategorie')
 const Travail=require('./Travail')
+const Recuperation=require('./Recuperation')
 const PieceTravail=require('./PieceTravail')
 const Pointcle=require('./Pointcle')
 const Avis=require('./Avis')
@@ -47,6 +48,7 @@ const mime = require('mime-types');
 const nodemailer = require('nodemailer');
 const { Op,Sequelize } = require('sequelize');
 const Stripe = require('stripe');
+const bodyParser = require('body-parser');
 
 // Définir le chemin du répertoire contenant les fichiers
 const filesDirectory = path.join(__dirname, 'files');
@@ -66,7 +68,8 @@ const transporter = nodemailer.createTransport({
 
 app.use(cors());
 app.use(express.json());
-
+app.use(bodyParser.urlencoded({ extended: true }));
+app.use(bodyParser.json());
 
 
 // Route pour ouvrir un fichier dans un nouvel onglet
@@ -377,28 +380,34 @@ app.get('/send-liste-devis-email/:deviceID', async (req, res) => {
 
     let htmlContent;
     // Obtenir la date et l'heure actuelle
-    const currentDate = new Date().toLocaleString('fr-FR', {
+    const currentDate = new Date();
+    const options = {
+      weekday: 'long', // Affiche le jour de la semaine
       day: '2-digit',
-      month: '2-digit',
-      year: 'numeric',
+      month: 'long',  // Affiche le mois en toute lettre
       hour: '2-digit',
-      minute: '2-digit'
-    });
+      minute: '2-digit',
+      hour12: false,  // Utilise l'heure en format 24h
+    };
+    
+    const email_user=devisPieces[0].Utilisateur.Email
+    const formattedDate = currentDate.toLocaleString('fr-FR', options);
+    const dateString = formattedDate.replace(",", " à"); 
     // Si des devis sont trouvés
     if (devisPieces.length > 0) {
       // Générer l'email en utilisant un template EJS avec la liste des devis
       const emailTemplatePath = path.join(__dirname, 'mails-templates', 'emailListeDevis.ejs');
-      htmlContent = await ejs.renderFile(emailTemplatePath, { devisPieces,currentDate  });
+      htmlContent = await ejs.renderFile(emailTemplatePath, { devisPieces,dateString,email_user  });
     } else {
       // Générer un email indiquant qu'aucun devis n'a été trouvé
       const emailTemplatePath = path.join(__dirname, 'mails-templates', 'emailAucunDevis.ejs');
-      htmlContent = await ejs.renderFile(emailTemplatePath, { deviceID,currentDate });
+      htmlContent = await ejs.renderFile(emailTemplatePath, { deviceID,dateString,email_user });
     }
 
     // Configuration de l'email
     const mailOptions = {
       from: '"HOMEREN" <gestion@homeren.fr>',
-      to: 'ayrtongonsallo444@gmail.com',
+      to: email_user,
       subject: 'Nous avons reçu votre paiement !',
       html: htmlContent
     };
@@ -445,22 +454,28 @@ app.get('/send-liste-devis-email-to-user/:userID', async (req, res) => {
     let user_email=devisPieces[0].Utilisateur.Email
     let htmlContent;
     // Obtenir la date et l'heure actuelle
-    const currentDate = new Date().toLocaleString('fr-FR', {
+    const currentDate = new Date();
+    const options = {
+      weekday: 'long', // Affiche le jour de la semaine
       day: '2-digit',
-      month: '2-digit',
-      year: 'numeric',
+      month: 'long',  // Affiche le mois en toute lettre
       hour: '2-digit',
-      minute: '2-digit'
-    });
+      minute: '2-digit',
+      hour12: false,  // Utilise l'heure en format 24h
+    };
+    
+    const formattedDate = currentDate.toLocaleString('fr-FR', options);
+    const dateString = formattedDate.replace(",", " à"); 
+    let email_user=user_email;
     // Si des devis sont trouvés
     if (devisPieces.length > 0) {
       // Générer l'email en utilisant un template EJS avec la liste des devis
       const emailTemplatePath = path.join(__dirname, 'mails-templates', 'emailListeDevis.ejs');
-      htmlContent = await ejs.renderFile(emailTemplatePath, { devisPieces,currentDate  });
+      htmlContent = await ejs.renderFile(emailTemplatePath, { devisPieces,dateString,email_user  });
     } else {
       // Générer un email indiquant qu'aucun devis n'a été trouvé
       const emailTemplatePath = path.join(__dirname, 'mails-templates', 'emailAucunDevis.ejs');
-      htmlContent = await ejs.renderFile(emailTemplatePath, { deviceID,currentDate });
+      htmlContent = await ejs.renderFile(emailTemplatePath, { deviceID,dateString,email_user });
     }
 
     // Configuration de l'email
@@ -485,7 +500,7 @@ app.get('/send-liste-devis-email-to-user/:userID', async (req, res) => {
 
 app.get('/paiement', async (req, res) => {
   //const { montant, source } = req.body;
-  const stripe = require('stripe')('sk_test_51PIqjhHuUJR23uZuT8B8UCGKAObmNduji5iZwEgzb11SDEJpzHppuuy73Gh59iWsnnGvyfzNsxeZ7WJQ3isnKNAh00seDwsYiQ');
+  const stripe = require('stripe')('sk_test_51R1pR3EDZMIS8WcNRA3mfHVgdM9I7UzIimfm00XwUcHMVeAu3jUIy2EFKtESsm9Ees8hCwO7j7SIuYFXqvdMOO0V00O02dyg9A');
   try {
     const charge = await stripe.charges.create({
       amount: 10000,// en centimes
@@ -502,13 +517,16 @@ app.get('/paiement', async (req, res) => {
 
 app.post('/create-checkout-session', async (req, res) => {
   try {
-    const stripe = require('stripe')('sk_test_51PIqjhHuUJR23uZuT8B8UCGKAObmNduji5iZwEgzb11SDEJpzHppuuy73Gh59iWsnnGvyfzNsxeZ7WJQ3isnKNAh00seDwsYiQ');
+    const stripe = require('stripe')('sk_test_51R1pR3EDZMIS8WcNRA3mfHVgdM9I7UzIimfm00XwUcHMVeAu3jUIy2EFKtESsm9Ees8hCwO7j7SIuYFXqvdMOO0V00O02dyg9A');
 
     const { montant, liste_devis, url_de_retour } = req.body;
 
     if (!montant || !liste_devis || liste_devis.length === 0) {
       return res.status(400).json({ error: "Montant et liste_devis sont requis" });
     }
+// Récupération des IDs des devis dans un tableau
+const devisIds = liste_devis.map(devis => devis.ID);
+
 
     const session = await stripe.checkout.sessions.create({
       payment_method_types: ['card'],
@@ -517,9 +535,11 @@ app.post('/create-checkout-session', async (req, res) => {
           price_data: {
             currency: 'eur',
             product_data: {
-              name: `${liste_devis.length} devis`,
-              description: `Paiement pour ${liste_devis.length} devis d'un montant total de ${montant}€`,
-              images: ['https://homeren.fr/assets/logo.svg'],
+              //name: `${liste_devis.length} devis`,
+              name: `Montant à régler :`,
+              description:`Ce montant correspond au total des ${liste_devis.length} devis (nº${devisIds.join(', nº')}) qui vous ont été transmis par email et que vous pouvez retrouver sur votre compte Homeren.`,
+              //description: `Paiement pour ${liste_devis.length} devis d'un montant total de ${montant}€`,
+              //images: ['https://homeren.fr/assets/logo-homeren-jn.webp'],
             },
             unit_amount: montant * 100, // Convertir en centimes
           },
@@ -551,7 +571,7 @@ app.post('/create-checkout-session', async (req, res) => {
 
 app.post('/get_paiement', async (req, res) => {
   //const { montant, source } = req.body;
-  const stripe = require('stripe')('sk_test_51PIqjhHuUJR23uZuT8B8UCGKAObmNduji5iZwEgzb11SDEJpzHppuuy73Gh59iWsnnGvyfzNsxeZ7WJQ3isnKNAh00seDwsYiQ');
+  const stripe = require('stripe')('sk_test_51R1pR3EDZMIS8WcNRA3mfHVgdM9I7UzIimfm00XwUcHMVeAu3jUIy2EFKtESsm9Ees8hCwO7j7SIuYFXqvdMOO0V00O02dyg9A');
   const amount = req.body?.data?.amount || 1000;
     try {
         //create stripe session
@@ -640,7 +660,8 @@ app.get('/send-devis-details-email/:devistacheID', async (req, res) => {
       include: [
         {
           model: Travail
-        }
+        },
+        
       ]
     });
 
@@ -664,10 +685,11 @@ app.get('/send-devis-details-email/:devistacheID', async (req, res) => {
       minute: '2-digit'
     });
     // Si des devis sont trouvés
+    const email_user = "psychopathvssociopathe@gmail.com";
     if (devisTache) {
       const formule = results.formule;
       const formuleHtml = formule.replace(/\n/g, '<br>');
-      const email_user = "ayrtongonsallo444@gmail.com";
+      
       // Générer l'email en utilisant un template EJS avec la liste des devis
       const emailTemplatePath = path.join(__dirname, 'mails-templates', 'emailDetailsTravail.ejs');
 
@@ -676,8 +698,8 @@ app.get('/send-devis-details-email/:devistacheID', async (req, res) => {
     // Configuration de l'email
     const mailOptions = {
       from: '"HOMEREN" <gestion@homeren.fr>',
-      to: 'ayrtongonsallo444@gmail.com',
-      subject: 'Votre devis est prêt !',
+      to: email_user,
+      subject: `Votre devis #${devistacheID} est prêt !`,
       html: htmlContent
     };
 
@@ -691,6 +713,98 @@ app.get('/send-devis-details-email/:devistacheID', async (req, res) => {
 });
 
 
+
+app.get('/send-devis-piece-details-email/:devispieceID', async (req, res) => {
+  const { devispieceID } = req.params;
+
+  try {
+
+    const calculator = new DevisCalculator();
+    await calculator.initTaches();
+    // Récupérer les devis non payés associés au DeviceID
+    const devisPiece = await DevisPiece.findOne({
+      where: {
+        ID: devispieceID
+      },
+      include: [
+        {
+          model: DevisTache,
+          include: [Travail]
+        },
+        {
+          model: Piece
+        },
+        {
+          model: Utilisateur
+        },
+        
+      ]
+    });
+
+    let results = []; // Pour stocker les résultats de toutes les tâches
+    let devisTaches=devisPiece.DevisTaches
+    let prix_total=0;
+
+// Boucle pour traiter chaque tâche de manière dynamique
+for (let i = 0; i < devisTaches.length; i++) {
+  let devisTache = devisTaches[i];
+  let travail = devisTache.Travail;
+  let donnees = {
+    "formulaire": JSON.parse(devisTache.Donnees),
+    "nomtache": devisTache.TravailSlug
+  };
+  
+  // Calcul du prix pour chaque tâche
+  let result = await calculator.calculer_prix(travail.ID, donnees);
+  let formule = result.formule;
+  let formuleHtml = formule.replace(/\n/g, '<br>');
+  result.formule=formuleHtml;
+  results.push(result); // Ajout des résultats dans le tableau
+  prix_total+=parseFloat(result.prix);
+  console.log(parseFloat(result.prix))
+}
+        
+    
+    let htmlContent;
+    // Obtenir la date et l'heure actuelle
+    const currentDate = new Date();
+    const options = {
+      weekday: 'long', // Affiche le jour de la semaine
+      day: '2-digit',
+      month: 'long',  // Affiche le mois en toute lettre
+      hour: '2-digit',
+      minute: '2-digit',
+      hour12: false,  // Utilise l'heure en format 24h
+    };
+    
+    const formattedDate = currentDate.toLocaleString('fr-FR', options);
+    const dateString = formattedDate.replace(",", " à"); 
+    // Si des devis sont trouvés
+    const email_user = "psychopathvssociopathe@gmail.com";
+   
+    if (devisPiece) {
+   
+      // Générer l'email en utilisant un template EJS avec la liste des devis
+      const emailTemplatePath = path.join(__dirname, 'mails-templates', 'emailDetailsDevis.ejs');
+
+      htmlContent = await ejs.renderFile(emailTemplatePath, { devisPiece,prix_total,dateString,results,email_user  });
+    } 
+    // Configuration de l'email
+    const mailOptions = {
+      from: '"HOMEREN" <gestion@homeren.fr>',
+      to: email_user,
+      subject: `Votre devis #${devisPiece.ID} est prêt !`,
+      html: htmlContent
+    };
+
+    // Envoyer l'email
+    await transporter.sendMail(mailOptions);
+    res.send(`Email envoyé pour le devis tache: ${devispieceID}`);
+  } catch (error) {
+    console.error('Erreur lors de l\'envoi de l\'email:', error);
+    res.status(500).send('Erreur lors de l\'envoi de l\'email');
+  }
+});
 
 // Endpoint pour envoyer un e-mail
 app.get('/test-email', (req, res) => {
@@ -751,51 +865,140 @@ function generateRandomPassword(length) {
   return crypto.randomBytes(length).toString('base64').slice(0, length);
 }
 
+app.get('/reset_password_form', async (req, res) => {
+  const { uid, error, success } = req.query;
+
+  // Vérification si 'uid' est fourni
+  if (!uid) {
+    return res.status(400).json({ error: 'Paramètre uid requis' });
+  }
+
+  try {
+    // Recherche de l'entrée avec la date d'expiration la plus proche et qui n'a pas été utilisée
+    const recuperation = await Recuperation.findOne({
+      where: {
+        UserId: uid,
+        ExpirationDate: {
+          [Op.gt]: new Date() // Filtrer uniquement les entrées non expirées
+        },
+      },
+      order: [['ExpirationDate', 'ASC']] // Trier pour prendre la plus proche
+    });
+
+    if (!recuperation && !(error || success)) {
+      return res.status(404).json({ error: 'Lien de récupération invalide ou expiré' });
+    }
+
+    const formPath = path.join(__dirname, 'form-templates', 'formRecuperation.ejs');
+    res.render(formPath, { errorMessage: error || null, successMessage: success || null });
+
+  } catch (error) {
+    console.error('Erreur lors de la récupération des données:', error);
+    res.status(500).json({ error: 'Erreur serveur' });
+  }
+});
+
+
+
+
+app.post('/reset_password_form/', async (req, res) => {
+  try {
+    console.log(req.body)
+    const { email, password, confirmPassword } = req.body;
+    // Vérification des champs
+    if (!email || !password || !confirmPassword) {
+      return res.redirect('/reset_password_form/?uid=0&error=Tous les champs sont obligatoires');
+    }
+
+
+    // Vérification que les mots de passe sont identiques
+    if (password !== confirmPassword) {
+      return res.redirect('/reset_password_form/?uid=0&error=Les mots de passe ne correspondent pas.');
+    }
+
+    // Vérification que l'email existe dans la base de données
+    const user = await Utilisateur.findOne({ where: { email } });
+    
+    if (!user) {
+      return res.redirect('/reset_password_form/?uid=0&error=Utilisateur non trouvé.');
+    }
+    let uid=user.Id
+    // Hasher le nouveau mot de passe
+    const hashedPassword = await bcrypt.hash(password, saltRounds);
+
+    // Mettre à jour le mot de passe dans la base de données
+    await user.update({ Password: hashedPassword });
+    await Recuperation.destroy({
+      where: {
+        UserId: uid
+      }
+    });
+    // Retourner une réponse de succès
+    return res.redirect('/reset_password_form/?uid='+uid+'&success=Mot de passe réinitialisé avec succès.');
+
+  } catch (error) {
+    console.error('Erreur lors de la réinitialisation du mot de passe:', error);
+    return res.redirect('/reset_password_form/?uid=0&error=Erreur lors de la réinitialisation du mot de passe:'+error);
+  }
+});
+
+
 app.get('/restore_user_password/:email', async (req, res) => {
   try {
-      const email = req.params.email; // Récupérez l'email de l'URL
-      const newpass = generateRandomPassword(12); // Génère un mot de passe de 12 caractères
+    const email = req.params.email; // Récupérez l'email de l'URL
 
-      const user = await Utilisateur.findOne({
-        where: {
-          email: {
-            [Op.like]: `%${email}%`
-          }
+    const user = await Utilisateur.findOne({
+      where: {
+        email: {
+          [Op.like]: `%${email}%`
         }
-      });
-        // Hasher le nouveau mot de passe
-      const hashedPassword = await bcrypt.hash(newpass, saltRounds);
-      if (!user) {
-        return res.status(404).json({ error: 'Utilisateur non trouvé' });
+      }
+    });
+
+    if (!user) {
+      return res.status(404).json({ error: 'Utilisateur non trouvé' });
     }
-      // Mettre à jour le mot de passe de l'utilisateur
-      await user.update({ Password: hashedPassword });
-      // Préparer les données pour l'e-mail
-      const mailData = {
-        from: '"HOMEREN" <gestion@homeren.fr>',
-        to: email,
-        subject: 'Confirmation de la réinitialisation du mot de passe',
-        text: `Bonjour,
 
-        Vous avez demandé une réinitialisation de votre mot de passe. Votre mot de passe a été mis à jour avec succès(${newpass}).
-        Si vous n'avez pas demandé de réinitialisation de mot de passe, veuillez contacter notre support immédiatement.
+    // Créez une nouvelle entrée dans la table Recuperation
+    const expirationDate = new Date();
+    expirationDate.setHours(expirationDate.getHours() + 1); // Expiration dans 1 heure
 
-        Cordialement,
-        Votre équipe support`
-      };
+    const recuperation = await Recuperation.create({
+      ExpirationDate: expirationDate,
+      UserId: user.Id // Assurez-vous que l'attribut correspond à votre modèle Utilisateur
+    });
+    const currentDate = new Date().toLocaleString('fr-FR', {
+      day: '2-digit',
+      month: '2-digit',
+      year: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit'
+    });
+    let uid=user.Id
+    const emailTemplatePath = path.join(__dirname, 'mails-templates', 'emailRecuperation.ejs');
+    // Préparer les données pour l'e-mail
+    const mailData = {
+      from: '"HOMEREN" <gestion@homeren.fr>',
+      to: email,
+      subject: 'Confirmation de la réinitialisation du mot de passe',
+      // Utilisation de EJS pour le contenu dynamique
+      
 
-      // Envoyer l'e-mail de notification
-      transporter.sendMail(mailData, (error, info) => {
-        if (error) {
-          console.error('Erreur lors de l\'envoi de l\'e-mail :', error);
-          return res.status(500).json({ error: 'Erreur lors de l\'envoi de l\'e-mail' });
-        }
-        console.log('E-mail envoyé :', info.response);
-        res.status(200).json({ message: 'Mot de passe mis à jour avec succès et e-mail envoyé' });
-      });
-      } catch (error) {
-      console.error('Erreur lors de la mise à jour du mot de passe de l\'utilisateur :', error);
-      res.status(500).json({ error: 'Erreur serveur' }); // Renvoie une erreur serveur en cas de problème
+      html: await ejs.renderFile(emailTemplatePath, { currentDate,email,uid })
+    };
+
+    // Envoyer l'e-mail de notification
+    transporter.sendMail(mailData, (error, info) => {
+      if (error) {
+        console.error('Erreur lors de l\'envoi de l\'e-mail :', error);
+        return res.status(500).json({ error: 'Erreur lors de l\'envoi de l\'e-mail' });
+      }
+      console.log('E-mail envoyé :', info.response);
+      res.status(200).json({ message: 'Mot de passe mis à jour avec succès et e-mail envoyé' });
+    });
+  } catch (error) {
+    console.error('Erreur lors de la mise à jour du mot de passe de l\'utilisateur :', error);
+    res.status(500).json({ error: 'Erreur serveur' }); // Renvoie une erreur serveur en cas de problème
   }
 });
 
@@ -4445,71 +4648,74 @@ async function sendDevisDetailsEmail( devis_id) {
     if (!devisPiece) {
       throw new Error(`Aucun devis trouvé avec l'ID: ${devis_id}`);
     }
-
-    //recuperer les taches
-    const devisTaches = devisPiece.DevisTaches || [];
-    const emailResults = []; 
-
-   
-  
-
-    // Obtenir la date et l'heure actuelle
-    const currentDate = new Date().toLocaleString('fr-FR', {
-      day: '2-digit',
-      month: '2-digit',
-      year: 'numeric',
-      hour: '2-digit',
-      minute: '2-digit',
-    });
-    
-    for (let devisTache of devisTaches) {
-      try {
-        let donnees = {
-          "formulaire": JSON.parse(devisTache.Donnees),
-          "nomtache": devisTache.TravailSlug
-        };
-        const results = await calculator.calculer_prix(devisTache.TravailID, donnees);
-        const prix = parseFloat(results.prix);
-        const formule = results.formule;
-        const formuleHtml = formule.replace(/\n/g, '<br>');
         const email_user = devisPiece.Utilisateur.Email;
-        // Générer le contenu HTML de l'email
-        const emailTemplatePath = path.join(__dirname, 'mails-templates', 'emailDetailsTravail.ejs');
-        const htmlContent = await ejs.renderFile(emailTemplatePath, {
-          devisTache,
-          prix,
-          formuleHtml,
-          currentDate,
-          email_user,
-          
-        });
-
+        let results = []; // Pour stocker les résultats de toutes les tâches
+        let devisTaches=devisPiece.DevisTaches
+        let prix_total=0;
+        
+    // Boucle pour traiter chaque tâche de manière dynamique
+    for (let i = 0; i < devisTaches.length; i++) {
+      let devisTache = devisTaches[i];
+      let travail = devisTache.Travail;
+      let donnees = {
+        "formulaire": JSON.parse(devisTache.Donnees),
+        "nomtache": devisTache.TravailSlug
+      };
+      
+      // Calcul du prix pour chaque tâche
+      let result = await calculator.calculer_prix(travail.ID, donnees);
+      let formule = result.formule;
+      let formuleHtml = formule.replace(/\n/g, '<br>');
+      result.formule=formuleHtml;
+      results.push(result); // Ajout des résultats dans le tableau
+      prix_total+=parseFloat(result.prix);
+      console.log(parseFloat(result.prix))
+    }
+            
+        
+        let htmlContent;
+        // Obtenir la date et l'heure actuelle
+        const currentDate = new Date();
+        const options = {
+          weekday: 'long', // Affiche le jour de la semaine
+          day: '2-digit',
+          month: 'long',  // Affiche le mois en toute lettre
+          hour: '2-digit',
+          minute: '2-digit',
+          hour12: false,  // Utilise l'heure en format 24h
+        };
+        
+        const formattedDate = currentDate.toLocaleString('fr-FR', options);
+        const dateString = formattedDate.replace(",", " à"); 
+        // Si des devis sont trouvés
+       
+        if (devisPiece) {
+       
+          // Générer l'email en utilisant un template EJS avec la liste des devis
+          const emailTemplatePath = path.join(__dirname, 'mails-templates', 'emailDetailsDevis.ejs');
+    
+          htmlContent = await ejs.renderFile(emailTemplatePath, { devisPiece,prix_total,dateString,results,email_user  });
+        } 
         // Configuration de l'email
         const mailOptions = {
           from: '"HOMEREN" <gestion@homeren.fr>',
           to: email_user,
-          subject: `Votre devis est prêt !`,
-          html: htmlContent,
+          subject: `Votre devis #${devisPiece.ID} est prêt !`,
+          html: htmlContent
         };
-
+    
         // Envoyer l'email
         await transporter.sendMail(mailOptions);
-        console.log(`Email envoyé pour le devis tâche ID: ${devisTache.ID}`);
-        emailResults.push({ tacheID: devisTache.ID, status: 'success',formule:formule });
-      } catch (error) {
-        console.error(`Erreur lors de l'envoi de l'email pour la tâche ID: ${devisTache.ID}`, error);
-        emailResults.push({ tacheID: devisTache.ID, status: 'error', error: error.message });
-      }
-    }
-     // Retourner les résultats
+        // Retourner les résultats
      return {
-      message: `Traitement terminé pour le devis ID: ${devis_id}`,
-      emailResults,
+      message: `Traitement terminé pour le devis ID: ${devisPiece.ID}`,
+     
     };
   } catch (error) {
     console.error('Erreur lors de l\'envoi des emails:', error);
     throw new Error('Erreur lors de l\'envoi des emails');
   }
+   
 }
 
 

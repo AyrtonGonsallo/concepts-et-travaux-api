@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Réinitialisation du mot de passe</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background-color: #f9f9f9;
+      margin: 0;
+      padding: 20px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+    .container {
+      background-color: #fff;
+      padding: 20px;
+      border-radius: 10px;
+      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+      width: 100%;
+      max-width: 400px;
+      text-align: center;
+    }
+    img {
+      max-width: 100px;
+      margin-bottom: 20px;
+    }
+    h1 {
+      color: #333;
+      font-size: 1.5rem;
+      margin-bottom: 20px;
+    }
+    input[type="email"], input[type="password"] {
+      width: 100%;
+      padding: 10px;
+      margin-bottom: 15px;
+      border: 1px solid #ccc;
+      border-radius: 5px;
+      box-sizing: border-box;
+    }
+    button {
+      background-color: #ffc736;
+      color: #333;
+      border: none;
+      padding: 10px 15px;
+      font-weight: bolder;
+      border-radius: 5px;
+      cursor: pointer;
+      width: 100%;
+    }
+    button:hover {
+      background-color: #7f7d72;
+      color:white;
+    }
+    .message {
+      margin-bottom: 15px;
+    }
+    .error {
+      color: red;
+    }
+    .success {
+      color: green;
+    }
+    .col-2{
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <img src="https://homeren.fr/icons/logo-homeren.png" alt="Icône de verrouillage">
+    <h1>Réinitialisation du mot de passe</h1>
+
+    <!-- Messages d'erreur ou de succès -->
+    <div class="message">
+      <% if (errorMessage) { %>
+        <p class="error"><%= errorMessage %></p>
+      <% } %>
+      <% if (successMessage) { %>
+        <p class="success"><%= successMessage %></p>
+      <% } %>
+    </div>
+
+    <form method="POST" action="/reset_password_form/">
+        <div class="col-2">
+            <label>Email:</label>
+            <input type="email" name="email" required />
+        </div>
+        <div class="col-2">
+            <label>Nouveau mot de passe:</label>
+            <input type="password" name="password" required />
+         </div>
+         <div class="col-2">
+            <label>Confirmer le mot de passe:</label>
+            <input type="password" name="confirmPassword" required />
+         </div>
+        <button type="submit">Réinitialiser</button>
+    </form>
+  </div>
+</body>
+</html>
