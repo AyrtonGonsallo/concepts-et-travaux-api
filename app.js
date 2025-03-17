@@ -554,10 +554,28 @@ const devisIds = liste_devis.map(devis => devis.ID);
 
     res.json({ url: session.url });
     const listeDevis = session.metadata.liste_devis.split(",").map(id => parseInt(id, 10)); // Convertir en tableau d'entiers
-
+/*
     try {
       await DevisPiece.update({ Payed: 1 }, { where: { ID: listeDevis } });
       console.log(`Devis mis à jour : ${listeDevis.join(", ")}`);
+    } catch (err) {
+      console.error('Erreur mise à jour devis :', err);
+    }*/
+  } catch (error) {
+    console.error('Erreur lors de la création de la session Stripe :', error);
+    res.status(500).json({ error: error.message });
+  }
+});
+
+app.post('/update-payed-devis', async (req, res) => {
+  try {
+
+    const { liste_devis,  } = req.body;
+// Extraire uniquement les IDs
+const devisIDs = liste_devis.map(devis => devis.ID);
+    try {
+      await DevisPiece.update({ Payed: 1 }, { where: { ID: devisIDs } });
+      console.log(`Devis mis à jour : ${devisIDs.join(", ")}`);
     } catch (err) {
       console.error('Erreur mise à jour devis :', err);
     }
@@ -590,8 +608,8 @@ app.post('/get_paiement', async (req, res) => {
                 },
             ],
             mode: 'payment',
-            success_url: `${'http://109.234.166.164:4300'}/stripe-successful-payment?hash=hash`,
-            cancel_url: `${'http://109.234.166.164:4300'}/stripe-canceled-payment?hash=hash`,
+            success_url: `${'http://localhost:4300'}/stripe-successful-payment?hash=hash`,
+            cancel_url: `${'http://localhost:4300'}/stripe-canceled-payment?hash=hash`,
             expand: ['payment_intent']
         });
 
@@ -1049,7 +1067,7 @@ app.post('/add_front_utilisateur', async (req, res) => {
      const existingUserByEmail = await Utilisateur.findOne({ where: { Email: email } });
 
      if (existingUserByEmail) {
-       return res.status(400).json({ error: 'Un utilisateur avec cet email existe déjà.' });
+       return res.status(400).json({ error: 'Un utilisateur avec cette adresse email existe déjà.' });
      }
     // Vérifier si l'ID du rôle est fourni dans le corps de la requête
     if (!roleId) {
@@ -1072,7 +1090,43 @@ app.post('/add_front_utilisateur', async (req, res) => {
       DeviceID:deviceID,
       RoleId:roleId // Associer l'ID du rôle à l'utilisateur
     });
+     utilisateur2 = await Utilisateur.findOne({
+      where: {
+        Id: utilisateur.Id
+      },
+      include: Role // Inclure les grades associés à l'utilisateur
+    });
+    let htmlContent;
+    // Obtenir la date et l'heure actuelle
+    const currentDate = new Date();
+    const options = {
+      weekday: 'long', // Affiche le jour de la semaine
+      day: '2-digit',
+      month: 'long',  // Affiche le mois en toute lettre
+      hour: '2-digit',
+      minute: '2-digit',
+      hour12: false,  // Utilise l'heure en format 24h
+    };
+    
+    const formattedDate = currentDate.toLocaleString('fr-FR', options);
+    const dateString = formattedDate.replace(",", " à"); 
+    // Si des devis sont trouvés
+    if (utilisateur2) {
+      // Générer l'email en utilisant un template EJS avec la liste des devis
+      const emailTemplatePath = path.join(__dirname, 'mails-templates', 'emailBienvenue.ejs');
+      htmlContent = await ejs.renderFile(emailTemplatePath, { utilisateur2,dateString  });
+    } 
 
+    // Configuration de l'email
+    const mailOptions = {
+      from: '"HOMEREN" <gestion@homeren.fr>',
+      to: email,
+      subject: 'Création de compte',
+      html: htmlContent
+    };
+
+    // Envoyer l'email
+    await transporter.sendMail(mailOptions);
 
       // Répondre avec l'utilisateur ajouté
       res.status(201).json(utilisateur);
@@ -1120,7 +1174,43 @@ app.post('/add_front_utilisateur_with_datas', async (req, res) => {
       DeviceID: deviceID,
       RoleId: 3 // Associer l'ID du rôle à l'utilisateur
     });
+    utilisateur2 = await Utilisateur.findOne({
+      where: {
+        Id: utilisateur.Id
+      },
+      include: Role // Inclure les grades associés à l'utilisateur
+    });
+    let htmlContent;
+    // Obtenir la date et l'heure actuelle
+    const currentDate = new Date();
+    const options = {
+      weekday: 'long', // Affiche le jour de la semaine
+      day: '2-digit',
+      month: 'long',  // Affiche le mois en toute lettre
+      hour: '2-digit',
+      minute: '2-digit',
+      hour12: false,  // Utilise l'heure en format 24h
+    };
+    
+    const formattedDate = currentDate.toLocaleString('fr-FR', options);
+    const dateString = formattedDate.replace(",", " à"); 
+    // Si des devis sont trouvés
+    if (utilisateur2) {
+      // Générer l'email en utilisant un template EJS avec la liste des devis
+      const emailTemplatePath = path.join(__dirname, 'mails-templates', 'emailBienvenue.ejs');
+      htmlContent = await ejs.renderFile(emailTemplatePath, { utilisateur2,dateString  });
+    } 
 
+    // Configuration de l'email
+    const mailOptions = {
+      from: '"HOMEREN" <gestion@homeren.fr>',
+      to: email,
+      subject: 'Création de compte',
+      html: htmlContent
+    };
+
+    // Envoyer l'email
+    await transporter.sendMail(mailOptions);
     // Répondre avec l'utilisateur ajouté
     res.status(201).json(utilisateur);
 

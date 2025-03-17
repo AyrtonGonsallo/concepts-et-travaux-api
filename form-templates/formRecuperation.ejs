@@ -83,7 +83,7 @@
         <p class="success"><%= successMessage %></p>
       <% } %>
     </div>
-
+    <% if (!successMessage) { %>
     <form method="POST" action="/reset_password_form/">
         <div class="col-2">
             <label>Email:</label>
@@ -99,6 +99,7 @@
          </div>
         <button type="submit">Réinitialiser</button>
     </form>
+    <% } %>
   </div>
 </body>
 </html>
