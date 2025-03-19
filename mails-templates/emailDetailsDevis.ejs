@@ -172,12 +172,13 @@
         <div class="content">
             <p>Bonjour,
                 <br>
-                 Voici votre devis suite à la demande éffectuée sur Homeren le <%= dateString  %> </p> 
+                 Voici votre devis suite à la demande effectuée sur Homeren le <%= dateString  %> </p> 
                  <br>
             <strong>PRESTATIONS</strong><br>
             
             <% devisPiece.DevisTaches.forEach((devisTache, index) => { %>
-                <strong><%= devisPiece.Piece.Titre %> - <%= devisTache.Travail.Titre %> : <%= devisTache.Prix %> €</strong>
+                <strong><%= devisPiece.Piece.Titre %> - <%= devisTache.Travail.Titre %> : <%= devisTache.Prix %> €</strong><br>
+                <strong>Récapitulatif de votre commande : </strong>
                 <p><%- results[index].formule %></p>
                 <br>
               <% }); %>

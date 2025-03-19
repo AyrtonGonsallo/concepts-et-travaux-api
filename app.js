@@ -4,6 +4,7 @@ const crypto = require('crypto');
 const Utilisateur = require('./Utilisateur');
 const RoleAutorisation = require('./RoleAutorisation');
 const DevisCalculator = require('./services/DevisCalculator');
+const DevisRecapitulator = require('./services/DevisRecapitulator');
 const PieceCategorie=require('./PieceCategorie')
 const Travail=require('./Travail')
 const Recuperation=require('./Recuperation')
@@ -737,7 +738,7 @@ app.get('/send-devis-piece-details-email/:devispieceID', async (req, res) => {
 
   try {
 
-    const calculator = new DevisCalculator();
+    const calculator = new DevisRecapitulator();
     await calculator.initTaches();
     // Récupérer les devis non payés associés au DeviceID
     const devisPiece = await DevisPiece.findOne({
@@ -798,7 +799,7 @@ for (let i = 0; i < devisTaches.length; i++) {
     const formattedDate = currentDate.toLocaleString('fr-FR', options);
     const dateString = formattedDate.replace(",", " à"); 
     // Si des devis sont trouvés
-    const email_user = "psychopathvssociopathe@gmail.com";
+    const email_user = "ayrtongonsallo444@gmail.com";
    
     if (devisPiece) {
    
@@ -952,7 +953,7 @@ app.post('/reset_password_form/', async (req, res) => {
       }
     });
     // Retourner une réponse de succès
-    return res.redirect('/reset_password_form/?uid='+uid+'&success=Mot de passe réinitialisé avec succès.');
+    return res.redirect('/reset_password_form/?uid='+uid+'&success=Votre mot de passe à été réinitialisé avec succès.');
 
   } catch (error) {
     console.error('Erreur lors de la réinitialisation du mot de passe:', error);
@@ -2196,6 +2197,7 @@ app.post('/ajouter_etape_devis', async (req, res) => {
   try {
     const {
       Titre,
+      Sous_titre,
       Description,
       Description_chambre,
       Description_sdb,
@@ -2210,6 +2212,7 @@ app.post('/ajouter_etape_devis', async (req, res) => {
     // Création de l'étape de devis dans la base de données
     const etape_d = await EtapeDevis.create({
       Titre,
+      Sous_titre,
       Description,
       Description_chambre,
       Description_sdb,
@@ -2262,6 +2265,7 @@ app.put('/update_etape_devis/:id', async (req, res) => {
   try {
     const {
       Titre,
+      Sous_titre,
       Description,
       Description_chambre,
       Description_sdb,
@@ -2281,6 +2285,8 @@ app.put('/update_etape_devis/:id', async (req, res) => {
 
     // Mise à jour des champs
     etapeDevis.Titre = Titre || etapeDevis.Titre;
+    etapeDevis.Sous_titre = Sous_titre || etapeDevis.Sous_titre;
+    
     etapeDevis.Description = Description || etapeDevis.Description;
     etapeDevis.Description_chambre = Description_chambre || etapeDevis.Description_chambre;
     etapeDevis.Description_sdb = Description_sdb || etapeDevis.Description_sdb;
@@ -4716,7 +4722,7 @@ app.post('/add_devis_piece', async (req, res) => {
 
 async function sendDevisDetailsEmail( devis_id) {
   try {
-    const calculator = new DevisCalculator();
+    const calculator = new DevisRecapitulator();
     await calculator.initTaches();
 
     // Récupérer le devis

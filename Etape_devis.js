@@ -25,6 +25,11 @@ const EtapeDevis = sequelize.define('EtapeDevis', {
     allowNull: false,
     field: 'Titre' // Spécifie explicitement le nom de la colonne dans la base de données
   },
+  Sous_titre: {
+    type: DataTypes.STRING,
+    allowNull: true,
+    field: 'Sous_titre' // Spécifie explicitement le nom de la colonne dans la base de données
+  },
   Description: {
     type: DataTypes.TEXT,
     allowNull: false,

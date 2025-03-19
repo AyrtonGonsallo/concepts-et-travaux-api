@@ -5,9 +5,13 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
     <title>Liste des Devis</title>
     <style>
+         @font-face {
+            font-family: 'Montserrat';
+            src: url('https://homeren.fr/assets/Montserrat-Regular.ttf') format("truetype");
+        }
         @font-face {
             font-family: 'Sarpanch-Regular';
-            src: url('/Sarpanch-Regular.ttf') format('truetype');
+            src: url('https://homeren.fr/assets/Sarpanch-Regular.ttf') format('truetype');
         }
         .center{text-align: center;}
         body {
@@ -42,11 +46,14 @@
             max-width: 100%;
             margin: auto;
         }
-        .footer a,a {
+        .footer a{
             color: #FFC637;
             text-decoration: underline;
         }
-        .footer a:hover,a:hover {
+        .yellow-link {
+            color: #ffc637 !important;
+        }
+        .footer a:hover,a:hover,.yellow-link:hover {
             color: #555555;
         }
         h1 {
@@ -90,6 +97,7 @@
  tr:nth-child(odd) {
     background-color: #ffffff !important; }
     </style>
+    
 </head>
 <body>
 <div class="body-cnt">
@@ -108,9 +116,8 @@
         <!-- Main Content -->
         <div class="content">
             <h1>Bonjour,</h1>
-            <p>Vous avez demandé la réinitialisation de votre mot de passe. Votre mot de passe a été mis à jour avec succès.</p>
-            <p>Pour définir votre nouveau mot de passe, cliquez sur :<a href="http://localhost:3000/reset_password_form?uid=<%= uid %>" target="_blank">ce lien</a></p>
-            <p>Si vous n'avez pas demandé la réinitialisation de votre mot de passe, veuillez contacter notre support immédiatement.</p>
+            <p>Vous avez demandé la réinitialisation de votre mot de passe. Pour définir votre nouveau mot de passe, cliquez sur <a href="http://localhost:3000/reset_password_form?uid=<%= uid %>" class="yellow-link" target="_blank">ce lien</a></p>
+            <p>Si vous n'avez pas demandé la réinitialisation de votre mot de passe, veuillez contacter notre support.</p>
             <br>
             <p>Cordialement,</p>
             <p>L'équipe HOMEREN</p>

@@ -5,8 +5,12 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Réinitialisation du mot de passe</title>
   <style>
+    @font-face {
+    font-family: 'Montserrat';
+    src: url('https://homeren.fr/assets/Montserrat-Regular.ttf') format("truetype");
+}
     body {
-      font-family: Arial, sans-serif;
+      font-family: 'Montserrat',Arial, sans-serif;
       background-color: #f9f9f9;
       margin: 0;
       padding: 20px;
@@ -20,7 +24,7 @@
       border-radius: 10px;
       box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
       width: 100%;
-      max-width: 400px;
+      max-width: 600px;
       text-align: center;
     }
     img {
@@ -35,12 +39,14 @@
     input[type="email"], input[type="password"] {
       width: 100%;
       padding: 10px;
+      font-family: 'Montserrat',Arial, sans-serif;
       margin-bottom: 15px;
       border: 1px solid #ccc;
       border-radius: 5px;
       box-sizing: border-box;
     }
     button {
+      font-family: 'Montserrat',Arial, sans-serif;
       background-color: #ffc736;
       color: #333;
       border: none;
@@ -52,7 +58,7 @@
     }
     button:hover {
       background-color: #7f7d72;
-      color:white;
+      color: white;
     }
     .message {
       margin-bottom: 15px;
@@ -63,11 +69,43 @@
     .success {
       color: green;
     }
-    .col-2{
-        display: grid;
-        grid-template-columns: 1fr 1fr;
+    .col-2 {
+      display: grid;
+      grid-template-columns: 1fr 1.5fr;
+    }
+    .col-2 label{
+      text-align: end;
+      padding: 19px 5px;
+    }
+    .col-2 input{
+      margin: 10px;
+    }
+    #redirect-container {
+      margin-top: 20px;
+      font-size: 1.2em;
+    }
+    #countdown {
+      font-weight: bold;
+      color: green;
     }
   </style>
+  <script>
+    let seconds = 10; // Temps avant redirection
+    function countdown() {
+      document.getElementById("countdown").innerText = seconds;
+      if (seconds > 0) {
+        seconds--;
+        setTimeout(countdown, 1000);
+      } else {
+        window.location.href = "https://dev.homeren.fr/"; // Redirection automatique
+      }
+    }
+    window.onload = function() {
+      if (document.getElementById("countdown")) {
+        countdown();
+      }
+    };
+  </script>
 </head>
 <body>
   <div class="container">
@@ -81,24 +119,31 @@
       <% } %>
       <% if (successMessage) { %>
         <p class="success"><%= successMessage %></p>
+
+        <!-- Bloc de redirection après succès -->
+       <div id="redirect-container">
+        <button onclick="window.location.href='https://dev.homeren.fr/'"><u>Retour au site</u> (<span id="countdown">10</span> s)</button>
+      </div>
       <% } %>
     </div>
+
     <% if (!successMessage) { %>
-    <form method="POST" action="/reset_password_form/">
+      <form method="POST" action="/reset_password_form/">
         <div class="col-2">
-            <label>Email:</label>
-            <input type="email" name="email" required />
+          <label>Email : </label>
+          <input type="email" name="email" required />
         </div>
         <div class="col-2">
-            <label>Nouveau mot de passe:</label>
-            <input type="password" name="password" required />
-         </div>
-         <div class="col-2">
-            <label>Confirmer le mot de passe:</label>
-            <input type="password" name="confirmPassword" required />
-         </div>
+          <label>Nouveau mot de passe : </label>
+          <input type="password" name="password" required />
+        </div>
+        <div class="col-2">
+          <label>Confirmer le mot de passe : </label>
+          <input type="password" name="confirmPassword" required />
+        </div>
         <button type="submit">Réinitialiser</button>
-    </form>
+      </form>
+       
     <% } %>
   </div>
 </body>
