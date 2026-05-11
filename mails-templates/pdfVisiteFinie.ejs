@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>Liste des Devis</title>
+    <style>
+        body {
+            font-family: "Montserrat", sans-serif;
+            background-color: #ffffff;
+            margin: 0;
+            padding: 0;
+        }
+
+        .container {
+            margin: 0px;
+            padding: 0px;
+        }
+
+        /* Header */
+        .header {
+            display: flex;
+            justify-content: flex-start;
+            align-items: start;
+            border-bottom: 1px solid #ccc;
+            padding-bottom: 10px;
+            margin: 10px 0px;
+        }
+
+        .header img {
+            height: 100px;
+        }
+
+        /* Footer */
+        .footer {
+            margin-top: 40px;
+            padding-top: 10px;
+            border-top: 1px solid #ccc;
+            text-align: center;
+            font-size: 16px;
+            color: #777;
+        }
+
+        h1 {
+            font-size: 10px;
+            color: #333;
+            margin-bottom: 10px;
+        }
+
+        u {
+            color: #000;
+            font-weight: bold;
+        }
+
+        .devis-block {
+            margin-bottom: 30px;
+        }
+
+
+        .content {
+            font-size: 15px;
+            width: 80%;
+            justify-content: center;
+            align-items: center;
+        }
+
+        tr:nth-child(even) {
+            background-color: #f0f0f0;
+        }
+
+        tr:nth-child(odd) {
+            background-color: #ffffff;
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <!-- Header -->
+    <div class="header">
+        <img src="https://homeren.fr/icons/logo-homeren.png" alt="Logo HOMEREN">
+    </div>
+
+    <!-- Main Content -->
+    <div class="content">
+        <% let globalIndex = 0; %>
+        <% devisList.forEach((devis) => { %>
+            <div class="devis-block">
+                <strong style="font-size: 20px;">Devis nº<%= devis.ID %></strong><br><br>
+                Date : <%= currentDate %><br>
+                Durée de validité : 30 jours<br><br><br>
+                <% devis.DevisTaches.forEach((tache) => { %>
+                    <u><%= tache.Travail.Titre %></u><br>
+                    
+                    <%- results[globalIndex].formule %><br>
+                    <% globalIndex++; %>
+                <% }); %>
+            </div>
+        <% }); %>
+    </div>
+
+    <!-- Footer -->
+    <div class="footer">
+        Homeren SARL - capital 10 000€ - SIRET : 00000000000<br>
+        5 rue Charles de Gaulle - 75001 Paris
+    </div>
+</div>
+
+</body>
+</html>

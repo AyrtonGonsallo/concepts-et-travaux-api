@@ -1,0 +1,182 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="icon" type="image/png" href="https://dev.homeren.fr/assets/favicon-homeren.svg">
+  <title>Réinitialisation du mot de passe</title>
+  <style>
+    @font-face {
+    font-family: 'Montserrat';
+    src: url('https://homeren.fr/assets/Montserrat-Regular.ttf') format("truetype");
+}
+    body {
+      font-family: 'Montserrat',Arial, sans-serif;
+      background-color: #f9f9f9;
+      margin: 0;
+      padding: 20px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+    .container {
+      background-color: #fff;
+      padding: 60px;
+      border-radius: 3px;
+      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+      width: 100%;
+      max-width: 600px;
+      text-align: center;
+    }
+    img {
+      max-width: 100px;
+      margin-bottom: 20px;
+    }
+    h1 {
+      color: #000;
+      font-size: 20px;
+      text-align: left;
+      margin-top: 0px;
+      margin-bottom:0px;
+    }
+    input[type="email"], input[type="password"] {
+      width: 100%;
+      padding: 10px 10px 10px 33px;
+      font-family: 'Montserrat',Arial, sans-serif;
+      margin-bottom: 15px;
+      border: 1.5px solid #ffc637;
+      border-radius: 0px;
+      box-sizing: border-box;
+    }
+   input:focus {
+            outline: none;
+            border: 2px solid #ffc637;
+    }
+
+    button {
+    font-family: 'Montserrat',Arial, sans-serif;
+    background-color: #ffc736;
+    color: #fff;
+    border: none;
+    padding: 10px 31px;
+    height: 48px;
+    font-weight: 500;
+    border-radius: 0px;
+    cursor: pointer;
+    font-size: 17px;
+    width: fit-content;
+    float: left;
+    }
+    button:hover {
+      background-color: #555;
+      color: white;
+    }
+    .message {
+      margin-bottom: 15px;
+    }
+    .error {
+      color: red;
+    }
+    .success {
+      color: green;
+    }
+    
+    .col-2 label{
+      text-align: end;
+      padding: 19px 5px;
+    }
+  
+    #redirect-container {
+      margin-top: 20px;
+      font-size: 1.2em;
+    }
+    #countdown {
+      font-weight: bold;
+      color: #000;
+    }
+
+    input {
+            background-repeat: no-repeat;
+            background-position: 8px center;
+            background-size: 20px;
+        }
+        /* Icône user pour email */
+        input[name="email"] {
+            background-image: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="gray" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>');
+            background-repeat: no-repeat;
+            color: #000;
+          }
+
+        /* Icône eye pour mots de passe */
+        input[name="password"],
+        input[name="confirmPassword"] {
+            background-image: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="gray" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg>');
+            background-repeat: no-repeat;
+            color: #000;
+          }
+
+        /* Style du placeholder */
+        input::placeholder {
+            color: #000;
+            opacity: 1;
+        }
+
+
+
+  </style>
+  <script>
+    let seconds = 10; // Temps avant redirection
+    function countdown() {
+      document.getElementById("countdown").innerText = seconds;
+      if (seconds > 0) {
+        seconds--;
+        setTimeout(countdown, 1000);
+      } else {
+        window.location.href = "https://dev.homeren.fr/"; // Redirection automatique
+      }
+    }
+    window.onload = function() {
+      if (document.getElementById("countdown")) {
+        countdown();
+      }
+    };
+  </script>
+</head>
+<body>
+  <div class="container">
+    <!--<img src="https://homeren.fr/icons/logo-homeren.png" alt="Icône de verrouillage"> -->
+    <h1>Réinitialisation du mot de passe</h1>
+
+    <!-- Messages d'erreur ou de succès -->
+    <div class="message">
+      <% if (errorMessage) { %>
+        <p class="error" style="text-align:left;"><%= errorMessage %></p>
+      <% } %>
+      <% if (successMessage) { %>
+        <p class="success" style="text-align:left;"><%= successMessage %></p>
+
+        <!-- Bloc de redirection après succès -->
+       <div id="redirect-container">
+        <button onclick="window.location.href='https://dev.homeren.fr/'"><u>Retour au site</u> (<span id="countdown">10</span> s)</button>
+      </div>
+      <% } %>
+    </div>
+
+    <% if (!successMessage) { %>
+      <form method="POST" action="https://dev.homeren.fr/api-concepts-et-travaux/reset_password_form/">
+        <div class="col-2">
+          <input type="email" name="email" required placeholder="E-mail"/>
+        </div>
+        <div class="col-2">
+          <input type="password" name="password" required placeholder="Nouveau mot de passe"/>
+        </div>
+        <div class="col-2">
+          <input type="password" name="confirmPassword" required placeholder="Confirmer le nouveau mot de passe"/>
+        </div>
+        <button type="submit">Envoyer</button>
+      </form>
+       
+    <% } %>
+  </div>
+</body>
+</html>
