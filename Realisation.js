@@ -4,17 +4,7 @@ const EtapeProjet=require('./Etape_projet');
 const Galerie=require('./Galerie');
 const Piece=require('./Piece');
 const Pointcle=require('./Pointcle');
-require('dotenv').config();
-const sequelize = new Sequelize(
-  process.env.DB_NAME,
-  process.env.DB_USER,
-  process.env.DB_PASSWORD,
-  {
-    host: process.env.DB_HOST,
-    port: process.env.DB_PORT,
-    dialect: 'mysql'
-  }
-);
+const sequelize = require('./config/database');
 const Realisation = sequelize.define('Realisation', {
   ID: {
     type: DataTypes.INTEGER,

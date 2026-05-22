@@ -2414,17 +2414,7 @@ app.post('/add_realisation', async (req, res) => {
 
 // Endpoint PUT pour mettre à jour une réalisation avec ses besoins et étapes
 app.put('/update_realisation/:realisationId', async (req, res) => {
-  require('dotenv').config();
-const sequelize = new Sequelize(
-  process.env.DB_NAME,
-  process.env.DB_USER,
-  process.env.DB_PASSWORD,
-  {
-    host: process.env.DB_HOST,
-    port: process.env.DB_PORT,
-    dialect: 'mysql'
-  }
-);
+  const sequelize = require('./config/database');
 
   const transaction = await sequelize.transaction();
 
@@ -2546,17 +2536,7 @@ const sequelize = new Sequelize(
 
 // Endpoint POST pour ajouter une réalisation avec ses besoins et étapes
 app.post('/ajouter_realisation', async (req, res) => {
-  require('dotenv').config();
-const sequelize = new Sequelize(
-  process.env.DB_NAME,
-  process.env.DB_USER,
-  process.env.DB_PASSWORD,
-  {
-    host: process.env.DB_HOST,
-    port: process.env.DB_PORT,
-    dialect: 'mysql'
-  }
-);  const transaction = await sequelize.transaction();
+  const sequelize = require('./config/database');  const transaction = await sequelize.transaction();
 
   try {
     // Récupérer les données de la requête
@@ -2923,17 +2903,7 @@ app.delete('/delete_piece/:pieceId', async (req, res) => {
 }); 
 
 app.post('/add_piece', async (req, res) => {
-  require('dotenv').config();
-const sequelize = new Sequelize(
-  process.env.DB_NAME,
-  process.env.DB_USER,
-  process.env.DB_PASSWORD,
-  {
-    host: process.env.DB_HOST,
-    port: process.env.DB_PORT,
-    dialect: 'mysql'
-  }
-);
+  const sequelize = require('./config/database');
   const transaction = await sequelize.transaction();
   try {
     const { Image_principale,Image_presentation, Titre, Presentation, Description, Categories, Gallery } = req.body;
@@ -2994,17 +2964,7 @@ const sequelize = new Sequelize(
 });
 
 app.post('/ajouter_piece', async (req, res) => {
-  require('dotenv').config();
-const sequelize = new Sequelize(
-  process.env.DB_NAME,
-  process.env.DB_USER,
-  process.env.DB_PASSWORD,
-  {
-    host: process.env.DB_HOST,
-    port: process.env.DB_PORT,
-    dialect: 'mysql'
-  }
-);
+  const sequelize = require('./config/database');
   const transaction = await sequelize.transaction();
   try {
     const { Image_principale,Image_presentation, Titre, Presentation, Description, Categories, GalerieID } = req.body;
@@ -3045,17 +3005,7 @@ const sequelize = new Sequelize(
 
 // Endpoint PUT pour mettre à jour une pièce
 app.put('/update_piece/:pieceId', async (req, res) => {
-  require('dotenv').config();
-const sequelize = new Sequelize(
-  process.env.DB_NAME,
-  process.env.DB_USER,
-  process.env.DB_PASSWORD,
-  {
-    host: process.env.DB_HOST,
-    port: process.env.DB_PORT,
-    dialect: 'mysql'
-  }
-);
+  const sequelize = require('./config/database');
   const transaction = await sequelize.transaction();
   
   try {
@@ -3283,17 +3233,7 @@ app.get('/get_pieces', async (req, res) => {
 });
 
 app.get('/get_pieces_par_categories', async (req, res) => {
-  require('dotenv').config();
-const sequelize = new Sequelize(
-  process.env.DB_NAME,
-  process.env.DB_USER,
-  process.env.DB_PASSWORD,
-  {
-    host: process.env.DB_HOST,
-    port: process.env.DB_PORT,
-    dialect: 'mysql'
-  }
-);
+  const sequelize = require('./config/database');
 
 
   try {
@@ -3649,17 +3589,7 @@ app.post('/create_categorie_question', async (req, res) => {
 
 
 app.post('/add_question', async (req, res) => {
-  require('dotenv').config();
-const sequelize = new Sequelize(
-  process.env.DB_NAME,
-  process.env.DB_USER,
-  process.env.DB_PASSWORD,
-  {
-    host: process.env.DB_HOST,
-    port: process.env.DB_PORT,
-    dialect: 'mysql'
-  }
-);  const { Titre, Question, Reponse, CategorieQuestionFaqs } = req.body;
+  const sequelize = require('./config/database');  const { Titre, Question, Reponse, CategorieQuestionFaqs } = req.body;
 
   const transaction = await sequelize.transaction();
 
@@ -3709,17 +3639,7 @@ app.get('/get_questions', async (req, res) => {
 });
 
 app.get('/get_questions_par_categorie/:id', async (req, res) => {
-  require('dotenv').config();
-const sequelize = new Sequelize(
-  process.env.DB_NAME,
-  process.env.DB_USER,
-  process.env.DB_PASSWORD,
-  {
-    host: process.env.DB_HOST,
-    port: process.env.DB_PORT,
-    dialect: 'mysql'
-  }
-);
+  const sequelize = require('./config/database');
   const categorieId = req.params.id;
 
   try {
@@ -3745,17 +3665,7 @@ const sequelize = new Sequelize(
 });
 
 app.get('/get_questions_par_categories', async (req, res) => {
-  require('dotenv').config();
-const sequelize = new Sequelize(
-  process.env.DB_NAME,
-  process.env.DB_USER,
-  process.env.DB_PASSWORD,
-  {
-    host: process.env.DB_HOST,
-    port: process.env.DB_PORT,
-    dialect: 'mysql'
-  }
-);
+  const sequelize = require('./config/database');
 
 
   try {
@@ -3900,17 +3810,7 @@ app.delete('/delete_categorie_question/:id', async (req, res) => {
 
 // Endpoint pour mettre à jour une question
 app.put('/update_question/:id', async (req, res) => {
-  require('dotenv').config();
-const sequelize = new Sequelize(
-  process.env.DB_NAME,
-  process.env.DB_USER,
-  process.env.DB_PASSWORD,
-  {
-    host: process.env.DB_HOST,
-    port: process.env.DB_PORT,
-    dialect: 'mysql'
-  }
-);  const { Titre, Question, Reponse, CategorieQuestionFaqs } = req.body;
+  const sequelize = require('./config/database');  const { Titre, Question, Reponse, CategorieQuestionFaqs } = req.body;
   const transaction = await sequelize.transaction();
 
   try {
@@ -4330,17 +4230,7 @@ app.delete('/delete_equipement/:id', async (req, res) => {
 });
 
 app.post('/add_travail', async (req, res) => {
-  require('dotenv').config();
-const sequelize = new Sequelize(
-  process.env.DB_NAME,
-  process.env.DB_USER,
-  process.env.DB_PASSWORD,
-  {
-    host: process.env.DB_HOST,
-    port: process.env.DB_PORT,
-    dialect: 'mysql'
-  }
-);
+  const sequelize = require('./config/database');
   const transaction = await sequelize.transaction();
   try {
     const {  Titre, Description, Pieces } = req.body;
@@ -4374,17 +4264,7 @@ const sequelize = new Sequelize(
 
 // GET travaux par PieceID
 app.get('/get_travaux_by_piece/:pid', async (req, res) => {
-  require('dotenv').config();
-const sequelize = new Sequelize(
-  process.env.DB_NAME,
-  process.env.DB_USER,
-  process.env.DB_PASSWORD,
-  {
-    host: process.env.DB_HOST,
-    port: process.env.DB_PORT,
-    dialect: 'mysql'
-  }
-);
+  const sequelize = require('./config/database');
   const pieceId = req.params.pid;
 
   try {
@@ -4414,17 +4294,7 @@ const sequelize = new Sequelize(
 
 // GET validated travaux par PieceID
 app.get('/get_validated_travaux_by_piece/:pid', async (req, res) => {
-  require('dotenv').config();
-const sequelize = new Sequelize(
-  process.env.DB_NAME,
-  process.env.DB_USER,
-  process.env.DB_PASSWORD,
-  {
-    host: process.env.DB_HOST,
-    port: process.env.DB_PORT,
-    dialect: 'mysql'
-  }
-);
+  const sequelize = require('./config/database');
   const pieceId = req.params.pid;
 
   try {
@@ -4762,17 +4632,7 @@ app.post('/edit_devis_tache/:id', async (req, res) => {
 
 app.post('/add_devis_piece', async (req, res) => {
   const { username, ip, piece, liste_des_travaux,deviceID,UtilisateurID } = req.body;
-  require('dotenv').config();
-const sequelize = new Sequelize(
-  process.env.DB_NAME,
-  process.env.DB_USER,
-  process.env.DB_PASSWORD,
-  {
-    host: process.env.DB_HOST,
-    port: process.env.DB_PORT,
-    dialect: 'mysql'
-  }
-);
+  const sequelize = require('./config/database');
   const t = await sequelize.transaction();
   
   try {

@@ -49,7 +49,7 @@ router.get('/export_gammes', async (req, res) => {
     );
     res.setHeader(
       'Content-Disposition',
-      'attachment; filename=gammes_export.xlsx'
+      'attachment; filename=taches_export.xlsx'
     );
 
     return res.send(buffer);
@@ -101,7 +101,7 @@ router.get('/export_gammes_artisan/:artisan_id', async (req, res) => {
     );
     res.setHeader(
       'Content-Disposition',
-      'attachment; filename=gammes_export.xlsx'
+      'attachment; filename=taches_export.xlsx'
     );
 
     return res.send(buffer);
@@ -154,7 +154,7 @@ router.get('/export_gammes_fournisseur/:fournisseur_id', async (req, res) => {
     );
     res.setHeader(
       'Content-Disposition',
-      'attachment; filename=gammes_export.xlsx'
+      'attachment; filename=taches_export.xlsx'
     );
 
     return res.send(buffer);
@@ -207,7 +207,7 @@ router.get('/download_modele_gammes_artisan/:artisan_id', async (req, res) => {
     );
     res.setHeader(
       'Content-Disposition',
-      'attachment; filename=gammes_export.xlsx'
+      'attachment; filename=taches_export.xlsx'
     );
 
     return res.send(buffer);
@@ -260,7 +260,7 @@ router.get('/download_modele_gammes_fournisseur/:fournisseur_id', async (req, re
     );
     res.setHeader(
       'Content-Disposition',
-      'attachment; filename=gammes_export.xlsx'
+      'attachment; filename=taches_export.xlsx'
     );
 
     return res.send(buffer);

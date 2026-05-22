@@ -50,17 +50,7 @@ const transporter = nodemailer.createTransport({
 
 // Endpoint POST pour ajouter une réalisation avec ses besoins et étapes
 router.post('/ajouter_realisation', async (req, res) => {
-  require('dotenv').config();
-const sequelize = new Sequelize(
-  process.env.DB_NAME,
-  process.env.DB_USER,
-  process.env.DB_PASSWORD,
-  {
-    host: process.env.DB_HOST,
-    port: process.env.DB_PORT,
-    dialect: 'mysql'
-  }
-);  const transaction = await sequelize.transaction();
+  const sequelize = require('./config/database');  const transaction = await sequelize.transaction();
 
   try {
     // Récupérer les données de la requête
@@ -196,6 +186,7 @@ router.post('/add_realisation_with_gallery', async (req, res) => {
   }
 });
 
+
 router.post('/ajouter_realisation', async (req, res) => {
   try {
     // Récupérer les données de la requête
@@ -259,25 +250,6 @@ router.post('/ajouter_realisation', async (req, res) => {
 });
 
 
-// Endpoint POST pour ajouter une galerie
-router.post('/add_galerie', async (req, res) => {
-  try {
-    // Récupérer les données de la requête
-    const { Titre } = req.body;
-
-    // Créer une nouvelle galerie dans la base de données
-    const nouvelleGalerie = await Galerie.create({
-      Titre
-    });
-
-    // Répondre avec la galerie ajoutée
-    res.status(201).json(nouvelleGalerie);
-  } catch (error) {
-    // En cas d'erreur, répondre avec le code d'erreur 500
-    console.error('Erreur lors de l\'ajout de la galerie :', error);
-    res.status(500).json({ error: 'Erreur serveur' });
-  }
-});
 
 // Endpoint POST pour ajouter une image et la lier à une galerie
 router.post('/add_image', async (req, res) => {
@@ -301,106 +273,8 @@ router.post('/add_image', async (req, res) => {
   }
 });
 
-// Endpoint POST pour ajouter une galerie avec des images
-router.post('/add_galerie_with_images', async (req, res) => {
-  try {
-    // Récupérer les données de la requête
-    const { Titre, Images } = req.body;
-
-    // Créer une nouvelle galerie dans la base de données
-    const nouvelleGalerie = await Galerie.create({
-      Titre
-    });
-
-    // Vérifier si des images sont fournies dans la requête
-    if (Images && Images.length > 0) {
-      // Créer les images associées à la galerie
-      const nouvellesImages = await Promise.all(Images.map(async (image) => {
-        return await Image.create({
-          Titre: image.Titre,
-          Url: image.Url,
-          GalerieID: nouvelleGalerie.ID // Associer l'image à la galerie créée
-        });
-      }));
-
-      // Associer les nouvelles images à la galerie
-      nouvelleGalerie.Images = nouvellesImages;
-    }
-
-    // Répondre avec la galerie ajoutée et ses images
-    res.status(201).json(nouvelleGalerie);
-  } catch (error) {
-    // En cas d'erreur, répondre avec le code d'erreur 500
-    console.error('Erreur lors de l\'ajout de la galerie avec images :', error);
-    res.status(500).json({ error: 'Erreur serveur' });
-  }
-});
 
 
-// Endpoint POST pour ajouter des images à une galerie existante
-router.post('/add_images_to_galerie/:galerieId', async (req, res) => {
-  try {
-    const galerieId = req.params.galerieId; // Récupérer l'ID de la galerie à partir des paramètres de la route
-    const { Titre, Images } = req.body;
-
-    // Vérifier si la galerie existe
-    const galerie = await Galerie.findByPk(galerieId);
-    if (!galerie) {
-      return res.status(404).json({ error: 'Galerie non trouvée' });
-    }
-
-    // Mettre à jour le titre de la galerie si un nouveau titre est fourni
-    if (Titre) {
-      galerie.Titre = Titre;
-      await galerie.save();
-    }
-
-    let nouvellesImages = [];
-    if (Images) {
-      // Ajouter chaque image à la galerie
-      nouvellesImages = await Promise.all(Images.map(async (image) => {
-        return await Image.create({
-          Titre: image.Titre,
-          Url: image.Url,
-          GalerieID: galerie.ID // Associer l'image à la galerie existante
-        });
-      }));
-    }
-
-    // Répondre avec les nouvelles images ajoutées
-    res.status(201).json({ galerie, nouvellesImages });
-  } catch (error) {
-    // En cas d'erreur, répondre avec le code d'erreur 500
-    console.error('Erreur lors de l\'ajout des images à la galerie :', error);
-    res.status(500).json({ error: 'Erreur serveur' });
-  }
-});
-
-
-// Endpoint DELETE pour supprimer une image d'une galerie
-router.delete('/delete_image_from_gallery/:image_id', async (req, res) => {
-  try {
-    const imageId = req.params.image_id; // Récupérer l'ID de l'image à partir des paramètres de la route
-
-    // Trouver l'image par ID
-    const image = await Image.findByPk(imageId);
-
-    // Vérifier si l'image existe
-    if (!image) {
-      return res.status(404).json({ error: 'Image non trouvée' });
-    }
-
-    // Supprimer l'image de la base de données
-    await image.destroy();
-
-    // Répondre avec un message de succès
-    res.status(200).json({ message: 'Image supprimée avec succès' });
-  } catch (error) {
-    // En cas d'erreur, répondre avec le code d'erreur 500
-    console.error('Erreur lors de la suppression de l\'image :', error);
-    res.status(500).json({ error: 'Erreur serveur' });
-  }
-});
 
 // Endpoint DELETE pour supprimer une pièce
 router.delete('/delete_piece/:pieceId', async (req, res) => {
@@ -427,17 +301,7 @@ router.delete('/delete_piece/:pieceId', async (req, res) => {
 }); 
 
 router.post('/add_piece', async (req, res) => {
-  require('dotenv').config();
-const sequelize = new Sequelize(
-  process.env.DB_NAME,
-  process.env.DB_USER,
-  process.env.DB_PASSWORD,
-  {
-    host: process.env.DB_HOST,
-    port: process.env.DB_PORT,
-    dialect: 'mysql'
-  }
-);
+  const sequelize = require('./config/database');
   const transaction = await sequelize.transaction();
   try {
     const { Image_principale,Image_presentation, Titre, Presentation, Description, Categories, Gallery } = req.body;
@@ -498,17 +362,7 @@ const sequelize = new Sequelize(
 });
 
 router.post('/ajouter_piece', async (req, res) => {
-  require('dotenv').config();
-const sequelize = new Sequelize(
-  process.env.DB_NAME,
-  process.env.DB_USER,
-  process.env.DB_PASSWORD,
-  {
-    host: process.env.DB_HOST,
-    port: process.env.DB_PORT,
-    dialect: 'mysql'
-  }
-);
+  const sequelize = require('./config/database');
   const transaction = await sequelize.transaction();
   try {
     const { Image_principale,Image_presentation, Titre, Presentation, Description, Categories, GalerieID } = req.body;

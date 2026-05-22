@@ -21,6 +21,7 @@ async function generatePdfMake(projectID, data) {
   const pdfPath = path.join(__dirname, '..', 'files', `details_des_devis_du_projet_${projectID}.pdf`);
     let travail_courrant=0;
     let total_ht_sum_devis=0;
+    let coeficient = data.coefficient
   const docDefinition = {
     content: [
 
@@ -105,9 +106,11 @@ async function generatePdfMake(projectID, data) {
                 );
 
                 //  Calculs devis
+                totalHTDevis *= coeficient
                 const tva = item.Tva?.Valeur || 0;
                 const montantTVA = totalHTDevis * (tva / 100);
                 const totalTTC = totalHTDevis + montantTVA;
+                
 
                 total_ht_sum_devis += totalHTDevis
 
@@ -164,6 +167,7 @@ async function generatePdfMake(projectID, data) {
                 );
 
                 //  Calculs devis
+                totalHTDevis *= coeficient
                 const tva = item.Tva?.Valeur || 0;
                 const montantTVA = totalHTDevis * (tva / 100);
                 const totalTTC = totalHTDevis + montantTVA;
@@ -218,6 +222,7 @@ async function generatePdfMake(projectID, data) {
                 );
 
                 //  Calculs devis
+                totalHTDevis *= coeficient
                 const tva = item.Tva?.Valeur || 0;
                 const montantTVA = totalHTDevis * (tva / 100);
                 const totalTTC = totalHTDevis + montantTVA;

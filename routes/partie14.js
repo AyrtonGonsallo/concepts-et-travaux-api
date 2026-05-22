@@ -386,17 +386,7 @@ router.delete('/delete_devis_piece/:id', async (req, res) => {
 router.put('/update_devis_piece/:id', async (req, res) => {
   const { id } = req.params;
   const updatedDevis = req.body;
-  require('dotenv').config();
-const sequelize = new Sequelize(
-  process.env.DB_NAME,
-  process.env.DB_USER,
-  process.env.DB_PASSWORD,
-  {
-    host: process.env.DB_HOST,
-    port: process.env.DB_PORT,
-    dialect: 'mysql'
-  }
-);
+  const sequelize = require('./config/database');
 
   const t = await sequelize.transaction();
 

@@ -2,17 +2,7 @@
 
 const { Sequelize, DataTypes } = require('sequelize');
 const Grade = require('./Grade'); // Importez le modèle Grade
-require('dotenv').config();
-const sequelize = new Sequelize(
-  process.env.DB_NAME,
-  process.env.DB_USER,
-  process.env.DB_PASSWORD,
-  {
-    host: process.env.DB_HOST,
-    port: process.env.DB_PORT,
-    dialect: 'mysql'
-  }
-);
+const sequelize = require('./config/database');
 const User = sequelize.define('User', {
   // Définissez les attributs de votre modèle ici
 

@@ -1,12 +1,13 @@
 const { Sequelize, DataTypes } = require('sequelize');
-const sequelize = require('./config/database');
+const Galerie=require('./Galerie');
 
-const BesoinProjet = sequelize.define('BesoinProjet', {
+
+const sequelize = require('./config/database');
+const Style = sequelize.define('Style', {
   ID: {
     type: DataTypes.INTEGER,
     primaryKey: true,
     autoIncrement: true,
-    allowNull: false,
     field: 'ID' // Spécifie explicitement le nom de la colonne dans la base de données
   },
   Titre: {
@@ -14,13 +15,8 @@ const BesoinProjet = sequelize.define('BesoinProjet', {
     allowNull: false,
     field: 'Titre' // Spécifie explicitement le nom de la colonne dans la base de données
   },
-  Description: {
-    type: DataTypes.TEXT,
-    allowNull: false,
-    field: 'Description' // Spécifie explicitement le nom de la colonne dans la base de données
-  }
 }, {
-  tableName: 'Besoin_projet',
+  tableName: 'Style',
   timestamps: false,
   underscored: true,
   charset: 'latin1',
@@ -28,4 +24,7 @@ const BesoinProjet = sequelize.define('BesoinProjet', {
 });
 
 
-module.exports = BesoinProjet;
+
+
+
+module.exports = Style;

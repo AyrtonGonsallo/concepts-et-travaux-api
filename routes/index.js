@@ -20,6 +20,7 @@ router.use('/', require('./partie15'));
 router.use('/', require('./partie16'));
 router.use('/', require('./partie17'));
 router.use('/', require('./partie18'));
+router.use('/', require('./partie19'));
 
 
 module.exports = router;

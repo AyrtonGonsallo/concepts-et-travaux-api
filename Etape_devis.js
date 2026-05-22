@@ -1,16 +1,6 @@
 const { Sequelize, DataTypes } = require('sequelize');
 const Travail = require('./Travail');
-require('dotenv').config();
-const sequelize = new Sequelize(
-  process.env.DB_NAME,
-  process.env.DB_USER,
-  process.env.DB_PASSWORD,
-  {
-    host: process.env.DB_HOST,
-    port: process.env.DB_PORT,
-    dialect: 'mysql'
-  }
-);const etapeValues = [
+const sequelize = require('./config/database');const etapeValues = [
   'Choix de la pièce',
   'Travaux',
   'Dimensions',

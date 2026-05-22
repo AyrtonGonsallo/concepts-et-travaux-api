@@ -249,17 +249,7 @@ router.delete('/delete_equipement/:id', async (req, res) => {
 });
 
 router.post('/add_travail', async (req, res) => {
-  require('dotenv').config();
-const sequelize = new Sequelize(
-  process.env.DB_NAME,
-  process.env.DB_USER,
-  process.env.DB_PASSWORD,
-  {
-    host: process.env.DB_HOST,
-    port: process.env.DB_PORT,
-    dialect: 'mysql'
-  }
-);
+  const sequelize = require('./config/database');
   const transaction = await sequelize.transaction();
   try {
     const {  Titre, Description, Pieces } = req.body;
@@ -293,17 +283,7 @@ const sequelize = new Sequelize(
 
 // GET travaux par PieceID
 router.get('/get_travaux_by_piece/:pid', async (req, res) => {
-  require('dotenv').config();
-const sequelize = new Sequelize(
-  process.env.DB_NAME,
-  process.env.DB_USER,
-  process.env.DB_PASSWORD,
-  {
-    host: process.env.DB_HOST,
-    port: process.env.DB_PORT,
-    dialect: 'mysql'
-  }
-);
+  const sequelize = require('./config/database');
   const pieceId = req.params.pid;
 
   try {
@@ -333,17 +313,7 @@ const sequelize = new Sequelize(
 
 // GET validated travaux par PieceID
 router.get('/get_validated_travaux_by_piece/:pid', async (req, res) => {
-  require('dotenv').config();
-const sequelize = new Sequelize(
-  process.env.DB_NAME,
-  process.env.DB_USER,
-  process.env.DB_PASSWORD,
-  {
-    host: process.env.DB_HOST,
-    port: process.env.DB_PORT,
-    dialect: 'mysql'
-  }
-);
+  const sequelize = require('./config/database');
   const pieceId = req.params.pid;
 
   try {

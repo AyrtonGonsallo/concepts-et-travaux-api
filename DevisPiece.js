@@ -1,17 +1,7 @@
 // models/DevisPiece.js
 
 const { Sequelize, DataTypes } = require('sequelize');
-require('dotenv').config();
-const sequelize = new Sequelize(
-  process.env.DB_NAME,
-  process.env.DB_USER,
-  process.env.DB_PASSWORD,
-  {
-    host: process.env.DB_HOST,
-    port: process.env.DB_PORT,
-    dialect: 'mysql'
-  }
-);const Piece = require('./Piece');
+const sequelize = require('./config/database');const Piece = require('./Piece');
 const Utilisateur = require('./Utilisateur');
 const Tva = require('./Tva');
 const DevisTache = require('./DevisTache');

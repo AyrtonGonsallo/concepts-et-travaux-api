@@ -1,15 +1,5 @@
 const { Sequelize, DataTypes,Model } = require('sequelize');
-require('dotenv').config();
-const sequelize = new Sequelize(
-  process.env.DB_NAME,
-  process.env.DB_USER,
-  process.env.DB_PASSWORD,
-  {
-    host: process.env.DB_HOST,
-    port: process.env.DB_PORT,
-    dialect: 'mysql'
-  }
-);const Projet = require('./Projet');
+const sequelize = require('./config/database');const Projet = require('./Projet');
 const DevisPiece = require('./DevisPiece');
 
 class ProjetDevis extends Model {}

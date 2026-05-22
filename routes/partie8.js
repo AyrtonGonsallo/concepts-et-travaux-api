@@ -142,17 +142,7 @@ router.post('/create_categorie_question', async (req, res) => {
 
 
 router.post('/add_question', async (req, res) => {
-  require('dotenv').config();
-const sequelize = new Sequelize(
-  process.env.DB_NAME,
-  process.env.DB_USER,
-  process.env.DB_PASSWORD,
-  {
-    host: process.env.DB_HOST,
-    port: process.env.DB_PORT,
-    dialect: 'mysql'
-  }
-);  const { Titre, Question, Reponse, CategorieQuestionFaqs } = req.body;
+  const sequelize = require('./config/database');  const { Titre, Question, Reponse, CategorieQuestionFaqs } = req.body;
 
   const transaction = await sequelize.transaction();
 
@@ -202,17 +192,7 @@ router.get('/get_questions', async (req, res) => {
 });
 
 router.get('/get_questions_par_categorie/:id', async (req, res) => {
-  require('dotenv').config();
-const sequelize = new Sequelize(
-  process.env.DB_NAME,
-  process.env.DB_USER,
-  process.env.DB_PASSWORD,
-  {
-    host: process.env.DB_HOST,
-    port: process.env.DB_PORT,
-    dialect: 'mysql'
-  }
-);
+  const sequelize = require('./config/database');
   const categorieId = req.params.id;
 
   try {
@@ -238,17 +218,7 @@ const sequelize = new Sequelize(
 });
 
 router.get('/get_questions_par_categories', async (req, res) => {
-  require('dotenv').config();
-const sequelize = new Sequelize(
-  process.env.DB_NAME,
-  process.env.DB_USER,
-  process.env.DB_PASSWORD,
-  {
-    host: process.env.DB_HOST,
-    port: process.env.DB_PORT,
-    dialect: 'mysql'
-  }
-);
+  const sequelize = require('./config/database');
 
 
   try {
@@ -393,17 +363,7 @@ router.delete('/delete_categorie_question/:id', async (req, res) => {
 
 // Endpoint pour mettre à jour une question
 router.put('/update_question/:id', async (req, res) => {
-  require('dotenv').config();
-const sequelize = new Sequelize(
-  process.env.DB_NAME,
-  process.env.DB_USER,
-  process.env.DB_PASSWORD,
-  {
-    host: process.env.DB_HOST,
-    port: process.env.DB_PORT,
-    dialect: 'mysql'
-  }
-);  const { Titre, Question, Reponse, CategorieQuestionFaqs } = req.body;
+  const sequelize = require('./config/database');  const { Titre, Question, Reponse, CategorieQuestionFaqs } = req.body;
   const transaction = await sequelize.transaction();
 
   try {

@@ -1,15 +1,9 @@
 const { Sequelize, DataTypes } = require('sequelize');
-require('dotenv').config();
-const sequelize = new Sequelize(
-  process.env.DB_NAME,
-  process.env.DB_USER,
-  process.env.DB_PASSWORD,
-  {
-    host: process.env.DB_HOST,
-    port: process.env.DB_PORT,
-    dialect: 'mysql'
-  }
-);
+const Style=require('./Style');
+const Piece=require('./Piece');
+
+
+const sequelize = require('./config/database');
 const Galerie = sequelize.define('Galerie', {
   ID: {
     type: DataTypes.INTEGER,
@@ -19,11 +13,27 @@ const Galerie = sequelize.define('Galerie', {
     field: 'ID' // Spécifie explicitement le nom de la colonne dans la base de données
 
   },
+  Type: { 
+    type: DataTypes.ENUM('Réalisation','Proposition',), 
+    allowNull: false 
+  },
   Titre: {
     type: DataTypes.STRING,
     allowNull: false,
     field: 'Titre' // Spécifie explicitement le nom de la colonne dans la base de données
-  }
+  },
+  Description: {
+    type: DataTypes.TEXT,
+    allowNull: true,
+    field: 'Description' // Spécifie explicitement le nom de la colonne dans la base de données
+  },
+  cover_image: {
+    type: DataTypes.STRING,
+    allowNull: false,
+    field: 'cover_image' // Spécifie explicitement le nom de la colonne dans la base de données
+  },
+   
+
 }, {
   tableName: 'Galerie',
   timestamps: false,
@@ -31,5 +41,7 @@ const Galerie = sequelize.define('Galerie', {
   charset: 'latin1',
   collate: 'latin1_swedish_ci'
 });
+
+
 
 module.exports = Galerie;

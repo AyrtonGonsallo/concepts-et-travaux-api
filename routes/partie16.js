@@ -14,17 +14,7 @@ router.get('/retirer_image/:object_id/:typeImage/:table', async (req, res) => {
     const table = req.params.table; 
 
 
-  require('dotenv').config();
-const sequelize = new Sequelize(
-  process.env.DB_NAME,
-  process.env.DB_USER,
-  process.env.DB_PASSWORD,
-  {
-    host: process.env.DB_HOST,
-    port: process.env.DB_PORT,
-    dialect: 'mysql'
-  }
-);
+  const sequelize = require('./config/database');
       let objet;
 
       const transaction = await sequelize.transaction();
@@ -98,7 +88,9 @@ router.delete('/delete_categorie_artisan/:id', async (req, res) => {
 
 router.get('/get_categories_artisan', async (req, res) => {
   try {
-    const categories_artisan = await CategorieArtisan.findAll();
+    const categories_artisan = await CategorieArtisan.findAll({
+      order: [['Titre', 'ASC']]
+    });
     res.status(200).json(categories_artisan);
   } catch (error) {
     console.error('Erreur lors de la récupération des categories de pieces :', error);
@@ -176,7 +168,9 @@ router.delete('/delete_categorie_fournisseur/:id', async (req, res) => {
 
 router.get('/get_categories_fournisseur', async (req, res) => {
   try {
-    const categories_fournisseur = await CategorieFournisseur.findAll();
+    const categories_fournisseur = await CategorieFournisseur.findAll({
+      order: [['Titre', 'ASC']]
+    });
     res.status(200).json(categories_fournisseur);
   } catch (error) {
     console.error('Erreur lors de la récupération des categories de pieces :', error);
