@@ -386,7 +386,7 @@ router.delete('/delete_devis_piece/:id', async (req, res) => {
 router.put('/update_devis_piece/:id', async (req, res) => {
   const { id } = req.params;
   const updatedDevis = req.body;
-  const sequelize = require('./config/database');
+  const sequelize = require('../config/database');
 
   const t = await sequelize.transaction();
 

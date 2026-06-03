@@ -71,7 +71,7 @@ const transporter = nodemailer.createTransport({
 
 // Endpoint PUT pour mettre à jour une pièce
 router.put('/update_piece/:pieceId', async (req, res) => {
-  const sequelize = require('./config/database');
+  const sequelize = require('../config/database');
   const transaction = await sequelize.transaction();
   
   try {
@@ -302,7 +302,7 @@ router.get('/get_pieces', async (req, res) => {
 });
 
 router.get('/get_pieces_par_categories', async (req, res) => {
-  const sequelize = require('./config/database');
+  const sequelize = require('../config/database');
 
 
   try {

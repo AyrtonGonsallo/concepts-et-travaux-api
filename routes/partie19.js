@@ -199,8 +199,24 @@ router.get('/get_galerie/:id', async (req, res) => {
   try {
     const galerie = await Galerie.findByPk(galerieId, {
       include: [
-        { model: Style },
-        { model: Piece }
+        // IMAGES
+        {
+          model: Image
+        },
+        // STYLES
+        {
+          model: Style,
+          through: {
+            attributes: []
+          }
+        },
+        // PIECES
+        {
+          model: Piece,
+          through: {
+            attributes: []
+          }
+        }
       ]
     });
 
@@ -210,20 +226,9 @@ router.get('/get_galerie/:id', async (req, res) => {
       });
     }
 
-    const images = await Image.findAll({
-      where: { GalerieId: galerieId }
-    });
+    
 
-    // 🔥 IMPORTANT : convertir en JSON propre
-    const result = galerie.toJSON();
-
-    result.images = images;
-
-    // 🔥 AJOUT DES IDS SIMPLES POUR ANGULAR
-    result.pieces = result.Pieces.map(p => p.id || p.ID);
-    result.styles = result.Styles.map(s => s.id || s.ID);
-
-    res.status(200).json(result);
+    res.status(200).json(galerie);
 
   } catch (error) {
     console.error(error);
@@ -236,22 +241,125 @@ router.get('/get_galerie/:id', async (req, res) => {
 router.get('/get_galeries', async (req, res) => {
   try {
     // Récupérer toutes les galeries
-    const galeries = await Galerie.findAll();
+    const galeries = await Galerie.findAll({
+      include: [
+        // IMAGES
+        {
+          model: Image
+        },
+        // STYLES
+        {
+          model: Style,
+          through: {
+            attributes: []
+          }
+        },
+        // PIECES
+        {
+          model: Piece,
+          through: {
+            attributes: []
+          }
+        }
+      ]
+    });
 
-    // Parcourir chaque galerie pour récupérer ses images
-    const galeriesWithImages = await Promise.all(galeries.map(async (galerie) => {
-      // Récupérer les images associées à chaque galerie
-      const images = await Image.findAll({ where: { GalerieID: galerie.ID } });
-      // Ajouter les images à la galerie
-      galerie.dataValues.images = images;
-      return galerie;
-    }));
-
-    // Répondre avec toutes les galeries et leurs images
-    res.status(200).json(galeriesWithImages);
+    
+    res.status(200).json(galeries);
   } catch (error) {
     console.error('Erreur lors de la récupération des galeries :', error);
     res.status(500).json({ error: 'Erreur serveur' });
+  }
+});
+
+
+
+router.get('/get_nbr_galeries/:maximun', async (req, res) => {
+  try {
+    const maximun = parseInt(req.params.maximun, 10); // Récupérer le nombre de réalisations à renvoyer
+
+    const galeries = await Galerie.findAll({
+      include: [
+        // IMAGES
+        {
+          model: Image
+        },
+        // STYLES
+        {
+          model: Style,
+          through: {
+            attributes: []
+          }
+        },
+        // PIECES
+        {
+          model: Piece,
+          through: {
+            attributes: []
+          }
+        }
+      ],
+      order: [
+        ['ID', 'DESC'] // Tri par Titre en ordre croissant
+      ],
+      limit: maximun // Limiter le nombre de résultats
+    });
+
+   
+
+    res.status(200).json(galeries);
+  } catch (error) {
+    console.error('Erreur lors de la récupération des galeries :', error);
+    res.status(500).json({ error: 'Erreur serveur' });
+  }
+});
+
+router.get('/get_galeries_by_piece/:pieceId', async (req, res) => {
+
+  try {
+
+    const pieceId = req.params.pieceId;
+
+    const galeries = await Galerie.findAll({
+
+      include: [
+
+        {
+          model: Piece,
+
+          where: {
+            ID: pieceId
+          },
+
+          through: {
+            attributes: []
+          }
+        },
+
+        {
+          model: Style,
+          through: {
+            attributes: []
+          }
+        },
+
+        {
+          model: Image
+        }
+
+      ]
+
+    });
+
+    return res.status(200).json(galeries);
+
+  } catch (error) {
+
+    console.error(error);
+
+    return res.status(500).json({
+      error: 'Erreur serveur'
+    });
   }
 });
 
@@ -400,5 +508,8 @@ router.delete('/delete_image_from_gallery/:image_id', async (req, res) => {
     res.status(500).json({ error: 'Erreur serveur' });
   }
 });
+
+
+
 
 module.exports = router;

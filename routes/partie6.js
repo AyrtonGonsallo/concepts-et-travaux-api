@@ -50,7 +50,7 @@ const transporter = nodemailer.createTransport({
 
 // Endpoint POST pour ajouter une réalisation avec ses besoins et étapes
 router.post('/ajouter_realisation', async (req, res) => {
-  const sequelize = require('./config/database');  const transaction = await sequelize.transaction();
+  const sequelize = require('../config/database');  const transaction = await sequelize.transaction();
 
   try {
     // Récupérer les données de la requête
@@ -301,7 +301,7 @@ router.delete('/delete_piece/:pieceId', async (req, res) => {
 }); 
 
 router.post('/add_piece', async (req, res) => {
-  const sequelize = require('./config/database');
+  const sequelize = require('../config/database');
   const transaction = await sequelize.transaction();
   try {
     const { Image_principale,Image_presentation, Titre, Presentation, Description, Categories, Gallery } = req.body;
@@ -362,7 +362,7 @@ router.post('/add_piece', async (req, res) => {
 });
 
 router.post('/ajouter_piece', async (req, res) => {
-  const sequelize = require('./config/database');
+  const sequelize = require('../config/database');
   const transaction = await sequelize.transaction();
   try {
     const { Image_principale,Image_presentation, Titre, Presentation, Description, Categories, GalerieID } = req.body;

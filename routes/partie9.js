@@ -249,7 +249,7 @@ router.delete('/delete_equipement/:id', async (req, res) => {
 });
 
 router.post('/add_travail', async (req, res) => {
-  const sequelize = require('./config/database');
+  const sequelize = require('../config/database');
   const transaction = await sequelize.transaction();
   try {
     const {  Titre, Description, Pieces } = req.body;
@@ -283,7 +283,7 @@ router.post('/add_travail', async (req, res) => {
 
 // GET travaux par PieceID
 router.get('/get_travaux_by_piece/:pid', async (req, res) => {
-  const sequelize = require('./config/database');
+  const sequelize = require('../config/database');
   const pieceId = req.params.pid;
 
   try {
@@ -313,7 +313,7 @@ router.get('/get_travaux_by_piece/:pid', async (req, res) => {
 
 // GET validated travaux par PieceID
 router.get('/get_validated_travaux_by_piece/:pid', async (req, res) => {
-  const sequelize = require('./config/database');
+  const sequelize = require('../config/database');
   const pieceId = req.params.pid;
 
   try {

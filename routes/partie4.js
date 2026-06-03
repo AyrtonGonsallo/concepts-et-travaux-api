@@ -110,7 +110,7 @@ router.put('/update_project/:id', async (req, res) => {
 });
 // Définir le point de terminaison pour supprimer un projet
 router.delete('/delete_project/:id', async (req, res) => {
-    const sequelize = require('./config/database');  
+    const sequelize = require('../config/database');  
   const transaction = await sequelize.transaction();
 
   try {

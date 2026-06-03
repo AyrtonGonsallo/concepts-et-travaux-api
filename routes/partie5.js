@@ -476,7 +476,7 @@ router.post('/add_realisation', async (req, res) => {
 
 // Endpoint PUT pour mettre à jour une réalisation avec ses besoins et étapes
 router.put('/update_realisation/:realisationId', async (req, res) => {
-  const sequelize = require('./config/database');
+  const sequelize = require('../config/database');
 
   const transaction = await sequelize.transaction();
 

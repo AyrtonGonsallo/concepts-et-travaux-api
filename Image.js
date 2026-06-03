@@ -39,7 +39,6 @@ const Image = sequelize.define('Image', {
   collate: 'latin1_swedish_ci'
 });
 
-// Définir la relation one-to-many avec la table Galerie
-Image.belongsTo(Galerie, { foreignKey: 'GalerieID' });
+
 
 module.exports = Image;

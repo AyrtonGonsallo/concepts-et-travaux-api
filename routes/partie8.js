@@ -142,7 +142,7 @@ router.post('/create_categorie_question', async (req, res) => {
 
 
 router.post('/add_question', async (req, res) => {
-  const sequelize = require('./config/database');  const { Titre, Question, Reponse, CategorieQuestionFaqs } = req.body;
+  const sequelize = require('../config/database');  const { Titre, Question, Reponse, CategorieQuestionFaqs } = req.body;
 
   const transaction = await sequelize.transaction();
 
@@ -192,7 +192,7 @@ router.get('/get_questions', async (req, res) => {
 });
 
 router.get('/get_questions_par_categorie/:id', async (req, res) => {
-  const sequelize = require('./config/database');
+  const sequelize = require('../config/database');
   const categorieId = req.params.id;
 
   try {
@@ -218,7 +218,7 @@ router.get('/get_questions_par_categorie/:id', async (req, res) => {
 });
 
 router.get('/get_questions_par_categories', async (req, res) => {
-  const sequelize = require('./config/database');
+  const sequelize = require('../config/database');
 
 
   try {
@@ -363,7 +363,7 @@ router.delete('/delete_categorie_question/:id', async (req, res) => {
 
 // Endpoint pour mettre à jour une question
 router.put('/update_question/:id', async (req, res) => {
-  const sequelize = require('./config/database');  const { Titre, Question, Reponse, CategorieQuestionFaqs } = req.body;
+  const sequelize = require('../config/database');  const { Titre, Question, Reponse, CategorieQuestionFaqs } = req.body;
   const transaction = await sequelize.transaction();
 
   try {

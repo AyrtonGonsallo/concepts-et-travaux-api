@@ -305,7 +305,7 @@ router.post("/update_project_status", async (req, res) => {
     Avancement
 
   } = req.body;
-  const sequelize = require('./config/database');
+  const sequelize = require('../config/database');
   const t = await sequelize.transaction();
 
   try {

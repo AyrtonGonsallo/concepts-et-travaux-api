@@ -14,7 +14,7 @@ router.get('/retirer_image/:object_id/:typeImage/:table', async (req, res) => {
     const table = req.params.table; 
 
 
-  const sequelize = require('./config/database');
+  const sequelize = require('../config/database');
       let objet;
 
       const transaction = await sequelize.transaction();
