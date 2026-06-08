@@ -51,17 +51,17 @@ const Utilisateur = sequelize.define('Utilisateur', {
   },
   AdressePostale: {
     type: DataTypes.STRING(200),
-    allowNull: false,
+    allowNull: true,
     field: 'Adresse Postale' // Nom de la colonne dans la table
   },
   CodePostal: {
     type: DataTypes.STRING(255),
-    allowNull: false,
+    allowNull: true,
     field: 'CodePostal' // Nom de la colonne dans la table
   },
   CommunePostale: {
     type: DataTypes.STRING(255),
-    allowNull: false,
+    allowNull: true,
     field: 'CommunePostale' // Nom de la colonne dans la table
   },
   Activite: {

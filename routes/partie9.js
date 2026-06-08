@@ -176,8 +176,12 @@ router.get('/get_equipements_by_piece/:pid', async (req, res) => {
           model: Piece, // Inclure les informations de la pièce associée à l'équipement
         },
         {
-          model: ModeleEquipement, // Inclure tous les modèles d'équipement associés à l'équipement
-          as:'Modeles'
+          model: ModeleEquipement, // Inclure tous les modèles d'équipement associés à l'équipement ActiverFournisseur: 1
+          as:'Modeles',
+          where: {
+            ActiverFournisseur: 0
+          },
+          required: false
         },
       ],
       order: [['ID', 'ASC']]
@@ -201,6 +205,10 @@ router.get('/get_equipements_by_type/:type', async (req, res) => {
     {
       model: ModeleEquipement,
       as: 'Modeles', // ⚠️ il faut l'alias défini dans la relation
+      where: {
+        ActiverFournisseur: 0
+      },
+      required: false
     },
   ],
 });

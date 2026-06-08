@@ -3,6 +3,7 @@ const router = express.Router();
 const Role = require('../Role');
 const Utilisateur = require('../Utilisateur');
 const RoleAutorisation = require('../RoleAutorisation');
+const Parametre = require('../Parametre');
 
 const Gamme=require('../Gamme')
 const ejs = require('ejs');
@@ -247,7 +248,11 @@ router.post('/add_front_utilisateur_with_datas', async (req, res) => {
 
 
 function cleanFilePath(filePath) {
-  return filePath.replace(/^.*\\fakepath\\/, '');
+  if(filePath){
+    return filePath.replace(/^.*\\fakepath\\/, '');
+  }
+  else return '';
+  
 }
 
 
@@ -346,6 +351,40 @@ router.post('/add_particulier', async (req, res) => {
       CategorieFournisseur,
       RoleId // Associer l'ID du rôle à l'utilisateur
     });
+
+
+    parametre = await Parametre.findOne({
+      where: { Type: 'email_alerte' }
+    });
+    let email = parametre.ValeurTexte;
+    const currentDate = new Date().toLocaleString('fr-FR', {
+      day: '2-digit',
+      month: '2-digit',
+      year: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit'
+    });
+    
+    const emailTemplatePath = path.join(__dirname, '..', 'mails-templates', 'emailDemandePartenariat.ejs');
+    const htmlContent = await ejs.renderFile(emailTemplatePath, {
+      RaisonSociale,
+      AdressePostale,
+      Nom,
+      Prenom,
+      Telephone,
+      email_user:Email,
+    });
+
+    const mailOptions = {
+      from: `${process.env.MAILS_TITLE} <${process.env.MAILS_USER}>`,
+      to: email,
+      subject: `Vous avez une nouvelle demande de partenariat`,
+      html: htmlContent
+    };
+
+    await transporter.sendMail(mailOptions);
+
+    console.log(`email de ${Email} envoyé à ${email}`)
 
     // Répondre avec l'utilisateur ajouté
     res.status(201).json(utilisateur);
@@ -490,16 +529,21 @@ router.post('/add_project', async (req, res) => {
 
  
 
-    // Ajouter les devis au projet
     if (Devis && Devis.length > 0) {
-      const devisPromises = Devis.map(devisId => 
-        ProjetDevis.create({
-          projet_id: newProject.Id,
-          devis_id: devisId
-        })
-      );
-      await Promise.all(devisPromises);
+
+  await ProjetDevis.destroy({
+    where: {
+      devis_id: Devis
     }
+  });
+
+  await ProjetDevis.bulkCreate(
+    Devis.map(devisId => ({
+      projet_id: newProject.Id,
+      devis_id: devisId
+    }))
+  );
+}
 
     // Récupérer le projet avec les associations pour la réponse
     const projectWithAssociations = await Projet.findOne({

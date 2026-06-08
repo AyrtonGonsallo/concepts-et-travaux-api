@@ -345,12 +345,10 @@ class DevisCalculator {
     async get_prix_tache_2(donnees_json, devis_id, tvaValue) {
       let prix = 0;
       let formule = "";
-      let formule_marge='';
-      let prix_marge = 0;
       const tva = 1+(tvaValue/100); // 20
-      const coefficient = this.parametre_coef.Valeur; // 1.25
-      console.log("tva ",tva)
-      console.log("coefficient ",coefficient)
+        const coefficient = this.parametre_coef.Valeur; // 1.25
+        console.log("tva ",tva)
+        console.log("coefficient ",coefficient)
     
       // Extraire les données nécessaires
       const appareils_cuisine = donnees_json["gammes-produits-pose-elementcuisines"].appareils_cuisine;
@@ -363,17 +361,6 @@ class DevisCalculator {
         let prixLocal = qte * element.prix;
         prix += prixLocal;
         formule += `<u>Prix de dépose de l'élement "${element.titre}"</u>\n Quantité (${qte}) * prix de dépose (${element.prix} €) = ${prixLocal} €\n`;
-        
-        
-        
-        if(element.artisan_depose ){
-          let aParts = element.artisan_depose.split(":");
-          let prixdepose = parseFloat(aParts[2]);
-          let prix_total = prixdepose*qte;
-          prix_marge += prix_total;
-          formule_marge += `<u>Prix de dépose de l'élement "${element.titre}"</u>\n 1 * prix artisan (${prixdepose} €) x quantité (${qte} ) = ${prix_total} €\n`;
-        }
-      
       });
     
       // Calculer le prix pour " pose appareils_cuisine"
@@ -384,32 +371,10 @@ class DevisCalculator {
             let titre = (element.modele.split(':')[1]);
             prix += prixLocal;
             formule += `<u>Prix de pose de l'élement "${titre}"</u>\n Quantité (1) * prix (${prixLocal} €) = ${prixLocal} €\n`;
-          
-            if(element.artisan_pose && element.fournisseur_pose){
-                let aParts = element.artisan_pose.split(":");
-                let fParts = element.fournisseur_pose.split(":");
-                let prixArtisan = parseFloat(aParts[2]);
-                let prixFournisseur = parseFloat(fParts[2]);
-                let prix_total = prixArtisan+prixFournisseur;
-                prix_marge += prix_total;
-                formule_marge += `<u>Prix de pose de l'élement "${titre}"</u>\n 1 * prix artisan (${prixArtisan} €) + prix fournisseur (${prixFournisseur} €) = ${prix_total} €\n`;
-  
-            }
-          
-          
           }
           
         });
       
-
-        const resultatFinalMarge = await this.appliquerRemisesEtTaxes({
-          prix_base: prix_marge,
-          devis_id,
-          coefficient,
-          tva,
-          formule:formule_marge,
-        });
-          
     
         const resultatFinal = await this.appliquerRemisesEtTaxes({
           prix_base: prix,
@@ -424,9 +389,7 @@ class DevisCalculator {
         return {
           prix_ht: resultatFinal.total_apres_remise,
           prix: resultatFinal.total_ttc,
-          formule: resultatFinal.formule,
-          prix_marge: resultatFinalMarge.total_ttc,
-          formule_marge: resultatFinalMarge.formule,
+          formule: resultatFinal.formule
         };
     }
       
@@ -639,90 +602,45 @@ class DevisCalculator {
       async get_prix_tache_10(donnees_json, devis_id, tvaValue) {
         let prix = 0;
         let formule = ""; // Chaîne pour construire la formule
-        let formule_marge='';
-        let prix_marge = 0;
-
         const tva = 1+(tvaValue/100); // 20
         const coefficient = this.parametre_coef.Valeur; // 1.25
         console.log("tva ",tva)
         console.log("coefficient ",coefficient)
         
-        const portes = donnees_json["gammes-produits-pose-portes"].portes;
+          const portes = donnees_json["gammes-produits-pose-portes"].portes;
         
-        // Parcourir chaque porte
-        portes.forEach((porte, index) => {
-          let prix_gamme= parseFloat(porte.gamme.split(":")[1]);
-          let prix_nature_porte= parseFloat(porte.nature_porte.split(":")[1]);
-          let prix_type_porte= parseFloat(porte.type_porte.split(":")[1]);
-          let titre_gamme= (porte.gamme.split(":")[2]);
-          let titre_nature_porte= (porte.nature_porte.split(":")[2]);
-          let titre_type_porte= (porte.type_porte.split(":")[2]);
-          
-          prix += prix_gamme + prix_nature_porte + prix_type_porte ;
-          // Ajouter les calculs à la formule
-          formule += `<u>Prix de la porte ${index+1} </u>\n Prix de la gamme de porte "${titre_gamme}" (${prix_gamme} €) + Prix de la nature de la porte "${titre_nature_porte}" (${prix_nature_porte} €) + Prix du type de porte "${titre_type_porte}" (${prix_type_porte} €) = ${prix_gamme + prix_nature_porte + prix_type_porte} €\n`;
-          
-          if(porte.artisan_pose && porte.fournisseur_pose && porte.artisan_nature && porte.fournisseur_nature && porte.artisan_type && porte.fournisseur_type){
-            let prix_artisan_pose = parseFloat(porte.artisan_pose.split(":")[1]);
-            let prix_fournisseur_pose = parseFloat(porte.fournisseur_pose.split(":")[1]);
-
-            let prix_artisan_nature = parseFloat(porte.artisan_nature.split(":")[1]);
-            let prix_fournisseur_nature = parseFloat(porte.fournisseur_nature.split(":")[1]);
-
-            let prix_artisan_type = parseFloat(porte.artisan_type.split(":")[1]);
-            let prix_fournisseur_type = parseFloat(porte.fournisseur_type.split(":")[1]);
-
-            let prix_total_porte = prix_artisan_pose + prix_fournisseur_pose + prix_artisan_nature + prix_fournisseur_nature + prix_artisan_type + prix_fournisseur_type;
-            prix_marge += prix_total_porte ;
-            formule_marge += `<u>Prix de la porte ${index+1} </u>\n 
-            Pose :
-            - Artisan : ${prix_artisan_pose} €
-            - Fournisseur : ${prix_fournisseur_pose} €
-            => Total pose : ${prix_artisan_pose + prix_fournisseur_pose} €
-
-            Gamme "${titre_gamme}" :
-            - Artisan : ${prix_artisan_nature} €
-            - Fournisseur : ${prix_fournisseur_nature} €
-            => Total gamme : ${prix_artisan_nature + prix_fournisseur_nature} €
-
-            type "${titre_type_porte}" :
-            - Artisan : ${prix_artisan_type} €
-            - Fournisseur : ${prix_fournisseur_type} €
-            => Total type : ${prix_artisan_type + prix_fournisseur_type} €
+          // Parcourir chaque porte
+          portes.forEach((porte, index) => {
+            let prix_gamme= parseFloat(porte.gamme.split(":")[1]);
+            let prix_nature_porte= parseFloat(porte.nature_porte.split(":")[1]);
+            let prix_type_porte= parseFloat(porte.type_porte.split(":")[1]);
+            let titre_gamme= (porte.gamme.split(":")[2]);
+            let titre_nature_porte= (porte.nature_porte.split(":")[2]);
+            let titre_type_porte= (porte.type_porte.split(":")[2]);
             
-            = ${prix_total_porte} €\n`;
-
-          }
-
         
-        });
-      
+            prix += prix_gamme + prix_nature_porte + prix_type_porte ;
         
-          const resultatFinal = await this.appliquerRemisesEtTaxes({
-          prix_base: prix,
-          devis_id,
-          coefficient,
-          tva,
-          formule
-        });
+            // Ajouter les calculs à la formule
+            formule += `<u>Prix de la porte ${index+1} </u>\n Prix de la gamme de porte "${titre_gamme}" (${prix_gamme} €) + Prix de la nature de la porte "${titre_nature_porte}" (${prix_nature_porte} €) + Prix du type de porte "${titre_type_porte}" (${prix_type_porte} €) = ${prix_gamme + prix_nature_porte + prix_type_porte} €\n`;
+           });
+        
+          
+           const resultatFinal = await this.appliquerRemisesEtTaxes({
+            prix_base: prix,
+            devis_id,
+            coefficient,
+            tva,
+            formule
+          });
 
-         const resultatFinalMarge = await this.appliquerRemisesEtTaxes({
-          prix_base: prix_marge,
-          devis_id,
-          coefficient,
-          tva,
-          formule:formule_marge,
-        });
+          return {
+            prix_ht: resultatFinal.total_apres_remise,
+            prix: resultatFinal.total_ttc,
+            formule: resultatFinal.formule
+          };
 
-        return {
-          prix_ht: resultatFinal.total_apres_remise,
-          prix: resultatFinal.total_ttc,
-          formule: resultatFinal.formule,
-           prix_marge: resultatFinalMarge.total_ttc,
-          formule_marge: resultatFinalMarge.formule,
-        };
-
-      }
+        }
         
 
 
@@ -784,58 +702,38 @@ class DevisCalculator {
         
       
        async get_prix_tache_12(donnees_json, devis_id, tvaValue) {
-        let formule = ""; // Stocke la formule explicative
-        let prix = 0;
-        let formule_marge='';
-        let prix_marge = 0;
-        const tva = 1+(tvaValue/100); // 20
+          let formule = ""; // Stocke la formule explicative
+          let prix = 0;
+          const tva = 1+(tvaValue/100); // 20
         const coefficient = this.parametre_coef.Valeur; // 1.25
         console.log("tva ",tva)
         console.log("coefficient ",coefficient)
       
-        // Données principales
-        const surface = donnees_json["dimensions-pose-chauffage"].surface;
-        const radiateursTypes = donnees_json["etat-surfaces-pose-chauffage"].radiateurs;
-        const radiateursGammes = donnees_json["gammes-produits-pose-chauffage"].radiateurs;
-    
+          // Données principales
+          const surface = donnees_json["dimensions-pose-chauffage"].surface;
+          const radiateursTypes = donnees_json["etat-surfaces-pose-chauffage"].radiateurs;
+          const radiateursGammes = donnees_json["gammes-produits-pose-chauffage"].radiateurs;
       
-        // Itération sur chaque radiateur
-        radiateursTypes.forEach((radiateur, index) => {
-          const type = radiateur.type;
-          const gamme = radiateursGammes[index].gamme;
-    
+        
+          // Itération sur chaque radiateur
+          radiateursTypes.forEach((radiateur, index) => {
+              const type = radiateur.type;
+              const gamme = radiateursGammes[index].gamme;
+      
+              
+                  // Si le radiateur est à poser et que la gamme est visible
+                  const TypeParts = type.split(":");
+                  const gammeParts = gamme.split(":");
+                  const prixType = parseFloat(TypeParts[1]); // Prix du Type
+                  const prixGamme = parseFloat(gammeParts[1]); // Prix de la gamme
+                  const nomGamme = (gammeParts[2]); // nom de la gamme
+                  const nomType = (TypeParts[2]); // nom du Type
+                  prix += prixGamme;
+                  formule += `<u>Prix du radiateur ${index + 1}</u>\n Prix de la gamme choisie (${nomGamme}) = ${prixGamme} €\n`;
             
-          // Si le radiateur est à poser et que la gamme est visible
-          const TypeParts = type.split(":");
-          const gammeParts = gamme.split(":");
-          const prixType = parseFloat(TypeParts[1]); // Prix du Type
-          const prixGamme = parseFloat(gammeParts[1]); // Prix de la gamme
-          const nomGamme = (gammeParts[2]); // nom de la gamme
-          const nomType = (TypeParts[2]); // nom du Type
-          prix += prixGamme;
-          formule += `<u>Prix du radiateur ${index + 1}</u>\n Prix de la gamme choisie (${nomGamme}) = ${prixGamme} €\n`;
-          
-
-          
-          const artisan_type = radiateur.artisan_type;
-          const fournisseur_type = radiateur.fournisseur_type;
-          const artisan_pose = radiateursGammes[index].artisan_pose;
-          const fournisseur_pose = radiateursGammes[index].fournisseur_pose;
-          if(fournisseur_pose && artisan_pose && artisan_type && fournisseur_type){
-            let prix_artisan_type = parseFloat(artisan_type.split(":")[1]); // Prix du Type
-            let prix_fournisseur_type = parseFloat(fournisseur_type.split(":")[1]); // Prix du Type
-            let prix_artisan_pose = parseFloat(artisan_pose.split(":")[1]); // Prix du Type
-            let prix_fournisseur_pose = parseFloat(fournisseur_pose.split(":")[1]); // Prix du Type
-
-            let total = prix_artisan_type+prix_fournisseur_type+prix_artisan_pose+prix_fournisseur_pose
-
-            prix_marge += total;
-            formule_marge += `<u>Prix du radiateur ${index + 1}</u>
-            Prix de la gamme choisie (${nomGamme}) : ${prix_artisan_type} € (artisan type) + ${prix_fournisseur_type} € (fournisseur type)  + ${prix_artisan_pose} € (artisan gamme) + ${prix_fournisseur_pose} € (fournisseur gamme) = ${total} €\n`;
-          }
-        });
+          });
       
-        const resultatFinal = await this.appliquerRemisesEtTaxes({
+           const resultatFinal = await this.appliquerRemisesEtTaxes({
           prix_base: prix,
           devis_id,
           coefficient,
@@ -843,23 +741,12 @@ class DevisCalculator {
           formule
         });
 
-         const resultatFinalMarge = await this.appliquerRemisesEtTaxes({
-          prix_base: prix_marge,
-          devis_id,
-          coefficient,
-          tva,
-          formule:formule_marge,
-        });
-
-
       
         // Retourner le prix total et la formule descriptive
         return {
           prix_ht: resultatFinal.total_apres_remise,
           prix: resultatFinal.total_ttc,
-          formule: resultatFinal.formule,
-           prix_marge: resultatFinalMarge.total_ttc,
-          formule_marge: resultatFinalMarge.formule,
+          formule: resultatFinal.formule
         };
       }
 

@@ -104,4 +104,5 @@ const Gamme = sequelize.define('Gamme', {
 
 
 Gamme.belongsTo(Utilisateur, { foreignKey: 'FournisseurID',as: 'Fournisseur', });
+Gamme.belongsTo(Utilisateur, { foreignKey: 'ArtisanID',as: 'Artisan', });
 module.exports = Gamme;

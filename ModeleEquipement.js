@@ -109,4 +109,5 @@ const ModeleEquipement = sequelize.define('ModeleEquipement', {
 });
 
 ModeleEquipement.belongsTo(Utilisateur, { foreignKey: 'FournisseurID',as: 'Fournisseur', });
+ModeleEquipement.belongsTo(Utilisateur, { foreignKey: 'ArtisanID',as: 'Artisan', });
 module.exports = ModeleEquipement;

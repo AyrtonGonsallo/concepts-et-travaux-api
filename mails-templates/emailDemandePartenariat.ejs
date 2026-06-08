@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <title>Liste des Devis</title>
+    <style>
+        @font-face {
+            font-family: 'Sarpanch-Regular';
+            src: url('/Sarpanch-Regular.ttf') format('truetype');
+        }
+        .center{text-align: center;}
+        body {
+            font-family: "Montserrat";
+            background-color: #F4F4F4;
+            margin: 0;
+            padding: 0;
+        }
+        .content{font-size: 15px;}
+        .body-cnt{
+            padding-top: 20px;
+            padding-bottom: 20px;
+            background: #F4F4F4;
+            width: 100%;
+        }
+        .container {
+            width: 60%;
+            margin: 0 auto;
+            background-color: #ffffff;
+            border-radius: 0px;
+            padding: 15px;
+            overflow: hidden;
+        }
+        .header {
+            position: relative;
+            width:auto;
+            height:100%;
+            font-family: 'Sarpanch-Regular' !important;
+            align-items: center !important;
+            padding: 20px;
+            text-align: center !important;
+            max-width: 100%;
+            margin: auto;
+        }
+        .footer a {
+            color: #FFC637;
+            text-decoration: underline;
+        }
+        .footer a:hover {
+            color: #555555;
+        }
+        h1 {
+            font-family: 'Montserrat' !important;
+            text-align: left;
+            font-size: 18px;
+            margin-top: 0px;
+            margin-bottom: 2px;
+            width: 100%;
+            color: #555555;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 0px;
+            margin-bottom: 30px;
+        }
+        table th, table td {
+            font-size: 11px;
+            padding: 10px;
+            text-align: left;
+        }
+        table th {
+            color: #555;
+            font-size: 14px;
+            border-bottom: 2px solid #ffc735;
+        }
+
+        table{background-color: #fbfbfb;}
+        table tr td {
+            padding: 10px;
+         }
+         table thead tr th {
+            color: #ffffff;
+            border-bottom-color: #ffffff;
+         }
+         tr:nth-child(even) {
+    background-color: #f0f0f0 !important;
+}
+
+ tr:nth-child(odd) {
+    background-color: #ffffff !important; }
+    </style>
+</head>
+<body>
+<div class="body-cnt">
+    <div class="container">
+        <!-- Header -->
+        <div class="header">
+            <div>
+                
+                <div class="center">
+                <img src="https://homeren.fr/icons/logo-homeren.png" alt="Logo du site">      
+            </div>
+        </div>       
+        </div>
+        <!-- Main Content -->
+        <div class="content">
+            <p>Bonjour,
+                <br>
+                Vous avez une nouvelle demande de partenariat sur Homeren.
+                <br>
+                Nom : <%= Nom %><br>
+                Prenom : <%= Prenom %><br>
+                Email : <%= email_user %><br>
+                Telephone : <%= Telephone %><br>
+                RaisonSociale : <%= RaisonSociale %><br>
+                AdressePostale : <%= AdressePostale %><br>
+
+                <br><br>
+                
+            <p>Cordialement,</p>
+            <p>L'équipe HOMEREN</p>
+           
+            <br><br>
+        </div>
+<div>
+</div>
+          <!-- Footer -->
+  <div class="footer">
+    <div style="border:1px solid #E6E6E6 ;"></div>
+<p class="center" style="font-size: 11px;">
+Ce message a été envoyé automatiquement à  <a href="mailto:<%= email_user %>"><%= email_user %></a> dans le cadre de votre inscription au service HomeRen
+<br>
+
+<strong>Une question ?</strong>  
+<br>
+
+Contactez votre Conseiller HomeRen au <a href="tel:02 00 00 00 00">02 00 00 00 00</a>  
+Nos horaires sont <a href="#"  style="text-decoration: underline;">consultables ici</a>.
+</p>
+<div style="border:1px solid #E6E6E6 ;"></div>
+<p class="center" style="font-size: 10px;">
+HomeRen traite vos données pour vous proposer un service de mise en relation avec des professionnels du bâtiment. Consultez la rubrique <a href="#" > Vos données et vos droits</a> sur notre site web pour en savoir plus.
+<br>
+Conformément aux dispositions de la loi « Informatique et Libertés » et du règlement général sur la protection des données du 27 avril 2016, vous disposez d'un droit d'accès, de rectification et de suppression de vos données personnelles. Consulter nos <a href="#">informations légales.</a>
+</p>
+</div>
+</div>
+</div>
+</body>
+</html>

@@ -15,8 +15,13 @@ const Parametre = sequelize.define('Parametre', {
   },
   Valeur: {
     type: DataTypes.DOUBLE,
-    allowNull: false,
+    allowNull: true,
     field: 'Valeur' // Specifies the column name explicitly
+  },
+  ValeurTexte: {
+    type: DataTypes.STRING(255),
+    allowNull: true,
+    field: 'ValeurTexte' // Specifies the column name explicitly
   },
   Type: {
     type: DataTypes.STRING(255),

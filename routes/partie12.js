@@ -96,11 +96,15 @@ router.post('/get_prix_devis_tache/', async (req, res) => {
           console.log("prix: ", result.prix);
           console.log("tva: ", devisPiece.Tva.Valeur);
           console.log("formule: ", result.formule);
+          console.log("prix_marge: ", result.prix_marge);
+          console.log("formule_marge: ", result.formule_marge);
       
           // Ajout du résultat sous le slug du travail dans l'objet resultats
           resultats[tache.TravailSlug] = {
             prix: parseFloat(result.prix),
-            formule: result.formule
+            formule: result.formule,
+            prix_marge: parseFloat(result.prix_marge),
+            formule_marge: result.formule_marge
           };
       
           total += parseFloat(result.prix); // Ajoute le prix au total
