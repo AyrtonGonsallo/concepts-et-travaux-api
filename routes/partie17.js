@@ -120,7 +120,8 @@ router.get('/export_gammes_fournisseur/:fournisseur_id', async (req, res) => {
     // 1. Récupérer les gammes
     const gammes = await Gamme.findAll({
       where: { 
-        FournisseurID:fournisseur_id
+        FournisseurID:fournisseur_id,
+        Etape: 'Étape 3 - Choix du nouveau revêtement',
        }
     });
 

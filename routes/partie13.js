@@ -321,7 +321,8 @@ router.get('/get_devis_taches_by_travail/:travailId', async (req, res) => {
 
   try {
     const taches = await DevisTache.findAll({
-      where: { TravailID: travailId }
+      where: { TravailID: travailId },
+      order: [['ID', 'DESC']]
     });
     res.json(taches);
   } catch (error) {

@@ -338,6 +338,7 @@ class DevisCalculator {
           prix: resultatFinal.total_ttc,
           formule: resultatFinal.formule,
            prix_marge: resultatFinalMarge.total_ttc,
+           prix_marge_ht: resultatFinalMarge.total_ht,
           formule_marge: resultatFinalMarge.formule,
         };
     }
@@ -426,6 +427,7 @@ class DevisCalculator {
           prix: resultatFinal.total_ttc,
           formule: resultatFinal.formule,
           prix_marge: resultatFinalMarge.total_ttc,
+          prix_marge_ht: resultatFinalMarge.total_ht,
           formule_marge: resultatFinalMarge.formule,
         };
     }
@@ -435,7 +437,7 @@ class DevisCalculator {
         let prix = 0;
         let formule = ""; // Initialisation de la chaîne de formule
         let formule_marge='';
-          let prix_marge = 0;
+        let prix_marge = 0;
         const tva = 1+(tvaValue/100); // 20
         const coefficient = this.parametre_coef.Valeur; // 1.25
         console.log("tva ",tva)
@@ -465,13 +467,13 @@ class DevisCalculator {
           
             let artisan_pose = mursnonporteurs[i].artisan_pose
             let fournisseur_pose = mursnonporteurs[i].fournisseur_pose
-            if(artisan_pose && fournisseur_pose){
+            if(artisan_pose ){
               let prix_artisan_pose_marge = parseFloat(artisan_pose.split(':')[2]);
-              let prix_fournisseur_pose_marge = parseFloat(fournisseur_pose.split(':')[2]);
-              let prix_marge = prix_fournisseur_pose_marge + prix_artisan_pose_marge;
+            
+              let prix_marge =  prix_artisan_pose_marge;
               let prix_final_mur_marge = surface_mur * prix_marge * 1;
               prix_marge += prix_final_mur_marge;
-              formule_marge += `<u>Prix du mur ${i+1} cloison ${titre_cloison_mur} cm</u>\n  Surface ${surface_mur} m² * prix de l'artisan ${prix_artisan_pose_marge} € + prix du fournisseur ${prix_fournisseur_pose_marge} €  = ${prix_final_mur_marge.toFixed(2)} €\n`;
+              formule_marge += `<u>Prix du mur ${i+1} cloison ${titre_cloison_mur} cm</u>\n  Surface ${surface_mur} m² * prix de l'artisan ${prix_artisan_pose_marge} €  = ${prix_final_mur_marge.toFixed(2)} €\n`;
           
 
             }
@@ -500,13 +502,13 @@ class DevisCalculator {
 
             let artisan_pose = ouvertures[j].artisan_pose
             let fournisseur_pose = ouvertures[j].fournisseur_pose
-            if(artisan_pose && fournisseur_pose){
+            if(artisan_pose ){
               let prix_artisan_pose_ouverture_marge = parseFloat(artisan_pose.split(':')[2]);
-              let prix_fournisseur_pose_ouverture_marge = parseFloat(fournisseur_pose.split(':')[2]);
-              let prix_ouverture_marge = prix_artisan_pose_ouverture_marge + prix_fournisseur_pose_ouverture_marge;
+            
+              let prix_ouverture_marge = prix_artisan_pose_ouverture_marge ;
               let prix_final_ouverture =  (surface_ouverture * prix_ouverture_marge);
                prix_marge += prix_final_ouverture;
-              formule_marge += `<u>Prix de l'ouverture ${j+1} cloison '${titre_cloison_mur}'</u>\n Surface de l'ouverture (${surface_ouverture} m²) * prix artisan (${prix_artisan_pose_ouverture_marge} €) + prix fournisseur (${prix_fournisseur_pose_ouverture_marge} €) = ${prix_final_ouverture.toFixed(2)} €\n`;
+              formule_marge += `<u>Prix de l'ouverture ${j+1} cloison '${titre_cloison_mur}'</u>\n Surface de l'ouverture (${surface_ouverture} m²) * prix artisan (${prix_artisan_pose_ouverture_marge} €)  = ${prix_final_ouverture.toFixed(2)} €\n`;
               if(hdp>0){
                 let prix_final_linteau =  (louv * prix_linteau);
                 prix_marge += prix_final_linteau;
@@ -542,6 +544,7 @@ class DevisCalculator {
           prix: resultatFinal.total_ttc,
           formule: resultatFinal.formule,           
           prix_marge: resultatFinalMarge.total_ttc,
+          prix_marge_ht: resultatFinalMarge.total_ht,
           formule_marge: resultatFinalMarge.formule,
         };
       }
@@ -631,6 +634,7 @@ class DevisCalculator {
           prix: resultatFinal.total_ttc,
           formule: resultatFinal.formule,
            prix_marge: resultatFinalMarge.total_ttc,
+           prix_marge_ht: resultatFinalMarge.total_ht,
           formule_marge: resultatFinalMarge.formule,
         };
         }
@@ -719,6 +723,7 @@ class DevisCalculator {
           prix: resultatFinal.total_ttc,
           formule: resultatFinal.formule,
            prix_marge: resultatFinalMarge.total_ttc,
+           prix_marge_ht: resultatFinalMarge.total_ht,
           formule_marge: resultatFinalMarge.formule,
         };
 
@@ -859,6 +864,7 @@ class DevisCalculator {
           prix: resultatFinal.total_ttc,
           formule: resultatFinal.formule,
            prix_marge: resultatFinalMarge.total_ttc,
+           prix_marge_ht: resultatFinalMarge.total_ht,
           formule_marge: resultatFinalMarge.formule,
         };
       }
@@ -953,6 +959,7 @@ class DevisCalculator {
           prix: resultatFinal.total_ttc,
           formule: resultatFinal.formule,
           prix_marge: resultatFinalMarge.total_ttc,
+          prix_marge_ht: resultatFinalMarge.total_ht,
           formule_marge: resultatFinalMarge.formule,
         };
       }
@@ -1078,6 +1085,7 @@ class DevisCalculator {
           prix: resultatFinal.total_ttc,
           formule: resultatFinal.formule,
           prix_marge: resultatFinalMarge.total_ttc,
+          prix_marge_ht: resultatFinalMarge.total_ht,
           formule_marge: resultatFinalMarge.formule,
         };
     }
@@ -1189,6 +1197,7 @@ class DevisCalculator {
             prix: resultatFinal.total_ttc,
             formule: resultatFinal.formule,
             prix_marge: resultatFinalMarge.total_ttc,
+            prix_marge_ht: resultatFinalMarge.total_ht,
           formule_marge: resultatFinalMarge.formule,
           };
         }
@@ -1247,10 +1256,13 @@ class DevisCalculator {
      async get_prix_tache_15(donnees_json, devis_id, tvaValue) {
           let formule = ""; // Pour construire la formule explicative
           let prix = 0; // Prix total initialisé à 0
-       const tva = 1+(tvaValue/100); // 20
-        const coefficient = this.parametre_coef.Valeur; // 1.25
-        console.log("tva ",tva)
-        console.log("coefficient ",coefficient)
+          let formule_marge='';
+          let prix_marge = 0;
+
+        const tva = 1+(tvaValue/100); // 20
+          const coefficient = this.parametre_coef.Valeur; // 1.25
+          console.log("tva ",tva)
+          console.log("coefficient ",coefficient)
 
           const prix_mise_en_securite = this.tache_mise_en_securité.Prix;
           const prix_renovation_chauffage = this.tache_renovation_electrique_de_chauffage.Prix;
@@ -1276,9 +1288,46 @@ class DevisCalculator {
             formule += `<u>Prix mise en sécurité</u>\n 1 * prix unitaire de la tâche de mise en sécurité (${prix_mise_en_securite} €) = ${sousTotal} €\n`;
           }
 
+          const artisan_chauffage = donnees_json["gammes-produits-renovation-electrique"].artisan_chauffage
+          const artisan_mise_aux_normes = donnees_json["gammes-produits-renovation-electrique"].artisan_mise_aux_normes
+          const artisan_mise_en_securite = donnees_json["gammes-produits-renovation-electrique"].artisan_mise_en_securite
+
+          if(artisan_chauffage){
+            const prix_artisan_chauffage = parseFloat(artisan_chauffage.split(":")[2]);
+            if(chauffage_exist){
+              let sousTotal_marge = quantite_chauffage * prix_artisan_chauffage; // Calcul du sous-total pour cet appareil
+              prix_marge += sousTotal_marge; // Ajoute le sous-total au prix total
+              formule_marge += `<u>Prix renovation de chauffage</u>\n ${quantite_chauffage} * prix artisan de la tâche de rénovation de chauffage (${prix_renovation_chauffage} €) = ${sousTotal_marge} €\n`;
+            }
+          }
+
+          if(artisan_mise_aux_normes){
+            const prix_artisan_mise_aux_normes = parseFloat(artisan_mise_aux_normes.split(":")[2]);
+            let sousTotal_marge = surface * prix_artisan_mise_aux_normes; 
+            prix_marge += sousTotal_marge;
+            formule_marge += `<u>Prix rénovation</u>\n surface (${surface} m²) * prix artisan de la tâche de rénovation électrique (${prix_renovation_electrique_complete} €) = ${sousTotal_marge} €\n`;
+
+          }
+
+          if(artisan_mise_en_securite){
+            const prix_artisan_mise_en_securite = parseFloat(artisan_mise_en_securite.split(":")[2]);
+            if(mise_en_securite){
+              let sousTotal_marge = 1 * prix_artisan_mise_en_securite; // Calcul du sous-total pour cet appareil
+              prix_marge += sousTotal_marge; // Ajoute le sous-total au prix total
+              formule_marge += `<u>Prix mise en sécurité</u>\n 1 * prix artisan de la tâche de mise en sécurité (${prix_artisan_mise_en_securite} €) = ${sousTotal_marge} €\n`;
+            }
+          }
+
+
+          
+         
+          
+
+    
+
          
           // Multiplier le prix total par 1.25
-           const resultatFinal = await this.appliquerRemisesEtTaxes({
+          const resultatFinal = await this.appliquerRemisesEtTaxes({
             prix_base: prix,
             devis_id,
             coefficient,
@@ -1286,13 +1335,27 @@ class DevisCalculator {
             formule
           });
 
+      
+          const resultatFinalMarge = await this.appliquerRemisesEtTaxes({
+          prix_base: prix_marge,
+          devis_id,
+          coefficient,
+          tva,
+          formule:formule_marge,
+        });
+
         
           // Retourner le prix total et la formule descriptive
           return {
             prix_ht: resultatFinal.total_apres_remise,
             prix: resultatFinal.total_ttc,
-            formule: resultatFinal.formule
+            formule: resultatFinal.formule,
+            prix_marge: resultatFinalMarge.total_ttc,
+            prix_marge_ht: resultatFinalMarge.total_ht,
+            formule_marge: resultatFinalMarge.formule,
           };
+
+
         }
       
       
@@ -1394,6 +1457,7 @@ class DevisCalculator {
           prix: resultatFinal.total_ttc,
           formule: resultatFinal.formule,
           prix_marge: resultatFinalMarge.total_ttc,
+          prix_marge_ht: resultatFinalMarge.total_ht,
           formule_marge: resultatFinalMarge.formule,
         };
       }

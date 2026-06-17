@@ -396,9 +396,11 @@ router.put('/update_galerie/:id', async (req, res) => {
     // IMAGES (simple stratégie : delete + recreate)
     // =========================
 
+    /*
     await Image.destroy({
       where: { GalerieId: galerie.ID }
     });
+    */
 
     if (Array.isArray(Images) && Images.length > 0) {
       await Promise.all(

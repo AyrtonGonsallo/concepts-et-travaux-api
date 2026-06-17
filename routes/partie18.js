@@ -325,6 +325,9 @@ router.get('/get_fournisseur_gammes_sans_equipements/:fournisseur_id', async (re
         TravailID: {
           [Op.notIn]: listeIds
         },
+        Etape: {
+          [Op.like]: '%étape 3%'
+        },
         FournisseurID:fournisseur_id
       }
     });

@@ -62,7 +62,9 @@ router.post('/get_prix_devis_tache/', async (req, res) => {
   try {
     const tache =  req.body;
 
-    if (!tache) {
+    const devisTache = await DevisTache.findByPk(tache.ID);
+
+    if (!devisTache) {
       return res.status(404).json({ error: 'Devis tache non trouvé' });
     }
 
@@ -108,6 +110,15 @@ router.post('/get_prix_devis_tache/', async (req, res) => {
           };
       
           total += parseFloat(result.prix); // Ajoute le prix au total
+
+
+          let prix_coutant_ht=result.prix_marge_ht
+          if(prix_coutant_ht){
+            devisTache.PrixCoutant = prix_coutant_ht;
+          await devisTache.save();
+          }
+
+          
         
       
         // Envoi du JSON contenant tous les résultats après la boucle
