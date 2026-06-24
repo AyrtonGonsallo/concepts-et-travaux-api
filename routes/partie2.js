@@ -151,7 +151,7 @@ router.post('/update-payed-devis', async (req, res) => {
     } catch (err) {
       console.error('Erreur mise à jour devis :', err);
     }
-    res.json({ success: true, message: "Mise à jour réussie", updatedDevis: devisIDs });
+    res.json({ success: true, message: "Mise à jour réussie", updatedProjet: projet_id });
 
   } catch (error) {
     console.error('Erreur lors de la création de la session Stripe :', error);

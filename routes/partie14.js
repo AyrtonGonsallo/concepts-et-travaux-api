@@ -43,7 +43,6 @@ router.get('/get_no_payed_project_by_user/:user_id/:device_id', async (req, res)
       where: {
         Payed: 0,
         [Op.or]: [
-          { DeviceID: device_id },
           { Client_id: user_id }
         ]
         
@@ -89,7 +88,6 @@ router.get('/get_all_projects_to_pay_visit_by_user/:user_id/:device_id', async (
         Payed: 0,
         VisiteID: null,
         [Op.or]: [
-          { DeviceID: device_id },
           { Client_id: user_id }
         ]
         
@@ -136,7 +134,6 @@ router.get('/get_all_project_to_pay_acompt_by_user/:user_id/:device_id', async (
         Valider:1,
         Status:'projet validé',
         [Op.or]: [
-          { DeviceID: device_id },
           { Client_id: user_id }
         ]
        },
@@ -176,7 +173,7 @@ router.get('/get_one_no_visited_project_by_user/:device_id/:user_id', async (req
   try {
 
     const project = await Projet.findOne({
-      where: { Client_id: user_id,DeviceID:device_id,Status:'visite à régler' },
+      where: { Client_id: user_id,Status:'visite à régler' },
       include: [
         { model: Utilisateur, as: 'Utilisateur' },
         { model: Utilisateur, as: 'Client' },

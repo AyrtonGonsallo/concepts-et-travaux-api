@@ -303,7 +303,8 @@ class DevisRecapitulator {
         formule: resultatFinal.formule,
         elements_recap:elements_recap,
         tva:resultatFinal.tva,
-        coefficient:resultatFinal.coefficient
+        coefficient:resultatFinal.coefficient,
+      total_tva:resultatFinal.total_tva
       };
     }
   
@@ -369,8 +370,9 @@ class DevisRecapitulator {
         prix: resultatFinal.total_ttc, // Formatage du prix en 2 décimales
         formule: resultatFinal.formule,
         elements_recap:elements_recap,
-          tva:resultatFinal.tva,
-          coefficient:resultatFinal.coefficient
+        tva:resultatFinal.tva,
+        coefficient:resultatFinal.coefficient,
+        total_tva:resultatFinal.total_tva
       };
     }
       
@@ -434,7 +436,7 @@ class DevisRecapitulator {
             if(hdp>0){
               let prix_final_linteau =  (louv * prix_linteau);
               prix += prix_final_linteau;
-              formule += `Prix du linteau sur l'ouverture ${j+1} (car la hauteur depuis le plafond est ${hdp} cm >0)`;
+              formule += `Prix du linteau sur l'ouverture ${j+1} (car la hauteur depuis le plafond est ${hdp} cm >0)\n`;
 
             }
           }
@@ -454,7 +456,8 @@ class DevisRecapitulator {
           formule: resultatFinal.formule,
           elements_recap:elements_recap,
           tva:resultatFinal.tva,
-          coefficient:resultatFinal.coefficient
+          coefficient:resultatFinal.coefficient,
+      total_tva:resultatFinal.total_tva
         };
       }
       
@@ -528,7 +531,8 @@ class DevisRecapitulator {
             formule: resultatFinal.formule,
             elements_recap:elements_recap,
           tva:resultatFinal.tva,
-          coefficient:resultatFinal.coefficient
+          coefficient:resultatFinal.coefficient,
+      total_tva:resultatFinal.total_tva
           };
         }
         
@@ -580,7 +584,8 @@ class DevisRecapitulator {
             formule: resultatFinal.formule,
             elements_recap:elements_recap,
           tva:resultatFinal.tva,
-          coefficient:resultatFinal.coefficient
+          coefficient:resultatFinal.coefficient,
+      total_tva:resultatFinal.total_tva
           };
         }
         
@@ -638,7 +643,8 @@ class DevisRecapitulator {
           formule: resultatFinal.formule,
           elements_recap:elements_recap,
           tva:resultatFinal.tva,
-          coefficient:resultatFinal.coefficient
+          coefficient:resultatFinal.coefficient,
+      total_tva:resultatFinal.total_tva
         };
       }
       
@@ -700,7 +706,8 @@ class DevisRecapitulator {
           formule: resultatFinal.formule,
           elements_recap:elements_recap,
           tva:resultatFinal.tva,
-          coefficient:resultatFinal.coefficient
+          coefficient:resultatFinal.coefficient,
+      total_tva:resultatFinal.total_tva
         };
       }
       
@@ -777,7 +784,8 @@ class DevisRecapitulator {
           formule: resultatFinal.formule,
           elements_recap:elements_recap,
           tva:resultatFinal.tva,
-          coefficient:resultatFinal.coefficient
+          coefficient:resultatFinal.coefficient,
+      total_tva:resultatFinal.total_tva
         };
       }
       
@@ -877,7 +885,8 @@ class DevisRecapitulator {
           formule: resultatFinal.formule,
           elements_recap:elements_recap,
           tva:resultatFinal.tva,
-          coefficient:resultatFinal.coefficient
+          coefficient:resultatFinal.coefficient,
+      total_tva:resultatFinal.total_tva
         };
     }
     
@@ -956,7 +965,8 @@ class DevisRecapitulator {
             formule: resultatFinal.formule,
             elements_recap:elements_recap,
           tva:resultatFinal.tva,
-          coefficient:resultatFinal.coefficient
+          coefficient:resultatFinal.coefficient,
+      total_tva:resultatFinal.total_tva
           };
         }
         
@@ -1084,7 +1094,8 @@ class DevisRecapitulator {
             formule: resultatFinal.formule,
             elements_recap:elements_recap,
           tva:resultatFinal.tva,
-          coefficient:resultatFinal.coefficient
+          coefficient:resultatFinal.coefficient,
+      total_tva:resultatFinal.total_tva
           };
         }
       
@@ -1163,7 +1174,8 @@ class DevisRecapitulator {
           formule: resultatFinal.formule,
           elements_recap:elements_recap,
           tva:resultatFinal.tva,
-          coefficient:resultatFinal.coefficient
+          coefficient:resultatFinal.coefficient,
+      total_tva:resultatFinal.total_tva
         };
       }
       
@@ -1175,8 +1187,9 @@ class DevisRecapitulator {
         tva,
         formule
       }) {
-        formule += `<u>Prix total </u>\n ${prix_base.toFixed(2)} €\n`;
-        formule += `<u>Remises </u>\n`;
+        
+        //formule += `<u>Prix total </u>\n ${prix_base.toFixed(2)} €\n`;
+        //formule += `<u>Remises </u>\n`;
 
         const remises = await this.get_remise_by_devis(devis_id);
 
@@ -1187,13 +1200,13 @@ class DevisRecapitulator {
             const montant = prix_base * (remise.Pourcentage / 100);
             total_remise += montant;
 
-            formule += `Remise "${remise.Titre}" (${remise.Pourcentage} %) : -${montant.toFixed(2)} €\n`;
+            //formule += `Remise "${remise.Titre}" (${remise.Pourcentage} %) : -${montant.toFixed(2)} €\n`;
           }
 
           if (remise.Type === 'fixe' && remise.Valeur) {
             total_remise += remise.Valeur;
 
-            formule += `Remise "${remise.Titre}" (${remise.Valeur} €) : -${remise.Valeur.toFixed(2)} €\n`;
+            //formule += `Remise "${remise.Titre}" (${remise.Valeur} €) : -${remise.Valeur.toFixed(2)} €\n`;
           }
         }
 
@@ -1202,15 +1215,18 @@ class DevisRecapitulator {
 
         const total_apres_remise = prix_base - total_remise;
 
-        formule += `<u>Prix après remises</u>\n ${prix_base.toFixed(2)} € - ${total_remise.toFixed(2)} € = ${total_apres_remise.toFixed(2)} €\n`;
+        //formule += `<u>Prix après remises</u>\n ${prix_base.toFixed(2)} € - ${total_remise.toFixed(2)} € = ${total_apres_remise.toFixed(2)} €\n`;
 
         // Coefficient
         const total_ht = total_apres_remise * coefficient;
-        formule += `<u>Prix HT </u>\n Prix (${total_apres_remise.toFixed(2)} €) * Facteur (${coefficient}) = ${total_ht.toFixed(2)} €\n`;
+        //formule += `<u>Prix HT </u>\n Prix (${total_apres_remise.toFixed(2)} €) * Facteur (${coefficient}) = ${total_ht.toFixed(2)} €\n`;
+
+        let percent_tva = tva-1
+        let total_tva = percent_tva * total_ht
 
         // TVA
         const total_ttc = (total_ht * tva).toFixed(2);
-        formule += `<u>Prix TTC </u>\n Prix HT (${total_ht.toFixed(2)} €) * TVA (${tva}) = ${total_ttc} €\n`;
+        //formule += `<u>Prix TTC </u>\n Prix HT (${total_ht.toFixed(2)} €) * TVA (${tva}) = ${total_ttc} €\n`;
 
         return {
           total_ht,
@@ -1218,6 +1234,7 @@ class DevisRecapitulator {
           formule,
           total_apres_remise,
           tva,
+          total_tva,
           coefficient,
         };
       }

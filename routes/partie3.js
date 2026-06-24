@@ -562,4 +562,44 @@ router.post('/add_project', async (req, res) => {
   }
 });
 
+router.get('/edit_projet_devis/:projet_id/:devis_id/:action', async (req, res) => {
+  try {
+    const { projet_id, devis_id, action } = req.params;
+
+    if (action === 'add') {
+
+      await ProjetDevis.create({
+        projet_id,
+        devis_id
+      });
+
+    } else if (action === 'delete') {
+
+      await ProjetDevis.destroy({
+        where: {
+          projet_id,
+          devis_id
+        }
+      });
+
+    } else {
+      return res.status(400).json({
+        success: false,
+        message: 'Action invalide'
+      });
+    }
+
+    res.json({
+      success: true
+    });
+
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({
+      success: false,
+      error: error.message
+    });
+  }
+});
+
 module.exports = router;

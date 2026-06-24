@@ -299,6 +299,7 @@ router.get('/get_current_user_projects/:userId', async (req, res) => {
     const { userId } = req.params;
     const statusList = [
       'visite à régler',
+      'visite réglée',
     'visite programmée',
     'projet validé',
     'acompte payé',

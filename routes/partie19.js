@@ -237,6 +237,46 @@ router.get('/get_galerie/:id', async (req, res) => {
 });
 
 
+
+
+router.get('/get_nbr_galeries/:count', async (req, res) => {
+  try {
+    const count = parseInt(req.params.count, 10); // Récupérer le nombre de réalisations à renvoyer
+
+
+    const galeries = await Galerie.findAll({
+      include: [
+        // IMAGES
+        {
+          model: Image
+        },
+        // STYLES
+        {
+          model: Style,
+          through: {
+            attributes: []
+          }
+        },
+        // PIECES
+        {
+          model: Piece,
+          through: {
+            attributes: []
+          }
+        }
+      ],
+      limit: count // Limiter le nombre de résultats
+    });
+
+    
+
+    res.status(200).json(galeries);
+  } catch (error) {
+    console.error('Erreur lors de la récupération des galeries :', error);
+    res.status(500).json({ error: 'Erreur serveur' });
+  }
+});
+
 // Endpoint pour récupérer toutes les galeries avec leurs images
 router.get('/get_galeries', async (req, res) => {
   try {

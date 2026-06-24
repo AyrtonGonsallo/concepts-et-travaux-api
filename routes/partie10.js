@@ -406,10 +406,12 @@ async function sendDevisDetailsEmail( devis_id) {
     if (!devisPiece) {
       throw new Error(`Aucun devis trouvé avec l'ID: ${devis_id}`);
     }
-        const email_user = devisPiece.Utilisateur.Email;
-        let results = []; // Pour stocker les résultats de toutes les tâches
-        let devisTaches=devisPiece.DevisTaches
-        let prix_total=0;
+
+    const email_user = devisPiece.Utilisateur.Email;
+    let results = []; // Pour stocker les résultats de toutes les tâches
+    let devisTaches=devisPiece.DevisTaches
+    let prix_total=0;
+    let valeur_tva_total=0;
         
     // Boucle pour traiter chaque tâche de manière dynamique
     for (let i = 0; i < devisTaches.length; i++) {
@@ -427,45 +429,48 @@ async function sendDevisDetailsEmail( devis_id) {
       result.formule=formuleHtml;
       results.push(result); // Ajout des résultats dans le tableau
       prix_total+=parseFloat(result.prix);
+      valeur_tva_total+=parseFloat(result.total_tva);
       console.log(parseFloat(result.prix))
     }
+
+    
+    valeur_tva_total = valeur_tva_total.toFixed(2);
             
-        
-        let htmlContent;
-        // Obtenir la date et l'heure actuelle
-        const currentDate = new Date();
-        const options = {
-          weekday: 'long', // Affiche le jour de la semaine
-          day: '2-digit',
-          month: 'long',  // Affiche le mois en toute lettre
-          hour: '2-digit',
-          minute: '2-digit',
-          hour12: false,  // Utilise l'heure en format 24h
-        };
-        
-        const formattedDate = currentDate.toLocaleString('fr-FR', options);
-        const dateString = formattedDate.replace(",", " à"); 
-        // Si des devis sont trouvés
-       
-        if (devisPiece) {
-       
-          // Générer l'email en utilisant un template EJS avec la liste des devis
-          const emailTemplatePath = path.join(__dirname, '..','mails-templates', 'emailDetailsDevis.ejs');
+    let htmlContent;
+    // Obtenir la date et l'heure actuelle
+    const currentDate = new Date();
+    const options = {
+      weekday: 'long', // Affiche le jour de la semaine
+      day: '2-digit',
+      month: 'long',  // Affiche le mois en toute lettre
+      hour: '2-digit',
+      minute: '2-digit',
+      hour12: false,  // Utilise l'heure en format 24h
+    };
     
-          htmlContent = await ejs.renderFile(emailTemplatePath, { devisPiece,prix_total,dateString,results,email_user  });
-        } 
-        // Configuration de l'email
-        const mailOptions = {
-          from: `${process.env.MAILS_TITLE} <${process.env.MAILS_USER}>`,
-          to: email_user,
-          subject: `Votre devis #${devisPiece.ID} est prêt !`,
-          html: htmlContent
-        };
+    const formattedDate = currentDate.toLocaleString('fr-FR', options);
+    const dateString = formattedDate.replace(",", " à"); 
+    // Si des devis sont trouvés
     
-        // Envoyer l'email
-        await transporter.sendMail(mailOptions);
-        // Retourner les résultats
-     return {
+    if (devisPiece) {
+    
+      // Générer l'email en utilisant un template EJS avec la liste des devis
+      const emailTemplatePath = path.join(__dirname, '..','mails-templates', 'emailDetailsDevis.ejs');
+
+      htmlContent = await ejs.renderFile(emailTemplatePath, { devisPiece,prix_total,dateString,results,email_user,valeur_tva_total  });
+    } 
+    // Configuration de l'email
+    const mailOptions = {
+      from: `${process.env.MAILS_TITLE} <${process.env.MAILS_USER}>`,
+      to: email_user,
+      subject: `Votre devis #${devisPiece.ID} est prêt !`,
+      html: htmlContent
+    };
+
+    // Envoyer l'email
+    await transporter.sendMail(mailOptions);
+    // Retourner les résultats
+    return {
       message: `Traitement terminé pour le devis ID: ${devisPiece.ID}`,
      
     };
