@@ -174,7 +174,6 @@ router.get('/download_modele_gammes_artisan/:artisan_id', async (req, res) => {
     // 1. Récupérer les gammes
     const gammes = await Gamme.findAll({
       where: { 
-        Etape: 'Étape 3 - Choix du nouveau revêtement',
         GammeDeReferenceID:null
        }
     });

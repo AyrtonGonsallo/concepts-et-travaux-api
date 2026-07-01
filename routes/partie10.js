@@ -15,7 +15,6 @@ const Gamme=require('../Gamme')
 const ejs = require('ejs');
 const TacheGenerale=require('../TacheGenerale')
 const DevisPiece=require('../DevisPiece')
-const DevisTacheHistorique=require('../DevisTacheHistorique')
 const DevisTache=require('../DevisTache')
 const Page=require('../Page')
 const PointcleRealisation=require('../PointcleRealisation')
