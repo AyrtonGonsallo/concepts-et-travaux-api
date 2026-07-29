@@ -584,7 +584,7 @@ class DevisCalculator {
             //donnees prix coutant
             let artisan_pose = murs[i].artisan_pose
             if(artisan_pose){
-              const prix_artisan_pose_marge = parseFloat(artisan_pose.split(':')[2]);
+              const prix_artisan_pose_marge = parseFloat(artisan_pose.split(':')[1]);
               let prix_final_mur_marge = surface * prix_artisan_pose_marge * 1;
               prix_marge += prix_final_mur_marge;
               formule_marge += `<u>Prix du mur ${i+1}</u>\n  Surface ${surface} m² * prix de l'artisan 'épaisseur ${titre_epaisseur} cm' ${prix_artisan_pose_marge} € = ${prix_final_mur_marge.toFixed(2)} €\n`;
