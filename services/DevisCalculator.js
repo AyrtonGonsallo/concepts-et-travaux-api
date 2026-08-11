@@ -292,7 +292,7 @@ class DevisCalculator {
             // Vérification de l'état de la surface pour inclure les coûts de dépose
             const etat_artisan = gammesProduits[index].artisan_surfaces;
             const typedeposeArtisan = gammesProduits[index].artisan_depose;
-            const prixDeposeArtisan = parseFloat(typedepose.split(':')[2]);
+            const prixDeposeArtisan = parseFloat(typedeposeArtisan.split(':')[2]);
             if(prixDepose<1){
               let prixEtatArtisan = parseFloat(etat_artisan.split('-')[2]);
               let sousTotalEtat_marge = surface * prixEtatArtisan;
@@ -362,9 +362,12 @@ class DevisCalculator {
         
         let qte=element.quantite;
         let prixLocal = qte * element.prix;
-        prix += prixLocal;
+        if(qte>0){
+           prix += prixLocal;
         formule += `<u>Prix de dépose de l'élement "${element.titre}"</u>\n Quantité (${qte}) * prix de dépose (${element.prix} €) = ${prixLocal} €\n`;
         
+        }
+       
         
         
         if(element.artisan_depose ){
@@ -469,9 +472,8 @@ class DevisCalculator {
             let fournisseur_pose = mursnonporteurs[i].fournisseur_pose
             if(artisan_pose ){
               let prix_artisan_pose_marge = parseFloat(artisan_pose.split(':')[2]);
-            
-              let prix_marge =  prix_artisan_pose_marge;
-              let prix_final_mur_marge = surface_mur * prix_marge * 1;
+
+              let prix_final_mur_marge = surface_mur * prix_artisan_pose_marge * 1;
               prix_marge += prix_final_mur_marge;
               formule_marge += `<u>Prix du mur ${i+1} cloison ${titre_cloison_mur} cm</u>\n  Surface ${surface_mur} m² * prix de l'artisan ${prix_artisan_pose_marge} €  = ${prix_final_mur_marge.toFixed(2)} €\n`;
           
@@ -678,24 +680,11 @@ class DevisCalculator {
 
             let prix_total_porte = prix_artisan_pose + prix_fournisseur_pose + prix_artisan_nature + prix_fournisseur_nature + prix_artisan_type + prix_fournisseur_type;
             prix_marge += prix_total_porte ;
-            formule_marge += `<u>Prix de la porte ${index+1} </u>\n 
-            Pose :
-            - Artisan : ${prix_artisan_pose} €
-            - Fournisseur : ${prix_fournisseur_pose} €
-            => Total pose : ${prix_artisan_pose + prix_fournisseur_pose} €
-
-            Gamme "${titre_gamme}" :
-            - Artisan : ${prix_artisan_nature} €
-            - Fournisseur : ${prix_fournisseur_nature} €
-            => Total gamme : ${prix_artisan_nature + prix_fournisseur_nature} €
-
-            type "${titre_type_porte}" :
-            - Artisan : ${prix_artisan_type} €
-            - Fournisseur : ${prix_fournisseur_type} €
-            => Total type : ${prix_artisan_type + prix_fournisseur_type} €
-            
-            = ${prix_total_porte} €\n`;
-
+           formule_marge += `<u>Prix de la porte ${index + 1}</u>
+Prix de la gamme de porte "${titre_gamme}" (${prix_artisan_pose + prix_fournisseur_pose} €) : Artisan ${prix_artisan_pose} € + Fournisseur ${prix_fournisseur_pose} €
+Prix de la nature de la porte "${prix_artisan_nature + prix_fournisseur_nature} €" : Artisan ${prix_artisan_nature} € + Fournisseur ${prix_fournisseur_nature} €
+Prix du type de porte "${titre_type_porte}" (${prix_artisan_type + prix_fournisseur_type} €) : Artisan ${prix_artisan_type} € + Fournisseur ${prix_fournisseur_type} €
+= ${prix_total_porte} €\n`;
           }
 
         
@@ -826,17 +815,43 @@ class DevisCalculator {
           const fournisseur_type = radiateur.fournisseur_type;
           const artisan_pose = radiateursGammes[index].artisan_pose;
           const fournisseur_pose = radiateursGammes[index].fournisseur_pose;
-          if(fournisseur_pose && artisan_pose && artisan_type && fournisseur_type){
-            let prix_artisan_type = parseFloat(artisan_type.split(":")[1]); // Prix du Type
-            let prix_fournisseur_type = parseFloat(fournisseur_type.split(":")[1]); // Prix du Type
-            let prix_artisan_pose = parseFloat(artisan_pose.split(":")[1]); // Prix du Type
-            let prix_fournisseur_pose = parseFloat(fournisseur_pose.split(":")[1]); // Prix du Type
+          let total = 0;
 
-            let total = prix_artisan_type+prix_fournisseur_type+prix_artisan_pose+prix_fournisseur_pose
+          
+          if (artisan_type) {
+              const prix_artisan_type = parseFloat(artisan_type.split(":")[1]) || 0;
+              total += prix_artisan_type;
 
-            prix_marge += total;
-            formule_marge += `<u>Prix du radiateur ${index + 1}</u>
-            Prix de la gamme choisie (${nomGamme}) : ${prix_artisan_type} € (artisan type) + ${prix_fournisseur_type} € (fournisseur type)  + ${prix_artisan_pose} € (artisan gamme) + ${prix_fournisseur_pose} € (fournisseur gamme) = ${total} €\n`;
+              formule_marge += `Prix artisan type : ${prix_artisan_type} €\n`;
+          }
+
+          if (fournisseur_type) {
+              const prix_fournisseur_type = parseFloat(fournisseur_type.split(":")[1]) || 0;
+              total += prix_fournisseur_type;
+
+              formule_marge += `Prix fournisseur type : ${prix_fournisseur_type} €\n`;
+          }
+
+          if (artisan_pose) {
+              const prix_artisan_pose = parseFloat(artisan_pose.split(":")[1]) || 0;
+              total += prix_artisan_pose;
+
+              formule_marge += `Prix artisan pose : ${prix_artisan_pose} €\n`;
+          }
+
+          if (fournisseur_pose) {
+              const prix_fournisseur_pose = parseFloat(fournisseur_pose.split(":")[1]) || 0;
+              total += prix_fournisseur_pose;
+
+              formule_marge += `Prix fournisseur pose : ${prix_fournisseur_pose} €\n`;
+          }
+
+          if (total > 0) {
+              prix_marge += total;
+
+              formule_marge +=
+                  `<u>Prix du radiateur ${index + 1}</u>\n` +
+                  `Prix de la gamme choisie (${nomGamme}) : ${total} €\n`;
           }
         });
       
@@ -912,7 +927,7 @@ class DevisCalculator {
            //donnees prix coutant
           const prix_fournisseur_pose = this.getLastPrice(gammes.fournisseur_pose);
           const prix_artisan_pose = this.getLastPrice(gammes.artisan_pose);
-          const prix_artisan_surfaces = this.getLastPrice(gammes.artisan_surfaces);
+          const prix_artisan_surfaces = this.getLastPrice2(gammes.artisan_surfaces);
           const prix_artisan_depose = this.getLastPrice(gammes.artisan_depose);
 
           if(prix_artisan_pose){
@@ -968,6 +983,11 @@ class DevisCalculator {
         const parts = value?.split(':');
         return parts?.length > 1 ? parseFloat(parts[parts.length - 1]) : 0;
       };
+
+      getLastPrice2 = (value) => {
+        const parts = value?.split('-');
+        return parts?.length > 1 ? parseFloat(parts[parts.length - 1]) : 0;
+      };
       
        async get_prix_tache_9(donnees_json, devis_id, tvaValue) {
         let formule = ""; // Stocke la formule explicative
@@ -995,7 +1015,7 @@ class DevisCalculator {
         const prix_artisan_pose = this.getLastPrice(gammes.artisan_pose);
         const prix_fournisseur_pose_plinthes = this.getLastPrice(gammes.fournisseur_pose_plinthes);
         const prix_artisan_pose_plinthes = this.getLastPrice(gammes.artisan_pose_plinthes);
-        const prix_artisan_surfaces = this.getLastPrice(gammes.artisan_surfaces);
+        const prix_artisan_surfaces = this.getLastPrice2(gammes.artisan_surfaces);
         const prix_artisan_depose = this.getLastPrice(gammes.artisan_depose);
        
 
@@ -1153,7 +1173,7 @@ class DevisCalculator {
                   let prix_creation_fournisseur = nombre_a_creer * appareil_gamme_fournisseur.prix * prix_tache_creation;
                   let prix_creation = prix_creation_artisan+prix_creation_fournisseur;
                   prix_marge += prix_creation;
-                  formule_marge += `<u>Prix de la création de l'appareil "${appareil.titre}"</u>\n Nombre à créer (${nombre_a_creer}) * ${prix_tache_creation} € * prix artisan ${appareil_gamme_artisan.prix} € + prix fournisseur ${appareil_gamme_fournisseur.prix} € = ${prix_creation.toFixed(2)} € \n`;
+                  formule_marge += `<u>Prix de la création de l'appareil "${appareil.titre}"</u><br> Nombre à créer (${nombre_a_creer}) * ${prix_tache_creation} € * prix artisan ${appareil_gamme_artisan.prix} € + prix fournisseur ${appareil_gamme_fournisseur.prix} € = ${prix_creation.toFixed(2)} € <br>`;
                 }
                 if (appareil.nombre_a_remplacer>0) {
                   // remplacement
@@ -1162,7 +1182,7 @@ class DevisCalculator {
                   let prix_remplacement_fournisseur = nombre_a_remplacer * appareil_gamme_fournisseur.prix * prix_tache_remplacement;
                   let prix_remplacement = prix_remplacement_artisan+prix_remplacement_fournisseur;
                   prix_marge += prix_remplacement;
-                  formule_marge += `<u>Prix du remplacement de l'appareil "${appareil.titre}"</u>\n Nombre à remplacer (${nombre_a_remplacer}) * ${prix_tache_remplacement} € * prix artisan ${appareil_gamme_artisan.prix} € + prix fournisseur ${appareil_gamme_fournisseur.prix} € = ${prix_remplacement.toFixed(2)} € \n`;
+                  formule_marge += `<u>Prix du remplacement de l'appareil "${appareil.titre}"</u><br> Nombre à remplacer (${nombre_a_remplacer}) * ${prix_tache_remplacement} € * prix artisan ${appareil_gamme_artisan.prix} € + prix fournisseur ${appareil_gamme_fournisseur.prix} € = ${prix_remplacement.toFixed(2)} € <br>`;
                 }
               }
             });

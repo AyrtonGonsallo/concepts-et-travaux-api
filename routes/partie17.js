@@ -10,10 +10,33 @@ const { Op } = require('sequelize');
 require('dotenv').config();
 
 
-router.get('/export_gammes', async (req, res) => {
-  try {
+router.post('/export_gammes', async (req, res) => {
+    try {
+
+        const { travail_id, etape, type } = req.body;
     // 1. Récupérer les gammes
-    const gammes = await Gamme.findAll();
+    //const gammes = await Gamme.findAll();
+    //attenton si travail_id est 0,etape est '',type est '' les ignorer
+
+    const where = {};
+
+    if (travail_id && travail_id !== '0') {
+        where.TravailID = travail_id;
+    }
+
+    if (etape) {
+        where.Etape = etape;
+    }
+
+    if (type) {
+        where.Type = type;
+    }
+
+    const gammes = await Gamme.findAll({
+        where
+    });
+
+    
 
     // 2. Formater les données JSON (plat)
     const gammesData = gammes.map(gamme => ({
@@ -365,10 +388,26 @@ router.post('/import_gammes', upload.single('file'), async (req, res) => {
 });
 
 
-router.get('/export_modeles_equipement', async (req, res) => {
+router.post('/export_modeles_equipement', async (req, res) => {
   try {
+
+    const {  etape } = req.body;
+    //attenton si travail_id est 0,etape est '',type est '' les ignorer
+
+    const where = {};
+
+
+
+    if (etape) {
+        where.Etape = etape;
+    }
+
+
+ 
     // 1. Récupérer les modeles
-    const modeles = await ModeleEquipement.findAll();
+    const modeles = await ModeleEquipement.findAll({
+        where
+    });
 
     // 2. Mapper les données en JSON "plat"
     const modelesData = modeles.map(modele => ({
