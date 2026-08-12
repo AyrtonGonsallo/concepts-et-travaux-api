@@ -103,8 +103,10 @@ router.post('/get_prix_devis_tache/', async (req, res) => {
       
           // Ajout du résultat sous le slug du travail dans l'objet resultats
           resultats[tache.TravailSlug] = {
+            prix_ht: parseFloat(result.prix_ht),
             prix: parseFloat(result.prix),
             formule: result.formule,
+            prix_marge_ht: parseFloat(result.prix_marge_ht),
             prix_marge: parseFloat(result.prix_marge),
             formule_marge: result.formule_marge
           };
