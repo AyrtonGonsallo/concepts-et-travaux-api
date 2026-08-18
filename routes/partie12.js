@@ -115,9 +115,19 @@ router.post('/get_prix_devis_tache/', async (req, res) => {
 
 
           let prix_coutant_ht=result.prix_marge_ht
+
+          let prix_debourse_ht=result.prix_debourse_ht
+          let prix_vente_remise_ht=result.prix_vente_remise_ht
+          let PrixDeVenteHT=result.PrixDeVenteHT
+          let PrixDeVenteRemiseTTC=result.PrixDeVenteRemiseTTC
+
           if(prix_coutant_ht){
             devisTache.PrixCoutant = prix_coutant_ht;
-          await devisTache.save();
+            devisTache.PrixDebourseHT = prix_debourse_ht;
+            devisTache.PrixDeVenteRemiseHT = prix_vente_remise_ht;
+            devisTache.PrixDeVenteHT = PrixDeVenteHT;
+            devisTache.PrixDeVenteRemiseTTC = PrixDeVenteRemiseTTC;
+            await devisTache.save();
           }
 
           
@@ -304,6 +314,7 @@ router.post("/update_project_status", async (req, res) => {
     projet_id,
     paiement_visite,
     programmation_visite,
+    visite_faite,
     projet_valide,
     paiement_autorise,
     acompte_paye,
@@ -372,6 +383,7 @@ router.post("/update_project_status", async (req, res) => {
       if (Date_paiement_visite) {
         updateFields2.Date = Date_paiement_visite;
       }
+      updateFields2.Faite = visite_faite;
 
       if (Date_programmation_visite) {
         updateFields2.DateDeProgrammation = Date_programmation_visite;

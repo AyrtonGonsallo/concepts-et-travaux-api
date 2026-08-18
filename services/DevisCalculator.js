@@ -315,12 +315,13 @@ class DevisCalculator {
           
       });
   
-        const resultatFinal = await this.appliquerRemisesEtTaxes({
+        const resultatFinal= await this.appliquerRemisesEtTaxes({
           prix_base: prix,
           devis_id,
           coefficient,
           tva,
-          formule
+          formule:formule,
+          sans_remise:false
         });
 
          const resultatFinalMarge = await this.appliquerRemisesEtTaxes({
@@ -329,7 +330,11 @@ class DevisCalculator {
           coefficient,
           tva,
           formule:formule_marge,
+          sans_remise:true
         });
+
+
+        
 
       
         // Retourner le prix total et la formule descriptive
@@ -337,6 +342,10 @@ class DevisCalculator {
           prix_ht: resultatFinal.total_apres_remise,
           prix: resultatFinal.total_ttc,
           formule: resultatFinal.formule,
+          prix_debourse_ht: resultatFinal.prix_debourse_ht,
+          prix_vente_remise_ht: resultatFinal.prix_vente_remise_ht,
+          PrixDeVenteHT: resultatFinal.PrixDeVenteHT,
+          PrixDeVenteRemiseTTC: resultatFinal.PrixDeVenteRemiseTTC,
            prix_marge: resultatFinalMarge.total_ttc,
            prix_marge_ht: resultatFinalMarge.total_ht,
           formule_marge: resultatFinalMarge.formule,
@@ -412,15 +421,17 @@ class DevisCalculator {
           coefficient,
           tva,
           formule:formule_marge,
+          sans_remise:true
         });
           
     
-        const resultatFinal = await this.appliquerRemisesEtTaxes({
+        const resultatFinal= await this.appliquerRemisesEtTaxes({
           prix_base: prix,
           devis_id,
           coefficient,
           tva,
-          formule
+          formule:formule,
+          sans_remise:false
         });
 
       
@@ -429,6 +440,10 @@ class DevisCalculator {
           prix_ht: resultatFinal.total_apres_remise,
           prix: resultatFinal.total_ttc,
           formule: resultatFinal.formule,
+          prix_debourse_ht: resultatFinal.prix_debourse_ht,
+          prix_vente_remise_ht: resultatFinal.prix_vente_remise_ht,
+          PrixDeVenteHT: resultatFinal.PrixDeVenteHT,
+          PrixDeVenteRemiseTTC: resultatFinal.PrixDeVenteRemiseTTC,
           prix_marge: resultatFinalMarge.total_ttc,
           prix_marge_ht: resultatFinalMarge.total_ht,
           formule_marge: resultatFinalMarge.formule,
@@ -523,12 +538,13 @@ class DevisCalculator {
           }
         }
       
-        const resultatFinal = await this.appliquerRemisesEtTaxes({
+        const resultatFinal= await this.appliquerRemisesEtTaxes({
           prix_base: prix,
           devis_id,
           coefficient,
           tva,
-          formule
+          formule:formule,
+          sans_remise:false
         });
 
         const resultatFinalMarge = await this.appliquerRemisesEtTaxes({
@@ -537,6 +553,7 @@ class DevisCalculator {
           coefficient,
           tva,
           formule:formule_marge,
+          sans_remise:true
         });
 
       
@@ -544,7 +561,11 @@ class DevisCalculator {
         return {
           prix_ht: resultatFinal.total_apres_remise,
           prix: resultatFinal.total_ttc,
-          formule: resultatFinal.formule,           
+          formule: resultatFinal.formule,
+          prix_debourse_ht: resultatFinal.prix_debourse_ht,
+          prix_vente_remise_ht: resultatFinal.prix_vente_remise_ht,
+          PrixDeVenteHT: resultatFinal.PrixDeVenteHT,
+          PrixDeVenteRemiseTTC: resultatFinal.PrixDeVenteRemiseTTC,           
           prix_marge: resultatFinalMarge.total_ttc,
           prix_marge_ht: resultatFinalMarge.total_ht,
           formule_marge: resultatFinalMarge.formule,
@@ -619,6 +640,7 @@ class DevisCalculator {
           coefficient,
           tva,
           formule:formule_marge,
+          sans_remise:true
         });
           
           const resultatFinal = await this.appliquerRemisesEtTaxes({
@@ -635,6 +657,10 @@ class DevisCalculator {
           prix_ht: resultatFinal.total_apres_remise,
           prix: resultatFinal.total_ttc,
           formule: resultatFinal.formule,
+          prix_debourse_ht: resultatFinal.prix_debourse_ht,
+          prix_vente_remise_ht: resultatFinal.prix_vente_remise_ht,
+          PrixDeVenteHT: resultatFinal.PrixDeVenteHT,
+          PrixDeVenteRemiseTTC: resultatFinal.PrixDeVenteRemiseTTC,
            prix_marge: resultatFinalMarge.total_ttc,
            prix_marge_ht: resultatFinalMarge.total_ht,
           formule_marge: resultatFinalMarge.formule,
@@ -691,12 +717,13 @@ Prix du type de porte "${titre_type_porte}" (${prix_artisan_type + prix_fourniss
         });
       
         
-          const resultatFinal = await this.appliquerRemisesEtTaxes({
+          const resultatFinal= await this.appliquerRemisesEtTaxes({
           prix_base: prix,
           devis_id,
           coefficient,
           tva,
-          formule
+          formule:formule,
+          sans_remise:false
         });
 
          const resultatFinalMarge = await this.appliquerRemisesEtTaxes({
@@ -705,12 +732,17 @@ Prix du type de porte "${titre_type_porte}" (${prix_artisan_type + prix_fourniss
           coefficient,
           tva,
           formule:formule_marge,
+          sans_remise:true
         });
 
         return {
           prix_ht: resultatFinal.total_apres_remise,
           prix: resultatFinal.total_ttc,
           formule: resultatFinal.formule,
+          prix_debourse_ht: resultatFinal.prix_debourse_ht,
+          prix_vente_remise_ht: resultatFinal.prix_vente_remise_ht,
+          PrixDeVenteHT: resultatFinal.PrixDeVenteHT,
+          PrixDeVenteRemiseTTC: resultatFinal.PrixDeVenteRemiseTTC,
            prix_marge: resultatFinalMarge.total_ttc,
            prix_marge_ht: resultatFinalMarge.total_ht,
           formule_marge: resultatFinalMarge.formule,
@@ -718,7 +750,7 @@ Prix du type de porte "${titre_type_porte}" (${prix_artisan_type + prix_fourniss
 
       }
         
-
+/*
 
        async get_prix_tache_11(donnees_json, devis_id, tvaValue) {
           let prix = 0;
@@ -758,12 +790,13 @@ Prix du type de porte "${titre_type_porte}" (${prix_artisan_type + prix_fourniss
               }
           });
       
-           const resultatFinal = await this.appliquerRemisesEtTaxes({
+           const resultatFinal= await this.appliquerRemisesEtTaxes({
           prix_base: prix,
           devis_id,
           coefficient,
           tva,
-          formule
+          formule:formule,
+          sans_remise:false
         });
 
       
@@ -775,7 +808,7 @@ Prix du type de porte "${titre_type_porte}" (${prix_artisan_type + prix_fourniss
         };
       }
       
-        
+       */ 
       
        async get_prix_tache_12(donnees_json, devis_id, tvaValue) {
         let formule = ""; // Stocke la formule explicative
@@ -855,12 +888,13 @@ Prix du type de porte "${titre_type_porte}" (${prix_artisan_type + prix_fourniss
           }
         });
       
-        const resultatFinal = await this.appliquerRemisesEtTaxes({
+        const resultatFinal= await this.appliquerRemisesEtTaxes({
           prix_base: prix,
           devis_id,
           coefficient,
           tva,
-          formule
+          formule:formule,
+          sans_remise:false
         });
 
          const resultatFinalMarge = await this.appliquerRemisesEtTaxes({
@@ -869,6 +903,7 @@ Prix du type de porte "${titre_type_porte}" (${prix_artisan_type + prix_fourniss
           coefficient,
           tva,
           formule:formule_marge,
+          sans_remise:true
         });
 
 
@@ -878,6 +913,10 @@ Prix du type de porte "${titre_type_porte}" (${prix_artisan_type + prix_fourniss
           prix_ht: resultatFinal.total_apres_remise,
           prix: resultatFinal.total_ttc,
           formule: resultatFinal.formule,
+          prix_debourse_ht: resultatFinal.prix_debourse_ht,
+          prix_vente_remise_ht: resultatFinal.prix_vente_remise_ht,
+          PrixDeVenteHT: resultatFinal.PrixDeVenteHT,
+          PrixDeVenteRemiseTTC: resultatFinal.PrixDeVenteRemiseTTC,
            prix_marge: resultatFinalMarge.total_ttc,
            prix_marge_ht: resultatFinalMarge.total_ht,
           formule_marge: resultatFinalMarge.formule,
@@ -950,12 +989,13 @@ Prix du type de porte "${titre_type_porte}" (${prix_artisan_type + prix_fourniss
           }
          
       
-        const resultatFinal = await this.appliquerRemisesEtTaxes({
+        const resultatFinal= await this.appliquerRemisesEtTaxes({
           prix_base: prix,
           devis_id,
           coefficient,
           tva,
-          formule
+          formule:formule,
+          sans_remise:false
         });
 
         const resultatFinalMarge = await this.appliquerRemisesEtTaxes({
@@ -964,6 +1004,7 @@ Prix du type de porte "${titre_type_porte}" (${prix_artisan_type + prix_fourniss
           coefficient,
           tva,
           formule:formule_marge,
+          sans_remise:true
         });
 
 
@@ -973,6 +1014,10 @@ Prix du type de porte "${titre_type_porte}" (${prix_artisan_type + prix_fourniss
           prix_ht: resultatFinal.total_apres_remise,
           prix: resultatFinal.total_ttc,
           formule: resultatFinal.formule,
+          prix_debourse_ht: resultatFinal.prix_debourse_ht,
+          prix_vente_remise_ht: resultatFinal.prix_vente_remise_ht,
+          PrixDeVenteHT: resultatFinal.PrixDeVenteHT,
+          PrixDeVenteRemiseTTC: resultatFinal.PrixDeVenteRemiseTTC,
           prix_marge: resultatFinalMarge.total_ttc,
           prix_marge_ht: resultatFinalMarge.total_ht,
           formule_marge: resultatFinalMarge.formule,
@@ -1096,6 +1141,7 @@ Prix du type de porte "${titre_type_porte}" (${prix_artisan_type + prix_fourniss
           coefficient,
           tva,
           formule:formule_marge,
+          sans_remise:true
         });
 
       
@@ -1104,6 +1150,10 @@ Prix du type de porte "${titre_type_porte}" (${prix_artisan_type + prix_fourniss
           prix_ht: resultatFinal.total_apres_remise,
           prix: resultatFinal.total_ttc,
           formule: resultatFinal.formule,
+          prix_debourse_ht: resultatFinal.prix_debourse_ht,
+          prix_vente_remise_ht: resultatFinal.prix_vente_remise_ht,
+          PrixDeVenteHT: resultatFinal.PrixDeVenteHT,
+          PrixDeVenteRemiseTTC: resultatFinal.PrixDeVenteRemiseTTC,
           prix_marge: resultatFinalMarge.total_ttc,
           prix_marge_ht: resultatFinalMarge.total_ht,
           formule_marge: resultatFinalMarge.formule,
@@ -1208,16 +1258,21 @@ Prix du type de porte "${titre_type_porte}" (${prix_artisan_type + prix_fourniss
           coefficient,
           tva,
           formule:formule_marge,
+          sans_remise:true
         });
 
         
           // Retourner le prix total et la formule descriptive
           return {
             prix_ht: resultatFinal.total_apres_remise,
-            prix: resultatFinal.total_ttc,
-            formule: resultatFinal.formule,
-            prix_marge: resultatFinalMarge.total_ttc,
-            prix_marge_ht: resultatFinalMarge.total_ht,
+          prix: resultatFinal.total_ttc,
+          formule: resultatFinal.formule,
+          prix_debourse_ht: resultatFinal.prix_debourse_ht,
+          prix_vente_remise_ht: resultatFinal.prix_vente_remise_ht,
+          PrixDeVenteHT: resultatFinal.PrixDeVenteHT,
+          PrixDeVenteRemiseTTC: resultatFinal.PrixDeVenteRemiseTTC,
+           prix_marge: resultatFinalMarge.total_ttc,
+           prix_marge_ht: resultatFinalMarge.total_ht,
           formule_marge: resultatFinalMarge.formule,
           };
         }
@@ -1300,7 +1355,7 @@ Prix du type de porte "${titre_type_porte}" (${prix_artisan_type + prix_fourniss
           }
           let sousTotal_renovation_electrique_complete = surface * prix_renovation_electrique_complete; 
           prix += sousTotal_renovation_electrique_complete;
-          formule += `<u>Prix rénovation</u>\n surface (${surface} m²) * prix unitaire de la tâche de rénovation électrique (${prix_renovation_electrique_complete} €) = ${sousTotal_renovation_electrique_complete} €\n`;
+          formule += `<u>Prix rénovation</u>\n surface (${surface} m²) * prix unitaire de la tâche mise aux normes (${prix_renovation_electrique_complete} €) = ${sousTotal_renovation_electrique_complete} €\n`;
 
           if(mise_en_securite){
             let sousTotal = 1 * prix_mise_en_securite; // Calcul du sous-total pour cet appareil
@@ -1317,7 +1372,7 @@ Prix du type de porte "${titre_type_porte}" (${prix_artisan_type + prix_fourniss
             if(chauffage_exist){
               let sousTotal_marge = quantite_chauffage * prix_artisan_chauffage; // Calcul du sous-total pour cet appareil
               prix_marge += sousTotal_marge; // Ajoute le sous-total au prix total
-              formule_marge += `<u>Prix renovation de chauffage</u>\n ${quantite_chauffage} * prix artisan de la tâche de rénovation de chauffage (${prix_renovation_chauffage} €) = ${sousTotal_marge} €\n`;
+              formule_marge += `<u>Prix renovation de chauffage</u>\n ${quantite_chauffage} * prix artisan de la tâche de rénovation de chauffage (${prix_artisan_chauffage} €) = ${sousTotal_marge} €\n`;
             }
           }
 
@@ -1325,7 +1380,7 @@ Prix du type de porte "${titre_type_porte}" (${prix_artisan_type + prix_fourniss
             const prix_artisan_mise_aux_normes = parseFloat(artisan_mise_aux_normes.split(":")[2]);
             let sousTotal_marge = surface * prix_artisan_mise_aux_normes; 
             prix_marge += sousTotal_marge;
-            formule_marge += `<u>Prix rénovation</u>\n surface (${surface} m²) * prix artisan de la tâche de rénovation électrique (${prix_renovation_electrique_complete} €) = ${sousTotal_marge} €\n`;
+            formule_marge += `<u>Prix rénovation</u>\n surface (${surface} m²) * prix artisan de la tâche mise aux normes (${prix_artisan_mise_aux_normes} €) = ${sousTotal_marge} €\n`;
 
           }
 
@@ -1362,17 +1417,22 @@ Prix du type de porte "${titre_type_porte}" (${prix_artisan_type + prix_fourniss
           coefficient,
           tva,
           formule:formule_marge,
+          sans_remise:true
         });
 
         
           // Retourner le prix total et la formule descriptive
           return {
             prix_ht: resultatFinal.total_apres_remise,
-            prix: resultatFinal.total_ttc,
-            formule: resultatFinal.formule,
-            prix_marge: resultatFinalMarge.total_ttc,
-            prix_marge_ht: resultatFinalMarge.total_ht,
-            formule_marge: resultatFinalMarge.formule,
+          prix: resultatFinal.total_ttc,
+          formule: resultatFinal.formule,
+          prix_debourse_ht: resultatFinal.prix_debourse_ht,
+          prix_vente_remise_ht: resultatFinal.prix_vente_remise_ht,
+          PrixDeVenteHT: resultatFinal.PrixDeVenteHT,
+          PrixDeVenteRemiseTTC: resultatFinal.PrixDeVenteRemiseTTC,
+          prix_marge: resultatFinalMarge.total_ttc,
+          prix_marge_ht: resultatFinalMarge.total_ht,
+          formule_marge: resultatFinalMarge.formule,
           };
 
 
@@ -1457,17 +1517,19 @@ Prix du type de porte "${titre_type_porte}" (${prix_artisan_type + prix_fourniss
           coefficient,
           tva,
           formule:formule_marge,
+          sans_remise:true
         });
           
         
       
         // Multiplier le prix total par 1.25
-        const resultatFinal = await this.appliquerRemisesEtTaxes({
+        const resultatFinal= await this.appliquerRemisesEtTaxes({
           prix_base: prix,
           devis_id,
           coefficient,
           tva,
-          formule
+          formule:formule,
+          sans_remise:false
         });
 
       
@@ -1476,6 +1538,10 @@ Prix du type de porte "${titre_type_porte}" (${prix_artisan_type + prix_fourniss
           prix_ht: resultatFinal.total_apres_remise,
           prix: resultatFinal.total_ttc,
           formule: resultatFinal.formule,
+          prix_debourse_ht: resultatFinal.prix_debourse_ht,
+          prix_vente_remise_ht: resultatFinal.prix_vente_remise_ht,
+          PrixDeVenteHT: resultatFinal.PrixDeVenteHT,
+          PrixDeVenteRemiseTTC: resultatFinal.PrixDeVenteRemiseTTC,
           prix_marge: resultatFinalMarge.total_ttc,
           prix_marge_ht: resultatFinalMarge.total_ht,
           formule_marge: resultatFinalMarge.formule,
@@ -1488,37 +1554,48 @@ Prix du type de porte "${titre_type_porte}" (${prix_artisan_type + prix_fourniss
         devis_id,
         coefficient,
         tva,
-        formule
+        formule,
+        sans_remise
       }) {
         formule += `<u>Prix total </u>\n ${prix_base.toFixed(2)} €\n`;
-        formule += `<u>Remises </u>\n`;
 
-        const remises = await this.get_remise_by_devis(devis_id);
-
+        let total_apres_remise = 0;
         let total_remise = 0;
+        if(!sans_remise){//pas de remise sur le prix coutant
 
-        for (const remise of remises) {
-          if (remise.Type === 'pourcentage' && remise.Pourcentage) {
-            const montant = prix_base * (remise.Pourcentage / 100);
-            total_remise += montant;
+          formule += `<u>Remises </u>\n`;
 
-            formule += `Remise "${remise.Titre}" (${remise.Pourcentage} %) : -${montant.toFixed(2)} €\n`;
+          const remises = await this.get_remise_by_devis(devis_id);
+
+          
+
+          for (const remise of remises) {
+            if (remise.Type === 'pourcentage' && remise.Pourcentage) {
+              const montant = prix_base * (remise.Pourcentage / 100);
+              total_remise += montant;
+
+              formule += `Remise "${remise.Titre}" (${remise.Pourcentage} %) : -${montant.toFixed(2)} €\n`;
+            }
+
+            if (remise.Type === 'fixe' && remise.Valeur) {
+              total_remise += remise.Valeur;
+
+              formule += `Remise "${remise.Titre}" (${remise.Valeur} €) : -${remise.Valeur.toFixed(2)} €\n`;
+            }
           }
 
-          if (remise.Type === 'fixe' && remise.Valeur) {
-            total_remise += remise.Valeur;
+          // Sécurité
+          total_remise = Math.min(total_remise, prix_base);
 
-            formule += `Remise "${remise.Titre}" (${remise.Valeur} €) : -${remise.Valeur.toFixed(2)} €\n`;
-          }
+           total_apres_remise = prix_base - total_remise;
+
+          formule += `<u>Prix après remises</u>\n ${prix_base.toFixed(2)} € - ${total_remise.toFixed(2)} € = ${total_apres_remise.toFixed(2)} €\n`;
+
+
+        }else{
+           total_apres_remise = prix_base
         }
-
-        // Sécurité
-        total_remise = Math.min(total_remise, prix_base);
-
-        const total_apres_remise = prix_base - total_remise;
-
-        formule += `<u>Prix après remises</u>\n ${prix_base.toFixed(2)} € - ${total_remise.toFixed(2)} € = ${total_apres_remise.toFixed(2)} €\n`;
-
+        
         // Coefficient
         const total_ht = total_apres_remise * coefficient;
         formule += `<u>Prix HT </u>\n Prix (${total_apres_remise.toFixed(2)} €) * Facteur (${coefficient}) = ${total_ht.toFixed(2)} €\n`;
@@ -1531,6 +1608,10 @@ Prix du type de porte "${titre_type_porte}" (${prix_artisan_type + prix_fourniss
           total_ht,
           total_ttc,
           formule,
+          prix_debourse_ht:prix_base,
+          prix_vente_remise_ht:((prix_base - total_remise)*coefficient).toFixed(2),
+          PrixDeVenteHT:((prix_base)*coefficient).toFixed(2),
+          PrixDeVenteRemiseTTC:total_ttc,
           total_apres_remise
         };
       }

@@ -532,6 +532,40 @@ router.get('/get_devis_piece/:id', async (req, res) => {
 
 
 
+
+router.get('/get_devis_piece_minimum_datas/:id', async (req, res) => {
+  const devisId = req.params.id;
+
+  try {
+    const devisPiece = await DevisPiece.findByPk(devisId, {
+      include: [
+        {
+          model: Piece
+        },
+        {
+          model: Utilisateur
+        },
+        {
+          model: Projet,
+          through: { attributes: [] } // pour ne pas inclure les données de ProjetDevis
+        }
+        
+      ]
+    });
+
+    if (!devisPiece) {
+      return res.status(404).json({ error: 'Devis non trouvé' });
+    }
+
+    res.status(200).json(devisPiece);
+  } catch (error) {
+    console.error('Erreur lors de la récupération du devis :', error);
+    res.status(500).json({ error: 'Erreur serveur' });
+  }
+});
+
+
+
 router.post('/get_devis_piece_by_username_and_ip', async (req, res) => {
   const { username, ip } = req.body;
 console.log({ username, ip })

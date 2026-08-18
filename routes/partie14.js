@@ -502,11 +502,26 @@ router.put('/update_devis_tache/:id', async (req, res) => {
         nomtache: travail.TravailSlug
       };
 
-      const newHistorique = await DevisTacheHistorique.create({
-        TacheID: id, // ID de la tâche concernée
-        Date: new Date(), // date actuelle
-        Donnees: JSON.parse(travail.Donnees),
+      const maintenant = new Date();
+      const ilYAHUneHeure = new Date(maintenant.getTime() - 60 * 60 * 1000);
+
+      const historiqueRecent = await DevisTacheHistorique.findOne({
+          where: {
+              TacheID: id,
+              Date: {
+                  [Op.gte]: ilYAHUneHeure
+              }
+          },
+          order: [['Date', 'DESC']]
       });
+
+      if (!historiqueRecent) {
+          const newHistorique = await DevisTacheHistorique.create({
+              TacheID: id,
+              Date: maintenant,
+              Donnees: JSON.parse(travail.Donnees),
+          });
+      }
 
       const result = await calculator.calculer_prix(travail.TravailID, donnees,travail.DevisPieceID);
 

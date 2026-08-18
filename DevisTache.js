@@ -36,15 +36,36 @@ const DevisTache = sequelize.define('DevisTache', {
     allowNull: true,
     field: 'Commentaires'
   },
-  Prix: {
+  Prix: {//Prix de vente remisé HT = prix deboursé HT - remise
     type: DataTypes.DOUBLE,
     allowNull: true,
     field: 'Prix'
   },
-  PrixCoutant: {
+  PrixDeVenteRemiseHT: {//Prix de vente remisé HT = prix deboursé HT - remise
+    type: DataTypes.DOUBLE,
+    allowNull: true,
+    field: 'PrixDeVenteRemiseHT'
+  },
+  
+  PrixCoutant: {//Prix Coûtant HT =  somme des taches avec tarifs artisans
     type: DataTypes.DOUBLE,
     allowNull: true,
     field: 'PrixCoutant'
+  },
+  PrixDebourseHT: {//Prix déboursé HT =  somme des taches
+    type: DataTypes.DOUBLE,
+    allowNull: true,
+    field: 'PrixDebourseHT'
+  },
+  PrixDeVenteHT: {//Prix de vente HT =  Prix de vente remisé HT  x coef
+    type: DataTypes.DOUBLE,
+    allowNull: true,
+    field: 'PrixDeVenteHT'
+  },
+  PrixDeVenteRemiseTTC: {//Prix de vente remisé TTC = Prix de vente HT  + tva
+    type: DataTypes.DOUBLE,
+    allowNull: true,
+    field: 'PrixDeVenteRemiseTTC'
   },
   Donnees: {
     type: DataTypes.JSON,

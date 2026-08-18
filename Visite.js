@@ -15,6 +15,11 @@ const Visite = sequelize.define('Visite', {
     type: DataTypes.BOOLEAN, 
     allowNull: false, 
     defaultValue: false 
+  },
+  Faite: { 
+    type: DataTypes.BOOLEAN, 
+    allowNull: false, 
+    defaultValue: false 
   }
 }, 
 { tableName: 'Visite',
