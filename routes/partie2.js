@@ -138,6 +138,7 @@ router.post('/update-payed-devis', async (req, res) => {
             Type: 'acompte',
             Montant: prix_acompte,
             Date: new Date(),
+            DatedePaiement: new Date(),
             ProjetID: projet_id,
             Titre: `acompte du projet ${projet_id}`,
             Requette:"reglement",

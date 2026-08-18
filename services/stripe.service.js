@@ -57,15 +57,17 @@ async function handleStripeWebhook(req) {
       logToFile(`❌ Paiement ${id_paiement} introuvable`);
       return;
     }
+    const date_de_paiement = new Date();
 
     if (!paiement.Status) {
-      await paiement.update({ Status: true });
+      await paiement.update({ Status: true,TypeDePaiement:'en ligne', DatedePaiement:date_de_paiement });
     }
 
     logToFile({
       message: `Paiement n°${id_paiement} confirmé`,
       projet_id,
       id_paiement,
+      date_de_paiement,
       newStatus: true
     });
   }
