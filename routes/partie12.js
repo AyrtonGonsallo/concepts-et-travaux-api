@@ -314,6 +314,7 @@ router.post("/update_project_status", async (req, res) => {
     projet_id,
     paiement_visite,
     programmation_visite,
+    date_visite_faite,
     visite_faite,
     projet_valide,
     paiement_autorise,
@@ -370,11 +371,14 @@ router.post("/update_project_status", async (req, res) => {
 
    
 
+    console.log("status_actuel",status_actuel)
+    console.log("date_visite_faite",date_visite_faite)
+    console.log("visite_faite",visite_faite)
     
 
     await projet.update(updateFields, { transaction: t });
 
-    if (projet.Visite && status_actuel=="visite réglée") {
+    if (projet.Visite) {
       console.log("Date_paiement_visite:", Date_paiement_visite);
       console.log("Date_programmation_visite:", Date_programmation_visite);
 
@@ -382,6 +386,9 @@ router.post("/update_project_status", async (req, res) => {
 
       if (Date_paiement_visite) {
         updateFields2.Date = Date_paiement_visite;
+      }
+      if (date_visite_faite) {
+        updateFields2.DateVisiteFaite = date_visite_faite;
       }
       updateFields2.Faite = visite_faite;
 

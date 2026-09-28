@@ -2,6 +2,7 @@ const express = require('express');
 const router = express.Router();
 const Travail=require('../Travail')
 const PieceTravail=require('../PieceTravail')
+const PieceCatEquipement=require('../PieceCatEquipement')
 const Avis=require('../Avis')
 const Page=require('../Page')
 const Equipement=require('../Equipement')
@@ -120,6 +121,19 @@ router.delete('/delete_page/:id', async (req, res) => {
 router.post('/add_equipement/', async (req, res) => {
   try {
     const newEquipement = await Equipement.create(req.body);
+    let Pieces = req.body.Pieces
+    if (Pieces && Pieces.length > 0) {
+        // Supprimer les associations existantes
+        await PieceCatEquipement.destroy({ where: { CatEquipementID: newEquipement.ID } });
+
+        // Créer les nouvelles associations
+        await Promise.all(Pieces.map(async (pieceID) => {
+          await PieceCatEquipement.create({
+            PieceID: pieceID,
+            CatEquipementID: newEquipement.ID
+          });
+        }));
+      }
     res.status(201).json(newEquipement);
   } catch (error) {
     res.status(400).json({ error: error.message });
@@ -131,7 +145,12 @@ router.get('/get_equipements/', async (req, res) => {
   try {
     const equipements = await Equipement.findAll({
       include: [
-        { model: Piece }
+        { model: Piece,
+          through: {
+            model: PieceCatEquipement,
+            attributes: [] // Si vous ne voulez pas inclure les attributs de la table de jointure PieceTravail
+          }
+        }
       ],
       order: [['Type', 'ASC'],['Titre', 'ASC']]
     });
@@ -148,12 +167,17 @@ router.get('/get_equipement/:id', async (req, res) => {
       include: [
         {
           model: Piece, // Inclure les informations de la pièce associée à l'équipement
+          through: {
+            model: PieceCatEquipement,
+            attributes: [] // Si vous ne voulez pas inclure les attributs de la table de jointure PieceTravail
+          }
         },
         {
           model: ModeleEquipement, // Inclure tous les modèles d'équipement associés à l'équipement
           as: 'Modeles'
         },
       ],
+      
     });
     if (equipement) {
       res.status(200).json(equipement);
@@ -170,19 +194,26 @@ router.get('/get_equipements_by_piece/:pid', async (req, res) => {
   try {
     const pieceID = req.params.pid;
     const equipements = await Equipement.findAll({
-      where: { PieceID: pieceID },
       include: [
         {
-          model: Piece, // Inclure les informations de la pièce associée à l'équipement
+          model: Piece,
+          through: {
+            model: PieceCatEquipement,
+            attributes: []
+          },
+          where: {
+            ID: pieceID
+          },
+          required: true
         },
         {
-          model: ModeleEquipement, // Inclure tous les modèles d'équipement associés à l'équipement ActiverFournisseur: 1
-          as:'Modeles',
+          model: ModeleEquipement,
+          as: 'Modeles',
           where: {
             ActiverFournisseur: 0
           },
           required: false
-        },
+        }
       ],
       order: [['ID', 'ASC']]
     });
@@ -197,21 +228,24 @@ router.get('/get_equipements_by_type/:type', async (req, res) => {
   try {
     const type = req.params.type;
     const equipements = await Equipement.findAll({
-  where: { Type: type },
-  include: [
-    {
-      model: Piece, // aucun alias défini ici, donc ok
-    },
-    {
-      model: ModeleEquipement,
-      as: 'Modeles', // ⚠️ il faut l'alias défini dans la relation
-      where: {
-        ActiverFournisseur: 0
-      },
-      required: false
-    },
-  ],
-});
+      where: { Type: type },
+      include: [
+        { model: Piece,
+          through: {
+            model: PieceCatEquipement,
+            attributes: [] // Si vous ne voulez pas inclure les attributs de la table de jointure PieceTravail
+          }
+        },
+        {
+          model: ModeleEquipement,
+          as: 'Modeles', // ⚠️ il faut l'alias défini dans la relation
+          where: {
+            ActiverFournisseur: 0
+          },
+          required: false
+        },
+      ],
+    });
 
     res.status(200).json(equipements);
   } catch (error) {
@@ -231,6 +265,21 @@ router.put('/update_equipement/:id', async (req, res) => {
         delete updateData.Image;
       }
 
+      let Pieces = updateData.Pieces
+      // Mettre à jour les pièces associées (via la table de jointure PieceTravail)
+      if (Pieces && Pieces.length > 0) {
+        // Supprimer les associations existantes
+        await PieceCatEquipement.destroy({ where: { CatEquipementID: req.params.id } });
+
+        // Créer les nouvelles associations
+        await Promise.all(Pieces.map(async (pieceID) => {
+          await PieceCatEquipement.create({
+            PieceID: pieceID,
+            CatEquipementID: req.params.id
+          });
+        }));
+      }
+
       await equipement.update(updateData);
       res.status(200).json(equipement);
     } else {
@@ -247,6 +296,7 @@ router.delete('/delete_equipement/:id', async (req, res) => {
     const equipement = await Equipement.findByPk(req.params.id);
     if (equipement) {
       await equipement.destroy();
+      await PieceCatEquipement.destroy({ where: { CatEquipementID: req.params.id } });
       res.status(204).send();
     } else {
       res.status(404).json({ error: 'Equipement not found' });

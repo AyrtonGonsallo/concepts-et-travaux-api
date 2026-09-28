@@ -11,6 +11,10 @@ const Visite = sequelize.define('Visite', {
     type: DataTypes.DATE, 
     allowNull: true, 
   },
+  DateVisiteFaite: { 
+    type: DataTypes.DATE, 
+    allowNull: true, 
+  },
   Paye: { 
     type: DataTypes.BOOLEAN, 
     allowNull: false, 

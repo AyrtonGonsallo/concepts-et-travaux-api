@@ -160,7 +160,10 @@ router.get('/get_gammes_by_type_and_travailID/:tid/:type', async (req, res) => {
         Type: type,
         ActiverFournisseur:false
       },
-      order: [['Ordre', 'ASC']]
+      order: [
+        ['Ordre', 'ASC'], // Tri par Titre en ordre croissant
+        ['Label', 'ASC']
+      ]
     });
     res.status(200).json(gammes);
   } catch (error) {

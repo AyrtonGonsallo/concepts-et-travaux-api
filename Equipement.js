@@ -1,6 +1,7 @@
 const { Sequelize, DataTypes } = require('sequelize');
 const Piece=require('./Piece');
 const ModeleEquipement=require('./ModeleEquipement');
+const PieceCatEquipement = require('./PieceCatEquipement');
 const sequelize = require('./config/database');
 const Equipement = sequelize.define('Equipement', {
   ID: {
@@ -55,15 +56,7 @@ const Equipement = sequelize.define('Equipement', {
     field: 'AfficherEncastreeApparente'
   },
   
-  PieceID: {
-    type: DataTypes.INTEGER,
-    allowNull: true,
-    references: {
-      model: Piece,
-      key: 'ID'
-    },
-    field: 'PieceID' // Spécifie explicitement le nom de la colonne dans la base de données
-  }
+ 
 }, {
   tableName: 'Equipement',
   timestamps: false,
@@ -72,7 +65,12 @@ const Equipement = sequelize.define('Equipement', {
   collate: 'latin1_swedish_ci'
 });
 
-Equipement.belongsTo(Piece, { foreignKey: 'PieceID' });
+
+Equipement.belongsToMany(Piece, { through: PieceCatEquipement, foreignKey: {
+  name: 'CatEquipementID',
+  field: 'CatEquipementID'
+} });
+
 Equipement.hasMany(ModeleEquipement, {
   foreignKey: 'EquipementID',
   as: 'Modeles'
