@@ -5,6 +5,7 @@ const crypto = require('crypto');
 const Utilisateur = require('../Utilisateur');
 const Visite = require('../Visite');
 const DevisCalculator = require('../services/DevisCalculator');
+const DevisArtisansFournisseurs = require('../services/DevisArtisansFournisseurs');
 
 const Travail=require('../Travail')
 const Tva=require('../Tva')
@@ -484,6 +485,10 @@ router.put('/update_devis_tache/:id', async (req, res) => {
         },
         {
           model: Piece
+        },
+        {
+          model: Projet,
+          through: { attributes: [] } // pour ne pas inclure les données de ProjetDevis
         }
       ]
     });
@@ -492,7 +497,10 @@ router.put('/update_devis_tache/:id', async (req, res) => {
       return res.status(404).json({ error: 'DevisPiece non trouvé' });
     }
 
+    let projet_id = devisPiece.Projets[0].Id
+
     const calculator = new DevisCalculator();
+    const devisartisanfournisseur = new DevisArtisansFournisseurs();
     await calculator.init();
     let total = 0;
    
@@ -524,6 +532,8 @@ router.put('/update_devis_tache/:id', async (req, res) => {
       }
 
       const result = await calculator.calculer_prix(travail.TravailID, donnees,travail.DevisPieceID);
+
+      await devisartisanfournisseur.add_artisan_fournisseur_datas(travail.TravailID,donnees,travail.DevisPieceID,projet_id);
 
       const prix = parseFloat(result?.prix ?? 0);
       const prix_ht = parseFloat(result?.prix_ht ?? 0);

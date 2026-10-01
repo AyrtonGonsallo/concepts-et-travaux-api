@@ -77,6 +77,49 @@ router.get('/send_visite_done/:visiteId/:projectID', async (req, res) => {
       ]
     });
     await projet.update({ Status: 'projet validé',VisiteFaite:1,Date_de_validation: new Date(),Valider:1,});//Valider:1, autoriser le paiement
+    
+    let total = projet.Devis.reduce((totalDevis, devis) => {
+        return totalDevis + devis.DevisTaches.reduce((totalTaches, tache) => {
+            return totalTaches + (Number(tache.PrixDeVenteRemiseTTC) || 0);
+        }, 0);
+    }, 0);
+
+
+    const parametre_acompte = await Parametre.findByPk(2);
+    const pourcent_acompte = parametre_acompte.Valeur;
+    prix_acompte = ((total * pourcent_acompte)/100).toFixed(2);
+    console.log("pourcent_acompte ",pourcent_acompte)
+
+      
+    const paiement = await Paiement.findOne({
+      where: {
+        ProjetID: projectID,
+        Type: 'acompte',
+        Requette: 'reglement',
+        Status: 0,
+      }
+    });
+
+    if (paiement) {
+      await paiement.destroy();
+
+      await Paiement.create({
+        TypeDePaiement: null,
+        Type: 'acompte',
+        Montant: prix_acompte,
+        Date: new Date(),
+        DatedePaiement: null,
+        ProjetID: projectID,
+        Titre: `acompte du projet ${projectID}`,
+        Requette: 'reglement',
+        Status: 0,
+      });
+
+       console.log('Paiements recréé avec succès.');
+    }
+
+   
+    
     let nomProjet="";
     if (projet) {
       let currentYear = new Date().getFullYear();

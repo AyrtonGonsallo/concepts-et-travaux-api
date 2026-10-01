@@ -130,23 +130,13 @@ router.post('/update-payed-devis', async (req, res) => {
         console.warn('Projet non trouvé.');
         return res.status(404).json({ error: 'Projet introuvable' });
       }
-      await Projet.update({ Payed: 1,Status:'acompte payé',Date_de_paiement_acompte: new Date()}, { where: { Id: projet_id } });
+      await Projet.update({ Status: 1,Status:'acompte payé',Date_de_paiement_acompte: new Date()}, { where: { Id: projet_id } });
       
 
-      await Paiement.create({
-            TypeDePaiement: 'en ligne', // Ou 'virement' selon votre logique
-            Type: 'acompte',
-            Montant: prix_acompte,
-            Date: new Date(),
-            DatedePaiement: new Date(),
-            ProjetID: projet_id,
-            Titre: `acompte du projet ${projet_id}`,
-            Requette:"reglement",
-            Status:1,
-        });
-      
+      await Paiement.update({ Status: 1, DatedePaiement: new Date(), TypeDePaiement: 'en ligne',}, { where: { ProjetID: projet_id,Type: 'acompte' } });
 
-      console.log('Paiements créé avec succès.');
+     
+      console.log('Paiements mis à jour avec succès.');
 
 
     } catch (err) {

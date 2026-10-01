@@ -4,7 +4,7 @@ const Utilisateur = require('../Utilisateur');
 const Visite=require('../Visite')
 const Paiement=require('../Paiement')
 const Parametre=require('../Parametre')
-const ModeleEquipement=require('../ModeleEquipement')
+const ArtisanFournisseurProjet=require('../ArtisanFournisseurProjet')
 const Gamme=require('../Gamme')
 const TacheGenerale=require('../TacheGenerale')
 const DevisPiece=require('../DevisPiece')
@@ -429,6 +429,77 @@ router.put('/update_status_demande_paiement/:id', async (req, res) => {
 
   } catch (error) {
     res.status(500).json({ error: error.message });
+  }
+});
+
+
+
+
+
+
+router.put('/update_artisan_fournisseur_projet/:id', async (req, res) => {
+  try {
+    const { id } = req.params;
+    
+      const {  NatureDesTravaux,AvisClients,RespectDesDelais,RespectDuPrix,QualiteDesTravaux,TenueDuChantier } = req.body;
+      const existingArtisanFournisseurProjet = await ArtisanFournisseurProjet.findByPk(id);
+
+      if (existingArtisanFournisseurProjet) {
+        // Mise à jour si trouvé
+        await existingArtisanFournisseurProjet.update({
+          NatureDesTravaux,AvisClients,RespectDesDelais,RespectDuPrix,QualiteDesTravaux,TenueDuChantier
+        });
+      }else{
+        return res.status(400).json({ message: 'ArtisanFournisseurProjet non trouvé pour cet ID' });
+      }
+     
+
+      
+
+
+      res.status(201).json({ message: 'ArtisanFournisseurProjet mis a jour avec succès', artisanFournisseurProjet: existingArtisanFournisseurProjet });
+  } catch (error) {
+      console.error('Erreur lors de la mise a jour du artisanFournisseurProjet :', error);
+      res.status(500).json({ message: 'Erreur serveur', error });
+  }
+});
+
+router.get('/get_artisan_fournisseur_projet/:UtilisateurID', async (req, res) => {
+  try {
+    const { UtilisateurID } = req.params;
+
+    const artisanFournisseurProjets =
+      await ArtisanFournisseurProjet.findAll({
+        where: {
+          UtilisateurID: UtilisateurID
+        },
+        include: [
+          {
+            model: Utilisateur
+          },
+          {
+            model: Projet
+          },
+          {
+            model: DevisTache
+          }
+        ]
+      });
+
+    res.status(200).json(
+      artisanFournisseurProjets
+    );
+
+  } catch (error) {
+    console.error(
+      'Erreur lors de la récupération des ArtisanFournisseurProjet :',
+      error
+    );
+
+    res.status(500).json({
+      message: 'Erreur serveur',
+      error
+    });
   }
 });
 

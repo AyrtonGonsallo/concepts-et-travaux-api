@@ -135,6 +135,8 @@ const [updated] = await Gamme.update(dataToUpdate, {
   }
 });
 
+
+
 router.delete('/delete_gamme/:id', async (req, res) => {
   try {
     const deleted = await Gamme.destroy({
