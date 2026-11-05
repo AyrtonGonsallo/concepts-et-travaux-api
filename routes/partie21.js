@@ -3,11 +3,9 @@ const router = express.Router();
 const Utilisateur = require('../Utilisateur');
 const Visite=require('../Visite')
 const Paiement=require('../Paiement')
-const Parametre=require('../Parametre')
+const Travail=require('../Travail')
 const ArtisanFournisseurProjet=require('../ArtisanFournisseurProjet')
-const Gamme=require('../Gamme')
-const TacheGenerale=require('../TacheGenerale')
-const DevisPiece=require('../DevisPiece')
+const Role=require('../Role')
 const Projet=require('../Projet')
 const DevisTache=require('../DevisTache')
 const path = require('path');
@@ -464,7 +462,7 @@ router.put('/update_artisan_fournisseur_projet/:id', async (req, res) => {
   }
 });
 
-router.get('/get_artisan_fournisseur_projet/:UtilisateurID', async (req, res) => {
+router.get('/get_artisan_fournisseur_projet_by_user/:UtilisateurID', async (req, res) => {
   try {
     const { UtilisateurID } = req.params;
 
@@ -481,7 +479,12 @@ router.get('/get_artisan_fournisseur_projet/:UtilisateurID', async (req, res) =>
             model: Projet
           },
           {
-            model: DevisTache
+            model: DevisTache,
+            include: [
+              {
+                model: Travail
+              },
+            ]
           }
         ]
       });
@@ -503,5 +506,51 @@ router.get('/get_artisan_fournisseur_projet/:UtilisateurID', async (req, res) =>
   }
 });
 
+
+router.get('/get_artisan_fournisseur_projet_by_id/:id', async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    // Validation de l'ID
+    const parsedId = parseInt(id, 10);
+    if (!Number.isFinite(parsedId)) {
+      return res.status(400).json({ message: 'ID invalide.' });
+    }
+
+    const artisanFournisseurProjet = await ArtisanFournisseurProjet.findByPk(parsedId, {
+      include: [
+        { model: Utilisateur,
+          include: [
+            { model: Role },
+          ] 
+        },
+        { model: Projet },
+        {
+          model: DevisTache,
+          include: [{ model: Travail }]
+        }
+      ]
+    });
+
+    if (!artisanFournisseurProjet) {
+      return res.status(404).json({
+        message: `ArtisanFournisseurProjet introuvable (id=${parsedId}).`
+      });
+    }
+
+    return res.status(200).json(artisanFournisseurProjet);
+
+  } catch (error) {
+    console.error(
+      'Erreur lors de la récupération de ArtisanFournisseurProjet :',
+      error
+    );
+
+    return res.status(500).json({
+      message: 'Erreur serveur'
+      // pas de `error` brut en réponse : fuite d'info
+    });
+  }
+});
 
 module.exports = router;

@@ -106,7 +106,7 @@ async function generatePdfMake(projectID, data) {
                 );
 
                 //  Calculs devis
-                totalHTDevis *= coeficient
+                totalHTDevis = item.PrixDeVenteRemiseHT?(item.PrixDeVenteRemiseHT):(item.Prix * coeficient)
                 const tva = item.Tva?.Valeur || 0;
                 const montantTVA = totalHTDevis * (tva / 100);
                 const totalTTC = totalHTDevis + montantTVA;

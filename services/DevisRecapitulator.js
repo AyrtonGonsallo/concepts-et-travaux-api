@@ -457,7 +457,7 @@ class DevisRecapitulator {
           elements_recap:elements_recap,
           tva:resultatFinal.tva,
           coefficient:resultatFinal.coefficient,
-      total_tva:resultatFinal.total_tva
+          total_tva:resultatFinal.total_tva
         };
       }
       
@@ -558,13 +558,14 @@ class DevisRecapitulator {
             let titre_type_porte= (porte.type_porte.split(":")[2]);
             
         
-            prix += prix_gamme + prix_nature_porte + prix_type_porte ;
+            let prix_porte = prix_gamme + prix_nature_porte + prix_type_porte;
+            prix +=  prix_porte;
             elements_recap.push({
                       designation: `Remplacement de portes - Porte nº${index+1}`,
                       unite: 'ens',
                       quantite: 1,
-                      prix_unitaire: prix.toFixed(2),
-                      total: prix.toFixed(2)
+                      prix_unitaire: prix_porte.toFixed(2),
+                      total: prix_porte.toFixed(2)
                   });
             // Ajouter les calculs à la formule
             formule += `Porte ${index+1} \n Gamme : ${titre_gamme} \n Nature : ${titre_nature_porte} \n Type : ${titre_type_porte}\n`;

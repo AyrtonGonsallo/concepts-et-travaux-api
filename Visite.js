@@ -15,6 +15,16 @@ const Visite = sequelize.define('Visite', {
     type: DataTypes.DATE, 
     allowNull: true, 
   },
+  Commentaire: {
+    type: DataTypes.TEXT,
+    allowNull: true
+  },
+  Lien_compte_rendu: {
+    type: DataTypes.STRING(255),
+    allowNull: true,
+    defaultValue: null,
+    field: 'Lien_compte_rendu' // Specifies the column name explicitly
+  },
   Paye: { 
     type: DataTypes.BOOLEAN, 
     allowNull: false, 

@@ -271,12 +271,12 @@ class DevisCalculator {
             prix += sousTotalEtat;
             formule += `Aucun revetement à déposer.\n`;
 
-            formule += `<u>Prix de l'état du mur ${index + 1}</u>\n Surface (${surface} m²) * prix de l'état de surface "${titreEtat}" (${prixEtat} €) = ${sousTotalEtat.toFixed(2)} €\n`;
+            formule += `<u>Prix déboursé de l'état du mur ${index + 1}</u>\n Surface (${surface} m²) * prix de l'état de surface "${titreEtat}" (${prixEtat} €) = ${sousTotalEtat.toFixed(2)} €\n`;
             
           }else{
             let sousTotalDepose = surface * prixDepose;
             prix += sousTotalDepose;
-            formule += `<u>Prix de dépose du mur ${index + 1}</u>\n Surface (${surface} m²) * prix du revêtement à déposer "${titreDepose}" (${prixDepose} €) = ${sousTotalDepose.toFixed(2)} €\n`;
+            formule += `<u>Prix déboursé de dépose du mur ${index + 1}</u>\n Surface (${surface} m²) * prix du revêtement à déposer "${titreDepose}" (${prixDepose} €) = ${sousTotalDepose.toFixed(2)} €\n`;
             
           }
 
@@ -373,7 +373,7 @@ class DevisCalculator {
         let prixLocal = qte * element.prix;
         if(qte>0){
            prix += prixLocal;
-        formule += `<u>Prix de dépose de l'élement "${element.titre}"</u>\n Quantité (${qte}) * prix de dépose (${element.prix} €) = ${prixLocal} €\n`;
+        formule += `<u>Prix déboursé de dépose de l'élement "${element.titre}"</u>\n Quantité (${qte}) * prix de dépose (${element.prix} €) = ${prixLocal} €\n`;
         
         }
        
@@ -396,7 +396,7 @@ class DevisCalculator {
             let prixLocal = parseFloat(element.modele.split(':')[2]);
             let titre = (element.modele.split(':')[1]);
             prix += prixLocal;
-            formule += `<u>Prix de pose de l'élement "${titre}"</u>\n Quantité (1) * prix (${prixLocal} €) = ${prixLocal} €\n`;
+            formule += `<u>Prix déboursé de pose de l'élement "${titre}"</u>\n Quantité (1) * prix (${prixLocal} €) = ${prixLocal} €\n`;
           
             if(element.artisan_pose && element.fournisseur_pose){
                 let aParts = element.artisan_pose.split(":");
@@ -480,7 +480,7 @@ class DevisCalculator {
             let surface_mur = mursnonporteurs[i].longueur*mursnonporteurs[i].hauteur/10000;
             let prix_final_mur =  (surface_mur * prix_unit_mur);
             prix += prix_final_mur;
-            formule += `<u>Prix du mur ${i+1}</u>\n Surface (${surface_mur} m²) * prix unitaire cloison '${titre_cloison_mur}' (${prix_unit_mur} €) = ${prix_final_mur.toFixed(2)} €\n`;
+            formule += `<u>Prix déboursé du mur ${i+1}</u>\n Surface (${surface_mur} m²) * prix déboursé unitaire cloison '${titre_cloison_mur}' (${prix_unit_mur} €) = ${prix_final_mur.toFixed(2)} €\n`;
           
           
             let artisan_pose = mursnonporteurs[i].artisan_pose
@@ -490,7 +490,7 @@ class DevisCalculator {
 
               let prix_final_mur_marge = surface_mur * prix_artisan_pose_marge * 1;
               prix_marge += prix_final_mur_marge;
-              formule_marge += `<u>Prix du mur ${i+1} cloison ${titre_cloison_mur} cm</u>\n  Surface ${surface_mur} m² * prix de l'artisan ${prix_artisan_pose_marge} €  = ${prix_final_mur_marge.toFixed(2)} €\n`;
+              formule_marge += `<u>Prix déboursé du mur ${i+1} cloison ${titre_cloison_mur} cm</u>\n  Surface ${surface_mur} m² * prix de l'artisan ${prix_artisan_pose_marge} €  = ${prix_final_mur_marge.toFixed(2)} €\n`;
           
 
             }
@@ -509,11 +509,11 @@ class DevisCalculator {
             let surface_ouverture = ((ouvertures[j].longueur*ouvertures[j].hauteur)-(ouvertures[j].longueur_ouverture*ouvertures[j].hauteur_ouverture))/1000000;
             let prix_final_ouverture =  (surface_ouverture * prix_unit_cloison);
             prix += prix_final_ouverture;
-            formule += `<u>Prix de l'ouverture ${j+1}</u>\n Surface de l'ouverture (${surface_ouverture} m²) * prix unitaire cloison '${titre_cloison_mur}' (${prix_unit_cloison} €) = ${prix_final_ouverture.toFixed(2)} €\n`;
+            formule += `<u>Prix déboursé de l'ouverture ${j+1}</u>\n Surface de l'ouverture (${surface_ouverture} m²) * prix déboursé unitaire cloison '${titre_cloison_mur}' (${prix_unit_cloison} €) = ${prix_final_ouverture.toFixed(2)} €\n`;
             if(hdp>0){
               let prix_final_linteau =  (louv * prix_linteau);
               prix += prix_final_linteau;
-              formule += `<u>Prix du linteau sur l'ouverture ${j+1} (car la hauteur depuis le plafond est ${hdp} cm >0)</u>\n Longueur de l'ouverture (${louv} m) * prix du linteau au metre (${prix_linteau} €) = ${prix_final_linteau.toFixed(2)} €\n`;
+              formule += `<u>Prix déboursé du linteau sur l'ouverture ${j+1} (car la hauteur depuis le plafond est ${hdp} cm >0)</u>\n Longueur de l'ouverture (${louv} m) * prix du linteau au metre (${prix_linteau} €) = ${prix_final_linteau.toFixed(2)} €\n`;
 
             }
 
@@ -601,7 +601,7 @@ class DevisCalculator {
             let surface = murs[i].longueur*murs[i].hauteur/10000;
             let prix_final_mur = surface * prix_unit_epaisseur * 1;
             prix += prix_final_mur;
-            formule += `<u>Prix du mur ${i+1}</u>\n  Surface ${surface} m² * prix unitaire 'épaisseur ${titre_epaisseur} cm' ${prix_unit_epaisseur} € = ${prix_final_mur.toFixed(2)} €\n`;
+            formule += `<u>Prix déboursé du mur ${i+1}</u>\n  Surface ${surface} m² * prix déboursé unitaire 'épaisseur ${titre_epaisseur} cm' ${prix_unit_epaisseur} € = ${prix_final_mur.toFixed(2)} €\n`;
           
 
             //donnees prix coutant
@@ -629,7 +629,7 @@ class DevisCalculator {
               let prix_final_porte = 1 * prix_unit_porte * 1;
               prix += prix_final_porte;
 
-              formule += `<u>Prix porte ${j+1}</u>\n 1 * Prix unitaire de la gamme '${titre_gamme}' ${prix_unit_porte} € = ${prix_final_porte.toFixed(2)} €\n`;
+              formule += `<u>Prix porte ${j+1}</u>\n 1 * prix déboursé unitaire de la gamme '${titre_gamme}' ${prix_unit_porte} € = ${prix_final_porte.toFixed(2)} €\n`;
             }
           }
 
@@ -692,7 +692,7 @@ class DevisCalculator {
           
           prix += prix_gamme + prix_nature_porte + prix_type_porte ;
           // Ajouter les calculs à la formule
-          formule += `<u>Prix de la porte ${index+1} </u>\n Prix de la gamme de porte "${titre_gamme}" (${prix_gamme} €) + Prix de la nature de la porte "${titre_nature_porte}" (${prix_nature_porte} €) + Prix du type de porte "${titre_type_porte}" (${prix_type_porte} €) = ${prix_gamme + prix_nature_porte + prix_type_porte} €\n`;
+          formule += `<u>Prix déboursé de la porte ${index+1} </u>\n Prix déboursé de la gamme de porte "${titre_gamme}" (${prix_gamme} €) + Prix déboursé de la nature de la porte "${titre_nature_porte}" (${prix_nature_porte} €) + Prix déboursé du type de porte "${titre_type_porte}" (${prix_type_porte} €) = ${prix_gamme + prix_nature_porte + prix_type_porte} €\n`;
           
           if(porte.artisan_pose && porte.fournisseur_pose && porte.artisan_nature && porte.fournisseur_nature && porte.artisan_type && porte.fournisseur_type){
             let prix_artisan_pose = parseFloat(porte.artisan_pose.split(":")[1]);
@@ -707,10 +707,10 @@ class DevisCalculator {
             let prix_total_porte = prix_artisan_pose + prix_fournisseur_pose + prix_artisan_nature + prix_fournisseur_nature + prix_artisan_type + prix_fournisseur_type;
             prix_marge += prix_total_porte ;
            formule_marge += `<u>Prix de la porte ${index + 1}</u>
-Prix de la gamme de porte "${titre_gamme}" (${prix_artisan_pose + prix_fournisseur_pose} €) : Artisan ${prix_artisan_pose} € + Fournisseur ${prix_fournisseur_pose} €
-Prix de la nature de la porte "${prix_artisan_nature + prix_fournisseur_nature} €" : Artisan ${prix_artisan_nature} € + Fournisseur ${prix_fournisseur_nature} €
-Prix du type de porte "${titre_type_porte}" (${prix_artisan_type + prix_fournisseur_type} €) : Artisan ${prix_artisan_type} € + Fournisseur ${prix_fournisseur_type} €
-= ${prix_total_porte} €\n`;
+          Prix de la gamme de porte "${titre_gamme}" (${prix_artisan_pose + prix_fournisseur_pose} €) : Artisan ${prix_artisan_pose} € + Fournisseur ${prix_fournisseur_pose} €
+          Prix de la nature de la porte "${prix_artisan_nature + prix_fournisseur_nature} €" : Artisan ${prix_artisan_nature} € + Fournisseur ${prix_fournisseur_nature} €
+          Prix du type de porte "${titre_type_porte}" (${prix_artisan_type + prix_fournisseur_type} €) : Artisan ${prix_artisan_type} € + Fournisseur ${prix_fournisseur_type} €
+          = ${prix_total_porte} €\n`;
           }
 
         
@@ -840,7 +840,7 @@ Prix du type de porte "${titre_type_porte}" (${prix_artisan_type + prix_fourniss
           const nomGamme = (gammeParts[2]); // nom de la gamme
           const nomType = (TypeParts[2]); // nom du Type
           prix += prixGamme;
-          formule += `<u>Prix du radiateur ${index + 1}</u>\n Prix de la gamme choisie (${nomGamme}) = ${prixGamme} €\n`;
+          formule += `<u>Prix déboursé du radiateur ${index + 1}</u>\n Prix déboursé de la gamme choisie (${nomGamme}) = ${prixGamme} €\n`;
           
 
           
@@ -952,15 +952,15 @@ Prix du type de porte "${titre_type_porte}" (${prix_artisan_type + prix_fourniss
             let sousTotalEtat = prix_etat_surface * surface;
             prix += sousTotalEtat;
             formule += `Pas de revêtement à déposer.\n `;
-            formule += `<u>Prix de l'état de surface</u>\n Surface (${surface} m²) * Prix de l'état de surface "${titre_etat_surface}" (${prix_etat_surface} €) = ${sousTotalEtat.toFixed(2)} €\n`;
+            formule += `<u>Prix déboursé de l'état de surface</u>\n Surface (${surface} m²) * Prix déboursé de l'état de surface "${titre_etat_surface}" (${prix_etat_surface} €) = ${sousTotalEtat.toFixed(2)} €\n`;
           }else{
             let sousTotalDeposeGamme = prix_depose * surface;
             prix += sousTotalDeposeGamme;
-            formule += `<u>Prix de la dépose</u>\n Surface (${surface} m²) * Prix de la gamme du revêtement à déposer "${titre_depose}" (${prix_depose} €) = ${sousTotalDeposeGamme.toFixed(2)} €\n`;  
+            formule += `<u>Prix déboursé de la dépose</u>\n Surface (${surface} m²) * Prix déboursé de la gamme du revêtement à déposer "${titre_depose}" (${prix_depose} €) = ${sousTotalDeposeGamme.toFixed(2)} €\n`;  
           }
           let sousTotalGamme = prix_gamme * surface;
           prix += sousTotalGamme;
-          formule += `<u>Prix de la pose</u>\n  Surface (${surface} m²) * Prix de la gamme choisie "${nom_gamme}" (${prix_gamme} €) = ${sousTotalGamme.toFixed(2)} €\n`;
+          formule += `<u>Prix déboursé de la pose</u>\n  Surface (${surface} m²) * Prix déboursé de la gamme choisie "${nom_gamme}" (${prix_gamme} €) = ${sousTotalGamme.toFixed(2)} €\n`;
 
 
            //donnees prix coutant
@@ -1072,7 +1072,7 @@ Prix du type de porte "${titre_type_porte}" (${prix_artisan_type + prix_fourniss
             const nomGamme = (gammeParts[1]); // Dernier élément
             const sousTotalGamme = prixGamme * surface;
             prix += sousTotalGamme;
-            formule += `<u>Prix de pose</u>\n  Surface (${surface} m²) * Prix de la gamme choisie "${nomGamme}" (${prixGamme} €) = ${sousTotalGamme.toFixed(2)} €\n`;
+            formule += `<u>Prix déboursé de pose</u>\n  Surface (${surface} m²) * Prix déboursé de la gamme choisie "${nomGamme}" (${prixGamme} €) = ${sousTotalGamme.toFixed(2)} €\n`;
             if(gammes.artisan_depose){
               let prix_gamme_marge = prix_fournisseur_pose + prix_artisan_pose
               const sousTotalGamme_marge = prix_gamme_marge * surface;
@@ -1087,7 +1087,7 @@ Prix du type de porte "${titre_type_porte}" (${prix_artisan_type + prix_fourniss
           const sousTotaldepose = prix_depose * surface;
           const sousTotaldepose_marge = prix_artisan_depose * surface;
           prix += sousTotaldepose;
-          formule += `<u>Prix de dépose</u>\n  Surface (${surface} m²) * Prix du revêtement à déposer "${nom_depose}" (${prix_depose} €) = ${sousTotaldepose.toFixed(2)} €\n`;
+          formule += `<u>Prix déboursé de dépose</u>\n  Surface (${surface} m²) * Prix déboursé du revêtement à déposer "${nom_depose}" (${prix_depose} €) = ${sousTotaldepose.toFixed(2)} €\n`;
           
           if(gammes.artisan_depose){
               prix_marge += sousTotaldepose_marge;
@@ -1099,7 +1099,7 @@ Prix du type de porte "${titre_type_porte}" (${prix_artisan_type + prix_fourniss
           const sousTotalEtat = prix_etat_surface * surface;
           prix += sousTotalEtat;
           formule += `Pas de revêtements à déposer\n`;
-          formule += `<u>Prix de l'état de surface</u>\n  Surface (${surface} m²) * Prix de l'état de surface "${titre_etat_surface}" (${prix_etat_surface} €) = ${sousTotalEtat.toFixed(2)} €\n`;
+          formule += `<u>Prix déboursé de l'état de surface</u>\n  Surface (${surface} m²) * Prix déboursé de l'état de surface "${titre_etat_surface}" (${prix_etat_surface} €) = ${sousTotalEtat.toFixed(2)} €\n`;
         
           if(gammes.artisan_depose){
             const sousTotalEtat_marge = prix_artisan_surfaces * surface;
@@ -1116,7 +1116,7 @@ Prix du type de porte "${titre_type_porte}" (${prix_artisan_type + prix_fourniss
             const nomPlinthes = (plintheParts[1]); // Dernier élément
             const sousTotalPlinthes = prixPlinthes * surface;
             prix += sousTotalPlinthes;
-            formule += `<u>Prix de la pose de plinthes</u>\n  Surface (${surface} m²) * Prix des plinthes "${nomPlinthes}" (${prixPlinthes} €) = ${sousTotalPlinthes.toFixed(2)} €\n`;
+            formule += `<u>Prix déboursé de la pose de plinthes</u>\n  Surface (${surface} m²) * Prix déboursé des plinthes "${nomPlinthes}" (${prixPlinthes} €) = ${sousTotalPlinthes.toFixed(2)} €\n`;
         
             if(gammes.artisan_depose){
               let prix_unit_marge = prix_artisan_pose_plinthes + prix_fournisseur_pose_plinthes;
@@ -1191,14 +1191,14 @@ Prix du type de porte "${titre_type_porte}" (${prix_artisan_type + prix_fourniss
                 let nombre_a_creer = appareil.nombre_a_creer;
                 let prix_creation = nombre_a_creer * appareil_gamme.prix * prix_tache_creation;
                 prix += prix_creation;
-                formule += `<u>Prix de la création de l'appareil "${appareil.titre}"</u>\n Nombre à créer (${nombre_a_creer}) * ${prix_tache_creation} € * ${appareil_gamme.prix} € = ${prix_creation.toFixed(2)} € \n`;
+                formule += `<u>Prix déboursé de la création de l'appareil "${appareil.titre}"</u>\n Nombre à créer (${nombre_a_creer}) * ${prix_tache_creation} € * ${appareil_gamme.prix} € = ${prix_creation.toFixed(2)} € \n`;
               }
               if (appareil.nombre_a_remplacer>0) {
                 // remplacement
                 let nombre_a_remplacer = appareil.nombre_a_remplacer;
                 let prix_remplacement = nombre_a_remplacer * appareil_gamme.prix * prix_tache_remplacement;
                 prix += prix_remplacement;
-                formule += `<u>Prix du remplacement de l'appareil "${appareil.titre}"</u>\n Nombre à remplacer (${nombre_a_remplacer}) * ${prix_tache_remplacement} € * ${appareil_gamme.prix} € = ${prix_remplacement.toFixed(2)} € \n`;
+                formule += `<u>Prix déboursé du remplacement de l'appareil "${appareil.titre}"</u>\n Nombre à remplacer (${nombre_a_remplacer}) * ${prix_tache_remplacement} € * ${appareil_gamme.prix} € = ${prix_remplacement.toFixed(2)} € \n`;
               }
             }
           });
@@ -1351,16 +1351,16 @@ Prix du type de porte "${titre_type_porte}" (${prix_artisan_type + prix_fourniss
           if(chauffage_exist){
             let sousTotal = quantite_chauffage * prix_renovation_chauffage; // Calcul du sous-total pour cet appareil
             prix += sousTotal; // Ajoute le sous-total au prix total
-            formule += `<u>Prix renovation de chauffage</u>\n ${quantite_chauffage} * prix unitaire de la tâche de rénovation de chauffage (${prix_renovation_chauffage} €) = ${sousTotal} €\n`;
+            formule += `<u>Prix déboursé renovation de chauffage</u>\n ${quantite_chauffage} * prix déboursé unitaire de la tâche de rénovation de chauffage (${prix_renovation_chauffage} €) = ${sousTotal} €\n`;
           }
           let sousTotal_renovation_electrique_complete = surface * prix_renovation_electrique_complete; 
           prix += sousTotal_renovation_electrique_complete;
-          formule += `<u>Prix rénovation</u>\n surface (${surface} m²) * prix unitaire de la tâche mise aux normes (${prix_renovation_electrique_complete} €) = ${sousTotal_renovation_electrique_complete} €\n`;
+          formule += `<u>Prix déboursé rénovation</u>\n surface (${surface} m²) * prix déboursé unitaire de la tâche mise aux normes (${prix_renovation_electrique_complete} €) = ${sousTotal_renovation_electrique_complete} €\n`;
 
           if(mise_en_securite){
             let sousTotal = 1 * prix_mise_en_securite; // Calcul du sous-total pour cet appareil
             prix += sousTotal; // Ajoute le sous-total au prix total
-            formule += `<u>Prix mise en sécurité</u>\n 1 * prix unitaire de la tâche de mise en sécurité (${prix_mise_en_securite} €) = ${sousTotal} €\n`;
+            formule += `<u>Prix déboursé mise en sécurité</u>\n 1 * prix déboursé unitaire de la tâche de mise en sécurité (${prix_mise_en_securite} €) = ${sousTotal} €\n`;
           }
 
           const artisan_chauffage = donnees_json["gammes-produits-renovation-electrique"].artisan_chauffage
@@ -1468,7 +1468,7 @@ Prix du type de porte "${titre_type_porte}" (${prix_artisan_type + prix_fourniss
                 let titreAppareil = appareil.titre; // 
                 let titreModele = (modeleParts[1]); // 
               prix += prixModele;
-              formule += `<u>Prix de pose</u>\n  ${titreAppareil} (${titreModele}) : 1 * prix de pose (${prixModele} €) = ${prixModele} €\n`;
+              formule += `<u>Prix déboursé de pose</u>\n  ${titreAppareil} (${titreModele}) : 1 * prix déboursé unitaire de pose (${prixModele} €) = ${prixModele} €\n`;
   
 
               if(appareil.artisan_pose && appareil.fournisseur_pose){
@@ -1492,7 +1492,7 @@ Prix du type de porte "${titre_type_porte}" (${prix_artisan_type + prix_fourniss
               let titreModele = appareil.titre; // Prix du modèle
               let prixModele = appareil.prix *qte; // Prix du modèle
               prix += prixModele;
-              formule += `<u>Prix de dépose</u>\n ${titreModele} : ${qte} * prix de dépose (${appareil.prix} €) = ${prixModele} €\n`;
+              formule += `<u>Prix déboursé de dépose</u>\n ${titreModele} : ${qte} * prix déboursé unittaie de dépose (${appareil.prix} €) = ${prixModele} €\n`;
           
 
                if(appareil.artisan_depose ){
@@ -1557,7 +1557,11 @@ Prix du type de porte "${titre_type_porte}" (${prix_artisan_type + prix_fourniss
         formule,
         sans_remise
       }) {
-        formule += `<u>Prix total </u>\n ${prix_base.toFixed(2)} €\n`;
+        if(sans_remise){
+          formule += `<u>Prix total </u>\n ${prix_base.toFixed(2)} €\n`;
+        }else{
+          formule += `<u>Prix déboursé total </u>\n ${prix_base.toFixed(2)} €\n`;
+        }
 
         let total_apres_remise = 0;
         let total_remise = 0;

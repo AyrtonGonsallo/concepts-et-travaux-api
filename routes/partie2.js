@@ -49,7 +49,10 @@ router.post('/create-checkout-session', async (req, res) => {
   try {
     require('dotenv').config();
 const stripe = require('stripe')(process.env.STRIPE_SECRET_KEY);
-    const { montant, liste_devis, url_de_retour, payer_visite,payer_acompte, } = req.body;
+    const { montant, liste_devis, url_de_retour, payer_visite,payer_acompte,projet_id,id_paiement } = req.body;
+
+    console.log("projet_id",projet_id)
+    console.log("id_paiement",id_paiement)
     // Récupération des IDs des devis dans un tableau
     const devisIds = liste_devis.map(devis => devis.ID);
     let desc="";
@@ -85,7 +88,7 @@ const stripe = require('stripe')(process.env.STRIPE_SECRET_KEY);
       mode: 'payment',
       success_url: `${url_de_retour}panier?checkout=1&session_id={CHECKOUT_SESSION_ID}&visite=${payer_visite}&acompte=${payer_acompte}`,
       cancel_url: `${url_de_retour}panier?checkout=-1&visite=${payer_visite}&acompte=${payer_acompte}`,
-      metadata: { liste_devis: liste_devis.map(devis => devis.ID).join(",") }, // Stocker les IDs sous forme de chaîne
+      metadata: { liste_devis: liste_devis.map(devis => devis.ID).join(","), projet_id:projet_id, id_paiement:id_paiement }, // Stocker les IDs sous forme de chaîne
     });
 
     res.json({ url: session.url });

@@ -325,6 +325,7 @@ router.post("/update_project_status", async (req, res) => {
     travaux_livres,
     gpa_termine,
     notes_remarques,
+    lien_fichier_compte_rendu,
     Date_de_fin_des_travaux,
     Date_de_fin_gpa,
     Date_paiement_visite,
@@ -391,6 +392,8 @@ router.post("/update_project_status", async (req, res) => {
         updateFields2.DateVisiteFaite = date_visite_faite;
       }
       updateFields2.Faite = visite_faite;
+      updateFields2.Commentaire = notes_remarques;
+      updateFields2.Lien_compte_rendu = lien_fichier_compte_rendu;
 
       if (Date_programmation_visite) {
         updateFields2.DateDeProgrammation = Date_programmation_visite;
