@@ -99,6 +99,26 @@ router.get('/get_equipements_gammes', async (req, res) => {
   }
 });
 
+
+router.get('/get_equipements_gammes_de_ref', async (req, res) => {
+  try {
+    const listeIds = [2, 7, 13, 15, 16, 12]; // tes IDs Travail
+
+    const equipements_gammes = await Gamme.findAll({
+      where: {
+        TravailID: {
+          [Op.in]: listeIds
+        },
+        FournisseurID:null,
+        ArtisanID:null
+      }
+    });
+    res.status(200).json(equipements_gammes);
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
 router.get('/get_gamme/:id', async (req, res) => {
   try {
     const gamme = await Gamme.findByPk(req.params.id);
@@ -112,26 +132,42 @@ router.get('/get_gamme/:id', async (req, res) => {
   }
 });
 
+
 router.put('/update_gamme/:id', async (req, res) => {
   try {
+
+    
+    const gamme = await Gamme.findByPk(Number(req.params.id));
+    if (!gamme) {
+      return res.status(404).json({ error: 'Gamme not found' });
+    }
+
     const dataToUpdate = { ...req.body };
 
-// Forcer explicitement null si FournisseurID ou GammeDeReferenceID ne sont pas valides (> 0)
-dataToUpdate.FournisseurID = (dataToUpdate.FournisseurID > 0) ? dataToUpdate.FournisseurID : null;
-dataToUpdate.GammeDeReferenceID = (dataToUpdate.GammeDeReferenceID > 0) ? dataToUpdate.GammeDeReferenceID : null;
+       console.log('update gamme',req.params.id)
+    console.log('dataToUpdate',dataToUpdate)
 
-// Mise à jour de la Gamme
-const [updated] = await Gamme.update(dataToUpdate, {
-  where: { ID: req.params.id }
-});
-    if (updated) {
-      const updatedGamme = await Gamme.findByPk(req.params.id);
-      res.status(200).json(updatedGamme);
-    } else {
-      res.status(404).json({ error: 'Gamme not found' });
+     // --- Prix = somme des PrixMultiples s'ils existent ---
+    const multiples = Array.isArray(dataToUpdate.PrixMultiples)
+      ? dataToUpdate.PrixMultiples
+      : [];
+
+    if (multiples.length > 0) {
+      dataToUpdate.Prix = multiples.reduce(
+        (sum, item) => sum + (Number(item.prix) || 0),
+        0
+      );
     }
+
+
+    dataToUpdate.FournisseurID      = (dataToUpdate.FournisseurID > 0)      ? dataToUpdate.FournisseurID      : null;
+    dataToUpdate.GammeDeReferenceID = (dataToUpdate.GammeDeReferenceID > 0) ? dataToUpdate.GammeDeReferenceID : null;
+
+    await gamme.update(dataToUpdate);
+
+    return res.status(200).json(gamme);
   } catch (error) {
-    res.status(500).json({ error: error.message });
+    return res.status(500).json({ error: error.message });
   }
 });
 
@@ -198,12 +234,22 @@ router.get('/get_artisans_fournisseurs_by_refID/:refId/:type', async (req, res) 
     console.log('roleId',roleId)
     console.log('type',type)
     console.log('alias',alias)
+    let whereclause;
 
-    const gammes = await Gamme.findAll({
-      where: {
+    if (type === 'artisan') {
+      whereclause = {
+        GammeDeReferenceID: refId,
+        ActiverArtisan: 1
+      }
+    } else if (type === 'fournisseur') {
+      whereclause = {
         GammeDeReferenceID: refId,
         ActiverFournisseur: 1
-      },
+      }
+    }
+
+    const gammes = await Gamme.findAll({
+      where: whereclause,
       include: [
         {
           model: Utilisateur,
@@ -255,13 +301,24 @@ router.get('/get_artisans_fournisseurs_modeles_by_refID/:refID/:type', async (re
     console.log('type',type)
     console.log('alias',alias)
 
+    let whereclause 
+
+    if (type === 'artisan') {
+      whereclause = {
+        ModeleDeReferenceID: refID,
+        ActiverArtisan: 1
+      }
+    } else if (type === 'fournisseur') {
+      whereclause = {
+        ModeleDeReferenceID: refID,
+        ActiverFournisseur: 1
+      }
+    } 
+
     
 
     const modeles = await ModeleEquipement.findAll({
-      where: {
-        ModeleDeReferenceID: refID,
-        ActiverFournisseur: 1
-      },
+      where: whereclause,
       include: [
         {
           model: Utilisateur,

@@ -79,6 +79,12 @@ const Gamme = sequelize.define('Gamme', {
     defaultValue: false,
     allowNull: true,
   },
+   ActiverArtisan: { 
+    type: DataTypes.BOOLEAN, 
+    field: 'ActiverArtisan', // Specifies the column name explicitly
+    defaultValue: false,
+    allowNull: true,
+  },
   FournisseurID: {
     type: DataTypes.INTEGER,
     field: 'FournisseurID', // Specifies the column name explicitly

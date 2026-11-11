@@ -601,7 +601,7 @@ router.delete('/delete_travail/:id', async (req, res) => {
 // Endpoint pour ajouter un nouveau modèle d'équipement
 router.post('/add_modele_equipement', async (req, res) => {
   try {
-    const { Titre, Description, Image,PrixFournisseur,PrixPose, Prix,Longeur, Largeur, Hauteur, Epaisseur,NombreDeVasques,Etape, Matiere, EquipementID,ActiverFournisseur,FournisseurID,ModeleDeReferenceID } = req.body;
+    const { Titre, Description, Image,PrixFournisseur,PrixPose, Prix,Longeur, Largeur, Hauteur, Epaisseur,NombreDeVasques,Etape, Matiere, EquipementID,ActiverFournisseur,FournisseurID,ActiverArtisan,ArtisanID,ModeleDeReferenceID } = req.body;
 
     // Création du modèle d'équipement dans la base de données
     const newModeleEquipement = await ModeleEquipement.create({
@@ -618,7 +618,12 @@ router.post('/add_modele_equipement', async (req, res) => {
       Etape,
       NombreDeVasques,
       Matiere,
-      EquipementID,ActiverFournisseur,FournisseurID,ModeleDeReferenceID
+      EquipementID,
+      ActiverFournisseur,
+      FournisseurID,
+      ActiverArtisan,
+      ArtisanID,
+      ModeleDeReferenceID
     });
 
     res.status(201).json(newModeleEquipement);
@@ -663,6 +668,8 @@ router.put('/update_modele_equipement/:id', async (req, res) => {
       modele.ModeleDeReferenceID = req.body.ModeleDeReferenceID;
       modele.FournisseurID = req.body.FournisseurID;
       modele.ActiverFournisseur = req.body.ActiverFournisseur;
+      modele.ArtisanID = req.body.ArtisanID;
+      modele.ActiverArtisan = req.body.ActiverArtisan;
       modele.EquipementID = req.body.EquipementID;
 
       // Mise à jour de l'image uniquement si elle est fournie dans req.body

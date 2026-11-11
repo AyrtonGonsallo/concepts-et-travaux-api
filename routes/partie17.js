@@ -50,6 +50,7 @@ router.post('/export_gammes', async (req, res) => {
       TravailID: gamme.TravailID,
       ActiverPrixMultiples: gamme.ActiverPrixMultiples,
       ActiverFournisseur: gamme.ActiverFournisseur,
+      ActiverArtisan: gamme.ActiverArtisan,
       FournisseurID: gamme.FournisseurID,
       ArtisanID: gamme.ArtisanID,
       GammeDeReferenceID:gamme.GammeDeReferenceID,
@@ -210,7 +211,7 @@ router.get('/download_modele_gammes_artisan/:artisan_id', async (req, res) => {
       TravailID: gamme.TravailID,
       ArtisanID: artisan_id,
       GammeDeReferenceID:gamme.ID,
-      ActiverFournisseur: true,
+      ActiverArtisan: true,
     }));
 
     // 3. Créer feuille Excel
@@ -334,6 +335,7 @@ router.post('/import_gammes', upload.single('file'), async (req, res) => {
             TravailID: row.TravailID,
             ActiverPrixMultiples: row.ActiverPrixMultiples === true || row.ActiverPrixMultiples === 'true',
             ActiverFournisseur: row.ActiverFournisseur === true || row.ActiverFournisseur === 'true',
+            ActiverArtisan: row.ActiverArtisan === true || row.ActiverArtisan === 'true',
             GammeDeReferenceID: row.GammeDeReferenceID || null,
             FournisseurID: row.FournisseurID || null,
             ArtisanID: row.ArtisanID || null
@@ -351,6 +353,7 @@ router.post('/import_gammes', upload.single('file'), async (req, res) => {
             TravailID: row.TravailID,
             ActiverPrixMultiples: row.ActiverPrixMultiples === true || row.ActiverPrixMultiples === 'true',
             ActiverFournisseur: row.ActiverFournisseur === true || row.ActiverFournisseur === 'true',
+            ActiverArtisan: row.ActiverArtisan === true || row.ActiverArtisan === 'true',
             FournisseurID: row.FournisseurID || null,
             ArtisanID: row.ArtisanID || null,
             GammeDeReferenceID: row.GammeDeReferenceID || null,
@@ -369,6 +372,7 @@ router.post('/import_gammes', upload.single('file'), async (req, res) => {
           TravailID: row.TravailID,
           ActiverPrixMultiples: row.ActiverPrixMultiples === true || row.ActiverPrixMultiples === 'true',
           ActiverFournisseur: row.ActiverFournisseur === true || row.ActiverFournisseur === 'true',
+          ActiverArtisan: row.ActiverArtisan === true || row.ActiverArtisan === 'true',
           FournisseurID: row.FournisseurID || null,
           ArtisanID: row.ArtisanID || null,
           GammeDeReferenceID: row.GammeDeReferenceID || null,
@@ -426,6 +430,7 @@ router.post('/export_modeles_equipement', async (req, res) => {
       Matiere: modele.Matiere,
       EquipementID: modele.EquipementID,
       ActiverFournisseur: modele.ActiverFournisseur,
+      ActiverArtisan: modele.ActiverArtisan,
       FournisseurID: modele.FournisseurID,
       ArtisanID: modele.ArtisanID,
       ModeleDeReferenceID: modele.ModeleDeReferenceID,

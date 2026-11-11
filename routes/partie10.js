@@ -107,6 +107,30 @@ router.get('/get_modeles_equipement', async (req, res) => {
   }
 });
 
+
+// GET all
+router.get('/get_modeles_equipement_de_ref', async (req, res) => {
+  try {
+    const modeles = await ModeleEquipement.findAll({
+       where: {
+        FournisseurID:null,
+        ArtisanID:null
+      },
+      include: [
+        {
+          model: Equipement,
+          as: 'Equipement'
+        }
+      ]
+    });
+
+    res.status(200).json(modeles);
+  } catch (error) {
+    console.error('Erreur lors de la récupération des modèles :', error);
+    res.status(500).json({ error: 'Erreur serveur' });
+  }
+});
+
 router.get('/get_prix_devis_piece/:id', async (req, res) => {
   const devisId = req.params.id;
 
