@@ -210,7 +210,8 @@ router.get('/get_equipements_by_piece/:pid', async (req, res) => {
           model: ModeleEquipement,
           as: 'Modeles',
           where: {
-            ActiverFournisseur: 0
+            ActiverFournisseur: false,
+            ActiverArtisan:false,
           },
           required: false
         }
@@ -240,7 +241,8 @@ router.get('/get_equipements_by_type/:type', async (req, res) => {
           model: ModeleEquipement,
           as: 'Modeles', // ⚠️ il faut l'alias défini dans la relation
           where: {
-            ActiverFournisseur: 0
+            ActiverFournisseur: false,
+            ActiverArtisan:false,
           },
           required: false
         },

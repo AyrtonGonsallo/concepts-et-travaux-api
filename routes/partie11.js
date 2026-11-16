@@ -74,7 +74,56 @@ router.get('/get_gammes_sans_equipements', async (req, res) => {
         TravailID: {
           [Op.notIn]: listeIds
         }
-      }
+      },
+      
+      include: [
+        {
+          model: Utilisateur,
+          as: 'Fournisseur',
+          attributes: ['Nom', 'Prenom'],
+          required: false
+        },
+        {
+          model: Utilisateur,
+          as: 'Artisan',
+          attributes: ['Nom', 'Prenom'],
+          required: false
+        }
+      ]
+    });
+    res.status(200).json(gammes);
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+
+router.get('/get_gammes_sans_equipements_de_ref', async (req, res) => {
+  try {
+    const listeIds = [2, 7, 13, 15, 16, 12]; // tes IDs Travail
+    const gammes = await Gamme.findAll({
+      where: {
+        TravailID: {
+          [Op.notIn]: listeIds
+        },
+        ActiverFournisseur:false,
+        ActiverArtisan:false,
+      },
+      
+      include: [
+        {
+          model: Utilisateur,
+          as: 'Fournisseur',
+          attributes: ['Nom', 'Prenom'],
+          required: false
+        },
+        {
+          model: Utilisateur,
+          as: 'Artisan',
+          attributes: ['Nom', 'Prenom'],
+          required: false
+        }
+      ]
     });
     res.status(200).json(gammes);
   } catch (error) {
@@ -91,7 +140,21 @@ router.get('/get_equipements_gammes', async (req, res) => {
         TravailID: {
           [Op.in]: listeIds
         }
-      }
+      },
+      include: [
+        {
+          model: Utilisateur,
+          as: 'Fournisseur',
+          attributes: ['Nom', 'Prenom'],
+          required: false
+        },
+        {
+          model: Utilisateur,
+          as: 'Artisan',
+          attributes: ['Nom', 'Prenom'],
+          required: false
+        }
+      ]
     });
     res.status(200).json(equipements_gammes);
   } catch (error) {
@@ -196,7 +259,8 @@ router.get('/get_gammes_by_type_and_travailID/:tid/:type', async (req, res) => {
       where: {
         TravailID: tid,
         Type: type,
-        ActiverFournisseur:false
+        ActiverFournisseur:false,
+        ActiverArtisan:false,
       },
       order: [
         ['Ordre', 'ASC'], // Tri par Titre en ordre croissant
@@ -351,7 +415,8 @@ router.get('/get_ordered_gammes_by_type_and_travailID/:tid/:type', async (req, r
       where: {
         TravailID: tid,
         Type: type,
-        ActiverFournisseur:false
+        ActiverFournisseur:false,
+        ActiverArtisan:false,
       },
       order: [
         ['Ordre', 'ASC'], // Tri par Titre en ordre croissant
