@@ -2,6 +2,7 @@ const express = require('express');
 const router = express.Router();
 const Gamme=require('../Gamme')
 const ModeleEquipement=require('../ModeleEquipement')
+const Utilisateur=require('../Utilisateur')
 const multer = require('multer');
 const Equipement=require('../Equipement')
 const xlsx = require('xlsx');
@@ -319,6 +320,67 @@ router.get('/get_artisan_gammes_sans_equipements/:artisan_id', async (req, res) 
 });
 
 
+router.get('/get_fournisseur_gammes_sans_equipements_by_ref_id/:ref_id', async (req, res) => {
+  try {
+    const listeIds = [2, 7, 13, 15, 16, 12]; // tes IDs Travail
+    const gammes = await Gamme.findAll({
+      where: {
+        TravailID: {
+          [Op.notIn]: listeIds
+        },
+        ActiverFournisseur:true,
+        GammeDeReferenceID:req.params.ref_id
+      },
+      include: [
+        {
+          model: Utilisateur,
+          as: 'Fournisseur',
+          where: {
+            RoleId: 15
+          },
+          required: true
+        },
+        
+      ]
+    });
+    res.status(200).json(gammes);
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+
+router.get('/get_artisan_gammes_sans_equipements_by_ref_id/:ref_id', async (req, res) => {
+  try {
+  
+    const listeIds = [2, 7, 13, 15, 16, 12]; // tes IDs Travail
+    const gammes = await Gamme.findAll({
+      where: {
+        TravailID: {
+          [Op.notIn]: listeIds
+        },
+        ActiverArtisan:true,
+        GammeDeReferenceID:req.params.ref_id
+      },
+      include: [
+        {
+          model: Utilisateur,
+          as: 'Artisan',
+          where: {
+            RoleId: 17
+          },
+          required: true
+        },
+        
+      ]
+    });
+    res.status(200).json(gammes);
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+
 router.get('/get_fournisseur_gammes_sans_equipements/:fournisseur_id', async (req, res) => {
   try {
      const { fournisseur_id } = req.params;
@@ -386,5 +448,121 @@ router.get('/get_artisans_modeles_equipement/:artisan_id', async (req, res) => {
   }
   
 });
+
+
+
+
+router.get('/get_fournisseurs_modeles_equipement_by_ref_id/:ref_id', async (req, res) => {
+  try {
+    const { ref_id } = req.params;
+    const modeles = await ModeleEquipement.findAll({
+      where: {
+        ModeleDeReferenceID:ref_id,
+        ActiverFournisseur:true,
+      },
+      include: [
+        {
+          model: Equipement,
+          as: 'Equipement'
+        },
+        { model: Utilisateur, as: 'Fournisseur' },
+        { model: Utilisateur, as: 'Artisan' }
+      ]
+    });
+
+    res.status(200).json(modeles);
+  } catch (error) {
+    console.error('Erreur lors de la récupération des modèles :', error);
+    res.status(500).json({ error: 'Erreur serveur' });
+  }
+  
+});
+
+router.get('/get_artisans_modeles_equipement_by_ref_id/:ref_id', async (req, res) => {
+  try {
+    const { ref_id } = req.params;
+    const modeles = await ModeleEquipement.findAll({
+      where: {
+        ModeleDeReferenceID:ref_id,
+        ActiverArtisan:true,
+      },
+      include: [
+        {
+          model: Equipement,
+          as: 'Equipement'
+        },
+        { model: Utilisateur, as: 'Fournisseur' },
+        { model: Utilisateur, as: 'Artisan' }
+      ]
+    });
+
+    res.status(200).json(modeles);
+  } catch (error) {
+    console.error('Erreur lors de la récupération des modèles :', error);
+    res.status(500).json({ error: 'Erreur serveur' });
+  }
+  
+});
+
+// DELETE /modeles-equipements/delete-many
+router.delete('/modeles-equipements/delete-many', async (req, res) => {
+  try {
+    const { ids } = req.body;
+
+    if (!Array.isArray(ids) || ids.length === 0) {
+      return res.status(400).json({ message: 'Aucun ID fourni.' });
+    }
+
+    const supprimes = await ModeleEquipement.destroy({
+      where: {
+        ID: { [Op.in]: ids }
+      }
+    });
+
+    return res.status(200).json({
+      message: `${supprimes} modèle(s) supprimé(s).`,
+      count: supprimes
+    });
+  } catch (error) {
+    console.error(error);
+    return res.status(500).json({ message: 'Erreur lors de la suppression.' });
+  }
+});
+
+
+// DELETE /gammes/delete-many
+router.delete('/gammes/delete-many', async (req, res) => {
+  try {
+    const { ids } = req.body;
+
+    if (!Array.isArray(ids) || ids.length === 0) {
+      return res.status(400).json({ message: 'Aucun ID fourni.' });
+    }
+
+    const supprimes = await Gamme.destroy({
+      where: {
+        ID: { [Op.in]: ids }
+      }
+    });
+
+    return res.status(200).json({
+      message: `${supprimes} gamme(s) supprimée(s).`,
+      count: supprimes
+    });
+  } catch (error) {
+    console.error(error);
+    return res.status(500).json({ message: 'Erreur lors de la suppression.' });
+  }
+});
+
+
+
+
+
+
+
+
+
+
 
 module.exports = router;

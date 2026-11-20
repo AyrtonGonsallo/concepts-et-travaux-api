@@ -96,7 +96,9 @@ router.get('/get_modeles_equipement', async (req, res) => {
         {
           model: Equipement,
           as: 'Equipement'
-        }
+        },
+        { model: Utilisateur, as: 'Fournisseur' },
+        { model: Utilisateur, as: 'Artisan' }
       ]
     });
 
@@ -120,7 +122,9 @@ router.get('/get_modeles_equipement_de_ref', async (req, res) => {
         {
           model: Equipement,
           as: 'Equipement'
-        }
+        },
+        { model: Utilisateur, as: 'Fournisseur' },
+        { model: Utilisateur, as: 'Artisan' }
       ]
     });
 

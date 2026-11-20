@@ -182,6 +182,66 @@ router.get('/get_equipements_gammes_de_ref', async (req, res) => {
   }
 });
 
+router.get('/get_equipements_gammes_artisans_by_ref_id/:ref_id', async (req, res) => {
+  try {
+    const listeIds = [2, 7, 13, 15, 16, 12]; // tes IDs Travail
+
+    const equipements_gammes = await Gamme.findAll({
+      where: {
+        TravailID: {
+          [Op.in]: listeIds
+        },
+        ActiverArtisan:true,
+        GammeDeReferenceID:req.params.ref_id
+      },
+      include: [
+        {
+          model: Utilisateur,
+          as: 'Artisan',
+          where: {
+            RoleId: 17
+          },
+          required: true
+        },
+        
+      ]
+    });
+    res.status(200).json(equipements_gammes);
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+router.get('/get_equipements_gammes_fournisseurs_by_ref_id/:ref_id', async (req, res) => {
+  try {
+    const listeIds = [2, 7, 13, 15, 16, 12]; // tes IDs Travail
+
+    const equipements_gammes = await Gamme.findAll({
+      where: {
+        TravailID: {
+          [Op.in]: listeIds
+        },
+        ActiverFournisseur:true,
+        GammeDeReferenceID:req.params.ref_id
+      },
+      include: [
+        {
+          model: Utilisateur,
+          as: 'Fournisseur',
+          where: {
+            RoleId: 15
+          },
+          required: true
+        },
+        
+      ]
+    });
+    res.status(200).json(equipements_gammes);
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
 router.get('/get_gamme/:id', async (req, res) => {
   try {
     const gamme = await Gamme.findByPk(req.params.id);
